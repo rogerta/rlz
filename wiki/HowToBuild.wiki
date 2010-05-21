@@ -1,0 +1,31 @@
+#summary This page contains detailed information on building RLZ on Windows
+
+= Build environment =
+
+RLZ uses the same build environment as Chromium.  Follow the instructions in the section [http://www.chromium.org/developers/how-tos/build-instructions-windows#TOC-Build-environment Build Environment], up to and including the step "Get the Chromium depot_tools".
+
+Do not checkout the Chromium code.
+
+= Checking out the RLZ code =
+
+Open a Command Prompt window and execute the following commands:
+
+{{{
+C:
+mkdir \src\RLZ
+cd \src\RLZ
+gclient config http://rlz.googlecode.com/svn/trunk/ --name src/rlz
+gclient sync
+}}}
+
+The last command may take a few minutes to complete, depending on the speed of your Internet connection.
+
+At any time re-run the {{{gclient sync}}} command to checkout the latest revision of the RLZ code.
+
+= Building the RLZ code =
+
+{{{gclient sync}}} creates a Visual Studio solution file called {{{C:\src\RLZ\src\rlz\rlz.sln}}} for the entire RLZ project.  To build, either open this solution in the Visual Studio IDE or run the following command in a Command Prompt window:
+
+{{{devenv /build Debug rlz.sln /project rlz_unittests.vcproj}}}
+
+Run {{{C:\src\RLZ\src\rlz\Debug\rlz_unittests.exe}}} and make sure all tests pass.
