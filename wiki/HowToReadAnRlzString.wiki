@@ -1,0 +1,13 @@
+#summary How to interpret the parts of an RLZ parameter string
+
+An RLZ URL parameter is a string consisting of many parts:
+
+http://rlz.googlecode.com/files/rlz_exploded.png
+
+  * *rlz encoding* is at version 1 as of Sept 2007, but this will be incremented each time the encoding scheme changes.
+  * *application* T=Toolbar, B=Firefox Toolbar, D=Desktop (authoritative list in the [http://code.google.com/p/rlz/source/browse/trunk/win/lib/lib_values.cc source code]) With one digit for major version.
+  * *brand code* identifies distribution channel, may be a partner or internal marketing. This correlates to how the user got the software (ie. they downloaded it by itself vs. it came pre-installed on their new computer vs. it came with a partner's software).
+  * *cannibal* tells if the library has evidence that the user was a user prior to installing the software. It's from the term "cannibalization" which refers to the fact that users who get client products through distribution were already loyal customers, thus impacting the actual incremental value of the channel.
+  * *language* is the two- (en) or five-character (zh-CN) language code of the application. Valid values depend on the specific app.
+  * *install cohort* is the country and week of the user's installation event. Country is determined by the server, using IP address. Week is measured as number of weeks since Feb 3, 2003. It's used to measure attrition rate and is used in ROI and accounting analyses.
+  * *first search cohort* is just like install cohort, but for first search event. They're both called "life cycle events".
