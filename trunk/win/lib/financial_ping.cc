@@ -214,8 +214,8 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
   uint64 last_ping;
   DWORD size;
   DWORD type;
-  if (!ReadFromRegistry(user_key.Get(), key_location.c_str(),
-                        GetProductName(product), &last_ping, &size, &type))
+  RegKey key(user_key.Get(), key_location.c_str());
+  if (!key.ReadValue(GetProductName(product), &last_ping, &size, &type))
     return true;
 
   VERIFY(REG_QWORD == type);
@@ -253,8 +253,8 @@ bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
   std::wstring key_location;
   StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
 
-  return AddToRegistry(user_key.Get(), key_location.c_str(),
-                       GetProductName(product), &now, sizeof(now), REG_QWORD);
+  RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
+  return key.WriteValue(GetProductName(product), &now, sizeof(now), REG_QWORD);
 }
 
 
@@ -271,13 +271,13 @@ bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
   StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
 
   const wchar_t* value_name = GetProductName(product);
-  DeleteFromRegistry(user_key.Get(), key_location.c_str(), value_name);
+  RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
+  key.DeleteValue(value_name);
 
   // Verify deletion.
   uint64 value;
   DWORD size = sizeof(value);
-  if (ReadFromRegistry(user_key.Get(), key_location.c_str(), value_name,
-                       &value, &size)) {
+  if (key.ReadValue(value_name, &value, &size)) {
     ASSERT_STRING("FinancialPing::ClearLastPingTime: Failed to delete value.");
     return false;
   }

@@ -4,31 +4,31 @@
 
 deps = {
   "src/base":
-    "http://src.chromium.org/svn/trunk/src/base@46458",
+    "http://src.chromium.org/svn/trunk/src/base@48824",
 
   "src/build":
-    "http://src.chromium.org/svn/trunk/src/build@46458",
+    "http://src.chromium.org/svn/trunk/src/build@48824",
 
   "src/third_party/icu":
     "http://src.chromium.org/svn/trunk/deps/third_party/icu42@43139",
 
   "src/third_party/modp_b64":
-    "http://src.chromium.org/svn/trunk/src/third_party/modp_b64@46458",
+    "http://src.chromium.org/svn/trunk/src/third_party/modp_b64@48824",
 
   "src/third_party/nss":
     "http://src.chromium.org/svn/trunk/deps/third_party/nss@45059",
 
   "src/third_party/sqlite":
-    "http://src.chromium.org/svn/trunk/src/third_party/sqlite@46458",
+    "http://src.chromium.org/svn/trunk/src/third_party/sqlite@48824",
 
   "src/third_party/wtl":
-    "http://src.chromium.org/svn/trunk/src/third_party/wtl@46458",
+    "http://src.chromium.org/svn/trunk/src/third_party/wtl@48824",
 
   "src/third_party/zlib":
-    "http://src.chromium.org/svn/trunk/src/third_party/zlib@46458",
+    "http://src.chromium.org/svn/trunk/src/third_party/zlib@48824",
 
   "src/testing":
-    "http://src.chromium.org/svn/trunk/src/testing@46458",
+    "http://src.chromium.org/svn/trunk/src/testing@48824",
 
   "src/testing/gtest":
     "http://googletest.googlecode.com/svn/trunk@408",

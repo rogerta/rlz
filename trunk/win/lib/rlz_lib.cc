@@ -75,16 +75,17 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
       return true;  // Key does not exist - nothing to do.
 
     RegistryKeyIterator key_iter(root_key, key_name);
-    if (!key_iter.Valid() || key_iter.SubkeyCount() > 0)
+    if (key_iter.SubkeyCount() > 0)
       return true;  // Not empty, so nothing to do
 
     RegistryValueIterator value_iter(root_key, key_name);
-    if (!value_iter.Valid() || value_iter.ValueCount() > 0)
+    if (value_iter.ValueCount() > 0)
       return true;  // Not empty, so nothing to do
   }
 
   // The key is empty - delete it now.
-  return DeleteFromRegistry(root_key, key_name, NULL);
+  RegKey key(root_key, L"", KEY_WRITE);
+  return key.DeleteKey(key_name);
 }
 
 // Current RLZ can only uses [a-zA-Z0-9_\-]
@@ -223,8 +224,8 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
                 event_name_wide.c_str());
   DWORD data = 1;
 
-  if (!AddToRegistry(user_key.Get(), key_name.c_str(), new_event_value.c_str(),
-                     &data, sizeof(data), REG_DWORD)) {
+  RegKey key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  if (!key.WriteValue(new_event_value.c_str(), data)) {
     ASSERT_STRING(
         "RecordStatefulEvent: Could not write the new stateful event");
     return false;
@@ -307,7 +308,8 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
   if (!product_name)
     return false;
 
-  DeleteKeyFromRegistry(user_key.Get(), key_name.c_str(), product_name);
+  RegKey reg_key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  reg_key.DeleteKey(product_name);
 
   // Verify that the value no longer exists.
   StringAppendF(&key_name, L"\\%ls", product_name);
@@ -378,9 +380,8 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
                 kStatefulEventsSubkeyName, product_name);
 
   DWORD value;
-  DWORD size = sizeof(value);
-  if (ReadFromRegistry(user_key.Get(), stateful_key_name.c_str(),
-                       new_event_value.c_str(), &value, &size)) {
+  RegKey key(user_key.Get(), stateful_key_name.c_str());
+  if (key.ReadValueDW(new_event_value.c_str(), &value)) {
     // For a stateful event we skip recording, this function is also
     // considered successful.
     return true;
@@ -392,9 +393,8 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
 
   // Write the new event to registry.
   value = 1;
-  size = sizeof(value);
-  if (!AddToRegistry(user_key.Get(), key_name.c_str(), new_event_value.c_str(),
-                     &value, size, REG_DWORD)) {
+  RegKey reg_key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  if (!reg_key.WriteValue(new_event_value.c_str(), value)) {
     ASSERT_STRING("RecordProductEvent: Could not write the new event value");
     return false;
   }
@@ -434,13 +434,12 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event,
   std::wstring event_value;
   StringAppendF(&event_value, L"%ls%ls", point_name_wide.c_str(),
                 event_name_wide.c_str());
-  DeleteFromRegistry(user_key.Get(), key_name.c_str(), event_value.c_str());
+  RegKey key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  key.DeleteValue(event_value.c_str());
 
   // Verify deletion.
   DWORD value;
-  DWORD size = sizeof(value);
-  if (ReadFromRegistry(user_key.Get(), key_name.c_str(), event_value.c_str(),
-                       &value, &size)) {
+  if (key.ReadValueDW(event_value.c_str(), &value)) {
     ASSERT_STRING("ClearProductEvent: Could not delete the event value.");
     return false;
   }
@@ -524,16 +523,26 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
 
   DWORD size = rlz_size;
   DWORD type;
-  if (!ReadFromRegistry(user_key, rlzs_key_name.c_str(),
-                        ASCIIToWide(access_point_name).c_str(), rlz, &size,
-                        &type)) {
+  RegKey key(user_key, rlzs_key_name.c_str());
+  if (!key.ReadValue(ASCIIToWide(access_point_name).c_str(), rlz, &size,
+                     &type)) {
     rlz[0] = 0;
     if (size > rlz_size) {
       ASSERT_STRING("GetAccessPointRlz: Insufficient buffer size");
       return false;
     }
   } else {
-    VERIFY(type == REG_BINARY);
+    // To handle backward compatibility with older RLZ versions, if the type
+    // is REG_SZ, then covert the returned string from unicode to ascii.
+    if (type == REG_SZ) {
+      const std::wstring unicode_rlz(reinterpret_cast<const wchar_t*>(rlz));
+      const std::string ascii_rlz(WideToASCII(unicode_rlz));
+
+      strncpy(rlz, ascii_rlz.c_str(), rlz_size);
+      rlz[rlz_size - 1] = 0;
+    } else {
+      VERIFY(type == REG_BINARY);
+    }
   }
 
   return true;
@@ -588,24 +597,21 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz,
     return false;
 
   std::wstring access_point_name_wide(ASCIIToWide(access_point_name));
+  RegKey key(user_key.Get(), rlzs_key_name.c_str(), KEY_WRITE);
 
   if (normalized_rlz[0] == 0) {
     // Setting RLZ to empty == clearing. Delete the registry value.
-    DeleteFromRegistry(user_key.Get(), rlzs_key_name.c_str(),
-                       access_point_name_wide.c_str());
+    key.DeleteValue(access_point_name_wide.c_str());
 
     // Verify deletion.
     DWORD value;
-    DWORD value_len;
-    if (ReadFromRegistry(user_key.Get(), rlzs_key_name.c_str(),
-                         access_point_name_wide.c_str(), &value, &value_len)) {
+    if (key.ReadValueDW(access_point_name_wide.c_str(), &value)) {
       ASSERT_STRING("SetAccessPointRlz: Could not clear the RLZ value.");
       return false;
     }
   } else {
     DWORD rlz_size_with_null = rlz_length + 1;
-    if (!AddToRegistry(user_key.Get(), rlzs_key_name.c_str(),
-                       access_point_name_wide.c_str(),
+    if (!key.WriteValue(access_point_name_wide.c_str(),
                        normalized_rlz, rlz_size_with_null)) {
       ASSERT_STRING("SetAccessPointRlz: Could not write the new RLZ value");
       return false;
@@ -1045,8 +1051,8 @@ void ClearProductState(Product product, const AccessPoint* access_points,
     kPingTimesSubkeyName
   };
 
-  std::wstring subkey_name;
   for (int i = 0; i < arraysize(subkeys); i++) {
+    std::wstring subkey_name;
     StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
     VERIFY(DeleteKeyIfEmpty(user_key.Get(), subkey_name.c_str()));
   }
