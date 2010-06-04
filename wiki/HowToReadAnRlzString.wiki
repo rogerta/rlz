@@ -11,3 +11,17 @@ http://rlz.googlecode.com/files/rlz_exploded.png
   * *language* is the two- (en) or five-character (zh-CN) language code of the application. Valid values depend on the specific app.
   * *install cohort* is the country and week of the user's installation event. Country is determined by the server, using IP address. Week is measured as number of weeks since Feb 3, 2003. It's used to measure attrition rate and is used in ROI and accounting analyses.
   * *first search cohort* is just like install cohort, but for first search event. They're both called "life cycle events".
+
+
+Other specifics of RLZ parameter strings:
+  *  *rlz encoding*, *application*, *brand code*, *language*, and *install cohort* are the required fields, and are the minimum that will appear in an RLZ string.
+    *  An underscore where the *cannibal* signal should be indicates that this is not a cannibalization.
+    *  *first search cohort* may not appear.  If only one 'cohort' value appears in a string, it must be the *install cohort*
+  *  The *brand code* can be any four alphabetic characters, all upper-case.  There is not exhaustive enumeration, as this can be any four-alphabetic-character value you want.
+  *  The only *rlz encoding* value at this time is "1".
+
+For example, if the string reads:
+
+rlz=1T4ADBR_enUS236
+
+This means this installation was not a cannibalization and is not (yet) part of a first-search cohort.
