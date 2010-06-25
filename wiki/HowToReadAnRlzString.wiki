@@ -23,7 +23,7 @@ Other specifics of RLZ parameter strings:
 For example, if the string reads:
 
 {{{
-rlz=1T4ADBR_enUS236
+rlz=1T4AAAA_enUS236
 }}}
 
 This means this installation was not a cannibalization and is not (yet) part of a first-search cohort.
@@ -31,6 +31,6 @@ This means this installation was not a cannibalization and is not (yet) part of 
 In a very small number of cases, if network or registry key interactions fail, the install cohort will be replaced by underscores, as so:
 
 {{{
-rlz=1T4ADBR_en_____US239
+rlz=1T4AAAA_en_____US239
 }}}
 These instances are rare, however.
