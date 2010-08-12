@@ -70,7 +70,7 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
     ASSERT_STRING("DeleteKeyIfEmpty: key_name is NULL");
     return false;
   } else {  // Scope needed for RegKey
-    RegKey key(root_key, key_name);
+    RegKey key(root_key, key_name, KEY_READ);
     if (!key.Valid())
       return true;  // Key does not exist - nothing to do.
 
@@ -254,7 +254,7 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
   std::wstring key_name;
   StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
                 rlz_lib::kEventsSubkeyName, product_name);
-  RegKey events(user_key, key_name.c_str());
+  RegKey events(user_key, key_name.c_str(), KEY_READ);
   if (!events.Valid())
     return ERROR_PATH_NOT_FOUND;
 
@@ -313,7 +313,7 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
 
   // Verify that the value no longer exists.
   StringAppendF(&key_name, L"\\%ls", product_name);
-  RegKey product_events(user_key.Get(), key_name.c_str());
+  RegKey product_events(user_key.Get(), key_name.c_str(), KEY_READ);
   if (product_events.Valid()) {
     ASSERT_STRING("ClearAllProductEvents: Key deletion failed");
     return false;
@@ -380,7 +380,7 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
                 kStatefulEventsSubkeyName, product_name);
 
   DWORD value;
-  RegKey key(user_key.Get(), stateful_key_name.c_str());
+  RegKey key(user_key.Get(), stateful_key_name.c_str(), KEY_READ);
   if (key.ReadValueDW(new_event_value.c_str(), &value)) {
     // For a stateful event we skip recording, this function is also
     // considered successful.
@@ -523,7 +523,7 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
 
   DWORD size = rlz_size;
   DWORD type;
-  RegKey key(user_key, rlzs_key_name.c_str());
+  RegKey key(user_key, rlzs_key_name.c_str(), KEY_READ);
   if (!key.ReadValue(ASCIIToWide(access_point_name).c_str(), rlz, &size,
                      &type)) {
     rlz[0] = 0;
