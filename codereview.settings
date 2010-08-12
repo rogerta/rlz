@@ -1,0 +1,5 @@
+#This file is used by gcl to get repository specific information.
+CODE_REVIEW_SERVER: codereview.appspot.com
+CC_LIST: rlz-codereviews@googlegroups.com
+VIEW_VC: http://code.google.com/p/rlz/source/detail?r=
+
