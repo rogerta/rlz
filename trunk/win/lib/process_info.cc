@@ -268,8 +268,7 @@ bool ProcessInfo::HasAdminRights() {
     } else if (IsVistaOrLater()) {
       TOKEN_ELEVATION_TYPE elevation;
       IntegrityLevel level;
-      if (GetElevationType(&elevation) &&
-        SUCCEEDED((GetIntegrityLevel(&level))))
+      if (SUCCEEDED(GetElevationType(&elevation)) && GetIntegrityLevel(&level))
         has_rights = (elevation == TokenElevationTypeFull) ||
                     (level == HIGH_INTEGRITY);
     } else {

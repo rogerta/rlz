@@ -16,6 +16,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 
 #include "rlz/win/lib/machine_deal.h"
+#include "rlz/win/lib/process_info.h"
 
 class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
  public:
@@ -25,6 +26,19 @@ class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
   MachineDealCodeHelper() {}
   ~MachineDealCodeHelper() {}
 };
+
+TEST(MachineDealCodeTest, CreateMachineState) {
+  // Only run this test if we are admin, otherwise it will surely fail.
+  if (rlz_lib::ProcessInfo::HasAdminRights()) {
+    EXPECT_TRUE(rlz_lib::CreateMachineState());
+  } else {
+    puts("\n"
+         "\n"
+         " *** Please re-run the unit tests with administrator privileges\n"
+         " *** to see the results of the CreateMachineState test.\n"
+         "\n");
+  }
+}
 
 TEST(MachineDealCodeTest, Set) {
   MachineDealCodeHelper::Clear();
