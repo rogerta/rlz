@@ -14,7 +14,7 @@ namespace rlz_lib {
 
 UserKey::UserKey(const wchar_t* sid) {
   if (!sid || !sid[0]) {
-    if (!user_key_.Open(HKEY_CURRENT_USER, L""))
+    if (!user_key_.Open(HKEY_CURRENT_USER, L"", KEY_READ))
       ASSERT_STRING("Could not open HKEY_CURRENT_USER");
     return;
   }
