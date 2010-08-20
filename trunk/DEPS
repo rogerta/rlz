@@ -2,33 +2,37 @@
 # Use of this source code is governed by an Apache-style license that can be
 # found in the COPYING file.
 
+vars = {
+  "chrev": "@56144"
+}
+
 deps = {
   "src/base":
-    "http://src.chromium.org/svn/trunk/src/base@55888",
+    "http://src.chromium.org/svn/trunk/src/base" + Var("chrev"),
 
   "src/build":
-    "http://src.chromium.org/svn/trunk/src/build@55888",
+    "http://src.chromium.org/svn/trunk/src/build" + Var("chrev"),
 
   "src/third_party/icu":
-    "http://src.chromium.org/svn/trunk/deps/third_party/icu42@43139",
+    "http://src.chromium.org/svn/trunk/deps/third_party/icu42" + Var("chrev"),
 
   "src/third_party/modp_b64":
-    "http://src.chromium.org/svn/trunk/src/third_party/modp_b64@55888",
+    "http://src.chromium.org/svn/trunk/src/third_party/modp_b64" + Var("chrev"),
 
   "src/third_party/nss":
-    "http://src.chromium.org/svn/trunk/deps/third_party/nss@45059",
+    "http://src.chromium.org/svn/trunk/deps/third_party/nss" + Var("chrev"),
 
   "src/third_party/sqlite":
-    "http://src.chromium.org/svn/trunk/src/third_party/sqlite@55888",
+    "http://src.chromium.org/svn/trunk/src/third_party/sqlite" + Var("chrev"),
 
   "src/third_party/wtl":
-    "http://src.chromium.org/svn/trunk/src/third_party/wtl@55888",
+    "http://src.chromium.org/svn/trunk/src/third_party/wtl" + Var("chrev"),
 
   "src/third_party/zlib":
-    "http://src.chromium.org/svn/trunk/src/third_party/zlib@55888",
+    "http://src.chromium.org/svn/trunk/src/third_party/zlib" + Var("chrev"),
 
   "src/testing":
-    "http://src.chromium.org/svn/trunk/src/testing@55888",
+    "http://src.chromium.org/svn/trunk/src/testing" + Var("chrev"),
 
   "src/testing/gtest":
     "http://googletest.googlecode.com/svn/trunk@408",
