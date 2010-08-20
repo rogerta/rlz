@@ -32,11 +32,9 @@ TEST(MachineDealCodeTest, CreateMachineState) {
   if (rlz_lib::ProcessInfo::HasAdminRights()) {
     EXPECT_TRUE(rlz_lib::CreateMachineState());
   } else {
-    puts("\n"
-         "\n"
-         " *** Please re-run the unit tests with administrator privileges\n"
-         " *** to see the results of the CreateMachineState test.\n"
-         "\n");
+    LOG(ERROR) <<
+        "\n\n *** Please re-run the unit tests with administrator privileges\n"
+        " *** to see the results of this test.\n";
   }
 }
 

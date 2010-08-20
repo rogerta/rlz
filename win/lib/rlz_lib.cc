@@ -681,11 +681,11 @@ bool CreateMachineState() {
   // Make a copy of the security descriptor so we can modify it.  The one
   // returned by RegGetKeySecurity() is self-relative, so we need to make it
   // absolute.
-  DWORD new_sd_size;
-  DWORD dacl_size;
-  DWORD sacl_size;
-  DWORD owner_size;
-  DWORD group_size;
+  DWORD new_sd_size = 0;
+  DWORD dacl_size = 0;
+  DWORD sacl_size = 0;
+  DWORD owner_size = 0;
+  DWORD group_size = 0;
   ::MakeAbsoluteSD(original_sd, NULL, &new_sd_size, NULL, &dacl_size,
                         NULL, &sacl_size, NULL, &owner_size,
                         NULL, &group_size);
