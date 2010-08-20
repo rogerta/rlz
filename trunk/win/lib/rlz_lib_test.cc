@@ -15,6 +15,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 
 #include "rlz/win/lib/machine_deal.h"
+#include "rlz/win/lib/process_info.h"
 #include "rlz/win/lib/rlz_lib.h"
 
 class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
@@ -148,41 +149,47 @@ TEST(RlzLibTest, GetAccessPointRlz) {
 }
 
 TEST(RlzLibTest, GetPingParams) {
-  MachineDealCodeHelper::Clear();
+  if (rlz_lib::ProcessInfo::HasAdminRights()) {
+    MachineDealCodeHelper::Clear();
 
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-      "TbRlzValue"));
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IE_HOME_PAGE, ""));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+        "TbRlzValue"));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IE_HOME_PAGE, ""));
 
-  char cgi[2048];
-  rlz_lib::AccessPoint points[] =
-    {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
-     rlz_lib::NO_ACCESS_POINT};
+    char cgi[2048];
+    rlz_lib::AccessPoint points[] =
+      {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
+       rlz_lib::NO_ACCESS_POINT};
 
-  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                     cgi, 2048));
-  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue", cgi);
+    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                       cgi, 2048));
+    EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue", cgi);
 
-  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
-  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                     cgi, 2048));
-  EXPECT_STREQ("rep=2&rlz=T4:&dcc=dcc_value", cgi);
+    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
+    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                       cgi, 2048));
+    EXPECT_STREQ("rep=2&rlz=T4:&dcc=dcc_value", cgi);
 
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-              "TbRlzValue"));
-  EXPECT_FALSE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                      cgi, 37));
-  EXPECT_STREQ("", cgi);
-  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                     cgi, 38));
-  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+                "TbRlzValue"));
+    EXPECT_FALSE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                        cgi, 37));
+    EXPECT_STREQ("", cgi);
+    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                       cgi, 38));
+    EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
 
-  EXPECT_TRUE(GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, cgi, 2048));
-  points[2] = rlz_lib::IE_HOME_PAGE;
-  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                     cgi, 2048));
-  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
+    EXPECT_TRUE(GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, cgi, 2048));
+    points[2] = rlz_lib::IE_HOME_PAGE;
+    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                       cgi, 2048));
+    EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
+  } else {
+    LOG(ERROR) <<
+        "\n\n *** Please re-run the unit tests with administrator privileges\n"
+        " *** to see the results of this test.\n";
+  }
 }
 
 TEST(RlzLibTest, IsPingResponseValid) {
