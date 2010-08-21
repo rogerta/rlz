@@ -284,44 +284,51 @@ TEST(RlzLibTest, ParsePingResponse) {
     "dcc: dcc_value\r\n"
     "crc32: F9070F81";
 
-  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value2"));
+  // Only run this test if we are admin, otherwise it will surely fail.
+  if (rlz_lib::ProcessInfo::HasAdminRights()) {
+    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value2"));
 
-  // Record some product events to check that they get cleared.
-  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
-  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+    // Record some product events to check that they get cleared.
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
 
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(
-      rlz_lib::IETB_SEARCH_BOX, "TbRlzValue"));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(
+        rlz_lib::IETB_SEARCH_BOX, "TbRlzValue"));
 
-  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                         kPingResponse));
+    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                           kPingResponse));
 
-  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
-  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                         kPingResponse));
+    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                           kPingResponse));
 
-  char value[50];
-  EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
-  EXPECT_STREQ("1T4_____en__252", value);
-  EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
-                                              value, 50));
-  EXPECT_STREQ("", value);
+    char value[50];
+    EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
+    EXPECT_STREQ("1T4_____en__252", value);
+    EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                                value, 50));
+    EXPECT_STREQ("", value);
 
-  const char* kPingResponse2 =
-    "rlzT4:    1T4_____de__253  \r\n"  // Good with extra spaces.
-    "crc32: 321334F5\r\n";
-  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                         kPingResponse2));
-  EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
-  EXPECT_STREQ("1T4_____de__253", value);
+    const char* kPingResponse2 =
+      "rlzT4:    1T4_____de__253  \r\n"  // Good with extra spaces.
+      "crc32: 321334F5\r\n";
+    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                           kPingResponse2));
+    EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
+    EXPECT_STREQ("1T4_____de__253", value);
 
-  const char* kPingResponse3 =
-    "crc32: 0\r\n";  // Good RLZ - empty response.
-  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                         kPingResponse3));
-  EXPECT_STREQ("1T4_____de__253", value);
+    const char* kPingResponse3 =
+      "crc32: 0\r\n";  // Good RLZ - empty response.
+    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                           kPingResponse3));
+    EXPECT_STREQ("1T4_____de__253", value);
+  } else {
+    LOG(ERROR) <<
+        "\n\n *** Please re-run the unit tests with administrator privileges\n"
+        " *** to see the results of this test.\n";
+  }
 }
 
 // Test whether a stateful event will only be sent in financial pings once.
@@ -372,28 +379,35 @@ TEST(RlzLibTest, ParsePingResponseWithStatefulEvents) {
 }
 
 TEST(RlzLibTest, SendFinancialPing) {
-  // We don't really check a value or result in this test. All this does is
-  // attempt to ping the financial server, which you can verify in Fiddler.
-  // TODO: Make this a measurable test.
-  MachineDealCodeHelper::Clear();
-  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+  // Only run this test if we are admin, otherwise it will surely fail.
+  if (rlz_lib::ProcessInfo::HasAdminRights()) {
+    // We don't really check a value or result in this test. All this does is
+    // attempt to ping the financial server, which you can verify in Fiddler.
+    // TODO: Make this a measurable test.
+    MachineDealCodeHelper::Clear();
+    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
 
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-      "TbRlzValue"));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+        "TbRlzValue"));
 
-  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
-  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
-  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+    EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
 
-  rlz_lib::AccessPoint points[] =
-    {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
-     rlz_lib::NO_ACCESS_POINT};
+    rlz_lib::AccessPoint points[] =
+      {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
+       rlz_lib::NO_ACCESS_POINT};
 
-  std::string request;
-  rlz_lib::SendFinancialPing(rlz_lib::TOOLBAR_NOTIFIER, points,
-      "swg", "GGLA", "SwgProductId1234", "en-UK", false);
+    std::string request;
+    rlz_lib::SendFinancialPing(rlz_lib::TOOLBAR_NOTIFIER, points,
+        "swg", "GGLA", "SwgProductId1234", "en-UK", false);
+  } else {
+    LOG(ERROR) <<
+        "\n\n *** Please re-run the unit tests with administrator privileges\n"
+        " *** to see the results of this test.\n";
+  }
 }
 
 TEST(RlzLibTest, ClearProductState) {
