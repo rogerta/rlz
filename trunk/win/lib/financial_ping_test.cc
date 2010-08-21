@@ -21,6 +21,7 @@
 #include "rlz/win/lib/financial_ping.h"
 #include "rlz/win/lib/lib_values.h"
 #include "rlz/win/lib/machine_deal.h"
+#include "rlz/win/lib/process_info.h"
 
 namespace {
 
@@ -44,88 +45,95 @@ const int64 k1MinuteInterval = 60LL * 10000000LL;  // 1 minute
 
 
 TEST(FinancialPingTest, FormRequest) {
-  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+  // Only run this test if we are admin, otherwise it will surely fail.
+  if (rlz_lib::ProcessInfo::HasAdminRights()) {
+    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
 
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-      "TbRlzValue"));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+        "TbRlzValue"));
 
-  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
-  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
-  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+    EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
 
-  rlz_lib::AccessPoint points[] =
-    {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
-     rlz_lib::NO_ACCESS_POINT};
+    rlz_lib::AccessPoint points[] =
+      {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
+       rlz_lib::NO_ACCESS_POINT};
 
-  std::wstring machine_id;
-  bool got_machine_id = rlz_lib::MachineDealCode::GetMachineId(&machine_id);
+    std::wstring machine_id;
+    bool got_machine_id = rlz_lib::MachineDealCode::GetMachineId(&machine_id);
 
-  std::string request;
-  EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", "GGLA", NULL, "en", false, NULL, &request));
-  std::string expected_response =
-      "/tools/pso/ping?as=swg&brand=GGLA&hl=en&"
-      "events=I7S,W1I&rep=2&rlz=T4:TbRlzValue&dcc=dcc_value";
-  if (got_machine_id)
-    StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
-  EXPECT_EQ(expected_response, request);
-
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
-  EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", "GGLA", "IdOk2", NULL, false, NULL, &request));
-  expected_response = "/tools/pso/ping?as=swg&brand=GGLA&pid=IdOk2&"
-                      "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value";
-  if (got_machine_id)
-    StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
-  EXPECT_EQ(expected_response, request);
-
-  EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", "GGLA", "IdOk", NULL, true, NULL, &request));
-  expected_response = "/tools/pso/ping?as=swg&brand=GGLA&pid=IdOk&"
-                      "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value";
-  EXPECT_EQ(expected_response, request);
-
-  EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", "GGLA", NULL, NULL, true, NULL, &request));
-  expected_response = "/tools/pso/ping?as=swg&brand=GGLA&events=I7S,W1I&rep=2"
-                      "&rlz=T4:&dcc=dcc_value";
-  EXPECT_EQ(expected_response, request);
-
-
-  // Clear all events.
-  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
-
-  // Clear all RLZs.
-  char rlz[rlz_lib::kMaxRlzLength + 1];
-  int idx = 0;
-  for (int ap = rlz_lib::NO_ACCESS_POINT + 1;
-       ap < rlz_lib::LAST_ACCESS_POINT; ap++) {
-    rlz[0] = 0;
-    rlz_lib::AccessPoint point = static_cast<rlz_lib::AccessPoint>(ap);
-    if (rlz_lib::GetAccessPointRlz(point, rlz, arraysize(rlz)) && rlz[0]) {
-      rlz_lib::SetAccessPointRlz(point, "");
-    }
-  }
-
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-      "TbRlzValue"));
-  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::QUICK_SEARCH_BOX,
-      "QsbRlzValue"));
-  EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", "GGLA", NULL, NULL, false, NULL, &request));
-  EXPECT_STREQ("/tools/pso/ping?as=swg&brand=GGLA&rep=2&rlz=T4:TbRlzValue,"
-               "Q1:QsbRlzValue&dcc=dcc_value",
-               request.c_str());
-
-  if (!GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, rlz, arraysize(rlz))) {
-    points[2] = rlz_lib::IE_HOME_PAGE;
+    std::string request;
     EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-        points, "swg", "GGLA", "MyId", "en-US", true, NULL, &request));
-    EXPECT_STREQ("/tools/pso/ping?as=swg&brand=GGLA&hl=en-US&pid=MyId&rep=2"
-                 "&rlz=T4:TbRlzValue,Q1:QsbRlzValue&dcc=dcc_value",
+        points, "swg", "GGLA", NULL, "en", false, NULL, &request));
+    std::string expected_response =
+        "/tools/pso/ping?as=swg&brand=GGLA&hl=en&"
+        "events=I7S,W1I&rep=2&rlz=T4:TbRlzValue&dcc=dcc_value";
+    if (got_machine_id)
+      StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
+    EXPECT_EQ(expected_response, request);
+
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
+    EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
+        points, "swg", "GGLA", "IdOk2", NULL, false, NULL, &request));
+    expected_response = "/tools/pso/ping?as=swg&brand=GGLA&pid=IdOk2&"
+                        "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value";
+    if (got_machine_id)
+      StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
+    EXPECT_EQ(expected_response, request);
+
+    EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
+        points, "swg", "GGLA", "IdOk", NULL, true, NULL, &request));
+    expected_response = "/tools/pso/ping?as=swg&brand=GGLA&pid=IdOk&"
+                        "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value";
+    EXPECT_EQ(expected_response, request);
+
+    EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
+        points, "swg", "GGLA", NULL, NULL, true, NULL, &request));
+    expected_response = "/tools/pso/ping?as=swg&brand=GGLA&events=I7S,W1I&rep=2"
+                        "&rlz=T4:&dcc=dcc_value";
+    EXPECT_EQ(expected_response, request);
+
+
+    // Clear all events.
+    EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+
+    // Clear all RLZs.
+    char rlz[rlz_lib::kMaxRlzLength + 1];
+    int idx = 0;
+    for (int ap = rlz_lib::NO_ACCESS_POINT + 1;
+         ap < rlz_lib::LAST_ACCESS_POINT; ap++) {
+      rlz[0] = 0;
+      rlz_lib::AccessPoint point = static_cast<rlz_lib::AccessPoint>(ap);
+      if (rlz_lib::GetAccessPointRlz(point, rlz, arraysize(rlz)) && rlz[0]) {
+        rlz_lib::SetAccessPointRlz(point, "");
+      }
+    }
+
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+        "TbRlzValue"));
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::QUICK_SEARCH_BOX,
+        "QsbRlzValue"));
+    EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
+        points, "swg", "GGLA", NULL, NULL, false, NULL, &request));
+    EXPECT_STREQ("/tools/pso/ping?as=swg&brand=GGLA&rep=2&rlz=T4:TbRlzValue,"
+                 "Q1:QsbRlzValue&dcc=dcc_value",
                  request.c_str());
+
+    if (!GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, rlz, arraysize(rlz))) {
+      points[2] = rlz_lib::IE_HOME_PAGE;
+      EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
+          points, "swg", "GGLA", "MyId", "en-US", true, NULL, &request));
+      EXPECT_STREQ("/tools/pso/ping?as=swg&brand=GGLA&hl=en-US&pid=MyId&rep=2"
+                   "&rlz=T4:TbRlzValue,Q1:QsbRlzValue&dcc=dcc_value",
+                   request.c_str());
+    }
+  } else {
+    LOG(ERROR) <<
+        "\n\n *** Please re-run the unit tests with administrator privileges\n"
+        " *** to see the results of this test.\n";
   }
 }
 
