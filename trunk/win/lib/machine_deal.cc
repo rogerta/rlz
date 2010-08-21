@@ -151,7 +151,7 @@ bool MachineDealCode::Set(const char* dcc) {
 
   // Write the DCC to HKLM.  Note that we need to include the null character
   // when writing the string.
-  if (!hklm_key.WriteValue(kDccValueName, normalized_dcc, length + 1)) {
+  if (!RegKeyWriteValue(hklm_key, kDccValueName, normalized_dcc)) {
     ASSERT_STRING("MachineDealCode::Set: Could not write the DCC value");
     return false;
   }
@@ -269,8 +269,8 @@ bool MachineDealCode::Get(char* dcc, int dcc_size) {
   if (!dcc_key.Valid())
     return false;  // no DCC key.
 
-  DWORD dcc_dword_size = dcc_size;
-  if (!dcc_key.ReadValue(kDccValueName, dcc, &dcc_dword_size)) {
+  size_t size = dcc_size;
+  if (!RegKeyReadValue(dcc_key, kDccValueName, dcc, &size)) {
     ASSERT_STRING("MachineDealCode::Get: Insufficient buffer size");
     dcc[0] = 0;
     return false;

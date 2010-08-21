@@ -523,27 +523,14 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
   if (!access_point_name)
     return false;
 
-  DWORD size = rlz_size;
-  DWORD type;
+  size_t size = rlz_size;
   RegKey key(user_key, rlzs_key_name.c_str(), KEY_READ);
-  if (!key.ReadValue(ASCIIToWide(access_point_name).c_str(), rlz, &size,
-                     &type)) {
+  if (!RegKeyReadValue(key, ASCIIToWide(access_point_name).c_str(),
+                       rlz, &size)) {
     rlz[0] = 0;
     if (size > rlz_size) {
       ASSERT_STRING("GetAccessPointRlz: Insufficient buffer size");
       return false;
-    }
-  } else {
-    // To handle backward compatibility with older RLZ versions, if the type
-    // is REG_SZ, then covert the returned string from unicode to ascii.
-    if (type == REG_SZ) {
-      const std::wstring unicode_rlz(reinterpret_cast<const wchar_t*>(rlz));
-      const std::string ascii_rlz(WideToASCII(unicode_rlz));
-
-      strncpy(rlz, ascii_rlz.c_str(), rlz_size);
-      rlz[rlz_size - 1] = 0;
-    } else {
-      VERIFY(type == REG_BINARY);
     }
   }
 
@@ -612,9 +599,8 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz,
       return false;
     }
   } else {
-    DWORD rlz_size_with_null = rlz_length + 1;
-    if (!key.WriteValue(access_point_name_wide.c_str(),
-                       normalized_rlz, rlz_size_with_null)) {
+    if (!RegKeyWriteValue(key, access_point_name_wide.c_str(),
+                          normalized_rlz)) {
       ASSERT_STRING("SetAccessPointRlz: Could not write the new RLZ value");
       return false;
     }

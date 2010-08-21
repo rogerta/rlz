@@ -6,6 +6,8 @@
 
 #include "rlz/win/lib/string_utils.h"
 
+#include "base/registry.h"
+#include "base/string_util.h"
 #include "rlz/win/lib/assert.h"
 
 namespace rlz_lib {
@@ -89,4 +91,28 @@ bool BytesToString(const unsigned char* data,
   return true;
 }
 
-};
+bool RegKeyReadValue(RegKey& key, const wchar_t* name,
+                     char* value, size_t* value_size) {
+  value[0] = 0;
+
+  std::wstring value_string;
+  if (!key.ReadValue(name, &value_string)) {
+    return false;
+  }
+
+  if (value_string.length() > *value_size) {
+    *value_size = value_string.length();
+    return false;
+  }
+
+  strncpy(value, WideToASCII(value_string).c_str(), *value_size);
+  value[*value_size - 1] = 0;
+  return true;
+}
+
+bool RegKeyWriteValue(RegKey& key, const wchar_t* name, const char* value) {
+  std::wstring value_string(ASCIIToWide(value));
+  return key.WriteValue(name, value_string.c_str());
+}
+
+}

@@ -9,6 +9,8 @@
 
 #include <string>
 
+class RegKey;
+
 namespace rlz_lib {
 
 bool IsAscii(char letter);
@@ -20,6 +22,15 @@ bool BytesToString(const unsigned char* data,
 bool GetHexValue(char letter, int* value);
 
 int HexStringToInteger(const char* text);
+
+bool RegKeyReadValue(RegKey& key,
+                     const wchar_t* name,
+                     char* value,
+                     size_t* value_size);
+
+bool RegKeyWriteValue(RegKey& key,
+                      const wchar_t* name,
+                      const char* value);
 
 };  // namespace
 
