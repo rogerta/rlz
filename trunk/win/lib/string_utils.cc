@@ -7,7 +7,7 @@
 #include "rlz/win/lib/string_utils.h"
 
 #include "base/registry.h"
-#include "base/string_util.h"
+#include "base/utf_string_conversions.h"
 #include "rlz/win/lib/assert.h"
 
 namespace rlz_lib {
@@ -105,7 +105,8 @@ bool RegKeyReadValue(RegKey& key, const wchar_t* name,
     return false;
   }
 
-  strncpy(value, WideToASCII(value_string).c_str(), *value_size);
+  // Note that RLZ string are always ASCII by design.
+  strncpy(value, WideToUTF8(value_string).c_str(), *value_size);
   value[*value_size - 1] = 0;
   return true;
 }
