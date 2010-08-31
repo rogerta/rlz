@@ -277,7 +277,7 @@ bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
   // Verify deletion.
   uint64 value;
   DWORD size = sizeof(value);
-  if (key.ReadValue(value_name, &value, &size)) {
+  if (key.ReadValue(value_name, &value, &size, NULL)) {
     ASSERT_STRING("FinancialPing::ClearLastPingTime: Failed to delete value.");
     return false;
   }
