@@ -212,7 +212,7 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
   StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
 
   uint64 last_ping;
-  DWORD size;
+  DWORD size = sizeof(last_ping);
   DWORD type;
   RegKey key(user_key.Get(), key_location.c_str(), KEY_READ);
   if (!key.ReadValue(GetProductName(product), &last_ping, &size, &type))
