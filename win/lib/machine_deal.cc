@@ -291,7 +291,7 @@ bool MachineDealCode::Clear() {
   // Verify deletion.
   wchar_t dcc[kMaxDccLength + 1];
   DWORD dcc_size = arraysize(dcc);
-  if (dcc_key.ReadValue(kDccValueName, dcc, &dcc_size, NULL)) {
+  if (dcc_key.ReadValue(kDccValueName, dcc, &dcc_size)) {
     ASSERT_STRING("MachineDealCode::Clear: Could not delete the DCC value.");
     return false;
   }
@@ -418,17 +418,8 @@ bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
 
   // Hash the SID.
   if (!sid_string.empty()) {
-    // In order to be compatible with the old version of RLZ, the hash of the
-    // SID must be done with all the original bytes from the unicode string.
-    // However, the chromebase SHA1 hash function takes only an std::string as
-    // input, so the unicode string needs to be converted to std::string
-    // "as is".
-    size_t byte_count = sid_string.size() * sizeof(std::wstring::value_type);
-    const char* buffer = reinterpret_cast<const char*>(sid_string.c_str());
-    std::string sid_string_buffer(buffer, byte_count);
-
     // Note that digest can have embedded nulls.
-    std::string digest(base::SHA1HashString(sid_string_buffer));
+    std::string digest(base::SHA1HashString(WideToASCII(sid_string)));
     VERIFY(digest.size() == base::SHA1_LENGTH);
     std::copy(digest.begin(), digest.end(), id_binary.begin());
   }
