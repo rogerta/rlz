@@ -7,6 +7,9 @@
 
 #include "rlz/win/lib/user_key.h"
 
+#include "base/process_util.h"
+#include "base/win_util.h"
+
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/process_info.h"
 
@@ -53,13 +56,15 @@ bool UserKey::HasAccess(HKEY user_key, bool write_access) {
   }
 
   if (write_access) {
-    if (!ProcessInfo::IsVistaOrLater()) return true;
-    ProcessInfo::IntegrityLevel level = ProcessInfo::INTEGRITY_UNKNOWN;
-    if (!ProcessInfo::GetIntegrityLevel(&level)) {
+    if (win_util::GetWinVersion() < win_util::WINVERSION_VISTA) return true;
+    base::ProcessHandle process_handle = base::GetCurrentProcessHandle();
+    base::IntegrityLevel level = base::INTEGRITY_UNKNOWN;
+
+    if (!base::GetProcessIntegrityLevel(process_handle, &level)) {
       ASSERT_STRING("UserKey::HasAccess: Cannot determine Integrity Level.");
       return false;
     }
-    if (level <= ProcessInfo::LOW_INTEGRITY) {
+    if (level <= base::LOW_INTEGRITY) {
       ASSERT_STRING("UserKey::HasAccess: Cannot write from Low Integrity.");
       return false;
     }

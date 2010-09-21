@@ -11,8 +11,10 @@
 #include <LMCons.h>  // For UNLEN
 
 #include "base/logging.h"
+#include "base/process_util.h"
 #include "base/scoped_handle_win.h"
 #include "base/scoped_ptr.h"
+#include "base/win_util.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/vista_winnt.h"
 
@@ -94,7 +96,7 @@ HRESULT GetElevationType(PTOKEN_ELEVATION_TYPE elevation) {
 
   *elevation = TokenElevationTypeDefault;
 
-  if (!rlz_lib::ProcessInfo::IsVistaOrLater())
+  if (win_util::GetWinVersion() < win_util::WINVERSION_VISTA)
     return E_FAIL;
 
   HANDLE process_token;
@@ -147,90 +149,10 @@ bool GetUserGroup(long* group) {
 
   return group != 0;
 }
-
-HRESULT GetProcessIntegrityLevel(HANDLE process,
-                                 rlz_lib::ProcessInfo::IntegrityLevel *level) {
-  if (!level)
-    return E_POINTER;
-
-  *level = rlz_lib::ProcessInfo::INTEGRITY_UNKNOWN;
-
-  if (!rlz_lib::ProcessInfo::IsVistaOrLater())
-    return E_FAIL;
-
-  HANDLE process_token;
-  if (!OpenProcessToken(process, TOKEN_QUERY | TOKEN_QUERY_SOURCE,
-                        &process_token)) {
-    return HRESULT_FROM_WIN32(GetLastError());
-  }
-
-  ScopedHandle scoped_process_token(process_token);
-
-  SetLastError(0);  // clear last error first
-  DWORD token_info_length = 0;
-  GetTokenInformation(process_token, TokenIntegrityLevel, NULL, 0,
-                      &token_info_length);
-
-  if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-    return HRESULT_FROM_WIN32(GetLastError());
-
-  scoped_array<char> token_label_bytes(new char[token_info_length]);
-  if (!token_label_bytes.get())
-    return E_OUTOFMEMORY;
-
-  TOKEN_MANDATORY_LABEL* token_label =
-      reinterpret_cast<TOKEN_MANDATORY_LABEL*>(token_label_bytes.get());
-  if (!token_label)
-    return E_OUTOFMEMORY;
-
-  if (!GetTokenInformation(process_token, TokenIntegrityLevel,
-                           token_label, token_info_length, &token_info_length))
-    return HRESULT_FROM_WIN32(GetLastError());
-
-  DWORD integrity_level = *GetSidSubAuthority(token_label->Label.Sid,
-      (DWORD)(UCHAR)(*GetSidSubAuthorityCount(token_label->Label.Sid)-1));
-
-  if (integrity_level < SECURITY_MANDATORY_MEDIUM_RID) {
-    *level = rlz_lib::ProcessInfo::LOW_INTEGRITY;
-  } else if (integrity_level >= SECURITY_MANDATORY_MEDIUM_RID &&
-      integrity_level < SECURITY_MANDATORY_HIGH_RID) {
-    *level = rlz_lib::ProcessInfo::MEDIUM_INTEGRITY;
-  } else if (integrity_level >= SECURITY_MANDATORY_HIGH_RID) {
-    *level = rlz_lib::ProcessInfo::HIGH_INTEGRITY;
-  }
-
-  return S_OK;
-}
-
 }  //anonymous
 
 
 namespace rlz_lib {
-
-bool ProcessInfo::GetIntegrityLevel(IntegrityLevel *level) {
-  if (!level)
-    return false;
-
-  *level = INTEGRITY_UNKNOWN;
-
-  if (!IsVistaOrLater())
-    return false;
-
-  static bool integrity_level_set = false;
-  static IntegrityLevel process_integrity_level;
-  if (!integrity_level_set) {
-    if (FAILED(GetProcessIntegrityLevel(GetCurrentProcess(),
-                                        &process_integrity_level))) {
-      ASSERT_STRING("GetProcessIntegrityLevel failed");
-      return false;
-    }
-
-    integrity_level_set = true;
-  }
-
-  *level = process_integrity_level;
-  return true;
-}
 
 bool ProcessInfo::IsRunningAsSystem() {
   static std::wstring name;
@@ -242,22 +164,6 @@ bool ProcessInfo::IsRunningAsSystem() {
   return (name == L"SYSTEM");
 }
 
-bool ProcessInfo::IsVistaOrLater() {
-  static bool known = false;
-  static bool is_vista = false;
-  if (!known) {
-    OSVERSIONINFOEX osvi = { 0 };
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    osvi.dwMajorVersion = 6;
-    DWORDLONG conditional = 0;
-    VER_SET_CONDITION(conditional, VER_MAJORVERSION, VER_GREATER_EQUAL);
-    is_vista = !!VerifyVersionInfo(&osvi, VER_MAJORVERSION, conditional);
-    known = true;
-  }
-
-  return is_vista;
-}
-
 bool ProcessInfo::HasAdminRights() {
   static bool evaluated = false;
   static bool has_rights = false;
@@ -265,10 +171,12 @@ bool ProcessInfo::HasAdminRights() {
   if (!evaluated) {
     if (IsRunningAsSystem()) {
       has_rights = true;
-    } else if (IsVistaOrLater()) {
+    } else if (win_util::GetWinVersion() >= win_util::WINVERSION_VISTA) {
       TOKEN_ELEVATION_TYPE elevation;
-      IntegrityLevel level;
-      if (SUCCEEDED(GetElevationType(&elevation)) && GetIntegrityLevel(&level))
+      base::IntegrityLevel level;
+
+      if (SUCCEEDED(GetElevationType(&elevation)) &&
+        base::GetProcessIntegrityLevel(base::GetCurrentProcessHandle(), &level))
         has_rights = (elevation == TokenElevationTypeFull) ||
                     (level == HIGH_INTEGRITY);
     } else {

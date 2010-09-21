@@ -11,7 +11,7 @@
 #include <Aclapi.h>  // For SetSecurityInfo
 
 #include "base/logging.h"
-#include "rlz/win/lib/process_info.h"
+#include "base/win_util.h"
 
 namespace {
 
@@ -24,7 +24,7 @@ namespace rlz_lib {
 // Needed to allow synchronization across integrity levels.
 static bool SetObjectToLowIntegrity(HANDLE object,
     SE_OBJECT_TYPE type = SE_KERNEL_OBJECT) {
-  if (!ProcessInfo::IsVistaOrLater())
+  if (win_util::GetWinVersion() < win_util::WINVERSION_VISTA)
     return true;  // Not needed on XP.
 
   // The LABEL_SECURITY_INFORMATION SDDL SACL to be set for low integrity.
