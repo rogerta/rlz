@@ -17,6 +17,7 @@
 #include "base/registry.h"
 #include "base/scoped_ptr.h"
 #include "base/string_util.h"
+#include "base/utf_string_conversions.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/crc32.h"
 #include "rlz/win/lib/financial_ping.h"
@@ -25,7 +26,6 @@
 #include "rlz/win/lib/machine_deal.h"
 #include "rlz/win/lib/string_utils.h"
 #include "rlz/win/lib/user_key.h"
-
 
 namespace {
 
@@ -1114,4 +1114,4 @@ bool GetMachineId(wchar_t* buffer, size_t buffer_size) {
   return true;
 }
 
-};  // namespace
+}  // namespace rlz_lib

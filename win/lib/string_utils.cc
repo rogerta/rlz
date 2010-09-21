@@ -116,4 +116,4 @@ bool RegKeyWriteValue(RegKey& key, const wchar_t* name, const char* value) {
   return key.WriteValue(name, value_string.c_str());
 }
 
-}
+}  // namespace rlz_lib
