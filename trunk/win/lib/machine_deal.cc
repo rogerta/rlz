@@ -19,7 +19,6 @@
 #include "rlz/win/lib/crc8.h"
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/lib_values.h"
-#include "rlz/win/lib/process_info.h"
 #include "rlz/win/lib/string_utils.h"
 #include "rlz/win/lib/user_key.h"
 

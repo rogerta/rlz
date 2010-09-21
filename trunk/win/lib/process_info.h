@@ -21,9 +21,7 @@ class ProcessInfo {
   };
 
   // All these functions cache the result after first run.
-  static bool GetIntegrityLevel(IntegrityLevel* level);
   static bool IsRunningAsSystem();
-  static bool IsVistaOrLater();
   static bool HasAdminRights();  // System / Admin / High Elevation on Vista
 
  private:
