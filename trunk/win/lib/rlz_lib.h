@@ -68,12 +68,12 @@ enum AccessPoint {
   IETB_LINKDOCTOR,    // Linkdoctor of IE Toolbar
   FFTB_LINKDOCTOR,    // Linkdoctor of FF Toolbar
   IETB7_SEARCH_BOX,   // IE Toolbar search box.
+  TB8_SEARCH_BOX,     // IE/FF Toolbar search box.
+  CHROME_FRAME,       // Chrome Frame.
 
   // Unclaimed access points - should be used first before creating new APs.
   // Please also make sure you re-name the enum before using an unclaimed value;
   // this acts as a check to ensure we don't have collisions.
-  UNDEFINED_AP_A,
-  UNDEFINED_AP_B,
   UNDEFINED_AP_C,
   UNDEFINED_AP_D,
   UNDEFINED_AP_E,
