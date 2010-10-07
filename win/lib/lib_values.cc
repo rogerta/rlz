@@ -116,8 +116,8 @@ const char* GetAccessPointName(AccessPoint point) {
   case IETB_LINKDOCTOR:               return "R7";
   case FFTB_LINKDOCTOR:               return "R8";
   case IETB7_SEARCH_BOX:              return "T7";
-  case UNDEFINED_AP_A:                return "RA";
-  case UNDEFINED_AP_B:                return "RB";
+  case TB8_SEARCH_BOX:                return "T8";
+  case CHROME_FRAME:                  return "C3";
   case UNDEFINED_AP_C:                return "RC";
   case UNDEFINED_AP_D:                return "RD";
   case UNDEFINED_AP_E:                return "RE";
