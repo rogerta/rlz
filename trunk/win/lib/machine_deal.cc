@@ -389,18 +389,12 @@ bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
   if (!machine_id)
     return false;
 
-  machine_id->clear();
-
   static std::wstring calculated_id;
   static bool calculated = false;
   if (calculated) {
     *machine_id = calculated_id;
     return true;
   }
-
-  // The ID should be the SID hash + the Hard Drive SNo. + checksum byte.
-  static const int kSizeWithoutChecksum = base::SHA1_LENGTH + sizeof(int);
-  std::basic_string<unsigned char> id_binary(kSizeWithoutChecksum + 1, 0);
 
   // Calculate the Windows SID.
   std::wstring sid_string;
@@ -415,7 +409,31 @@ bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
     }
   }
 
-  // Hash the SID.
+  // Get the system drive volume serial number.
+  int volume_id = 0;
+  if (!GetSystemVolumeSerialNumber(&volume_id)) {
+    ASSERT_STRING("GetMachineId: Failed to retrieve volume serial number");
+    volume_id = 0;
+  }
+
+  if (!GetMachineIdImpl(sid_string, volume_id, machine_id))
+    return false;
+
+  calculated = true;
+  calculated_id = *machine_id;
+  return true;
+}
+
+
+bool MachineDealCode::GetMachineIdImpl(const std::wstring& sid_string,
+                                       int volume_id,
+                                       std::wstring* machine_id) {
+  machine_id->clear();
+
+  // The ID should be the SID hash + the Hard Drive SNo. + checksum byte.
+  static const int kSizeWithoutChecksum = base::SHA1_LENGTH + sizeof(int);
+  std::basic_string<unsigned char> id_binary(kSizeWithoutChecksum + 1, 0);
+
   if (!sid_string.empty()) {
     // In order to be compatible with the old version of RLZ, the hash of the
     // SID must be done with all the original bytes from the unicode string.
@@ -432,18 +450,11 @@ bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
     std::copy(digest.begin(), digest.end(), id_binary.begin());
   }
 
-  // Get the system drive volume serial number.
-  int volume_id = 0;
-  if (GetSystemVolumeSerialNumber(&volume_id)) {
-    // Convert from int to binary (makes big-endian).
-    for (int i = 0; i < sizeof(int); i++) {
-      int shift_bits = 8 * (sizeof(int) - i - 1);
-      id_binary[base::SHA1_LENGTH + i] = static_cast<BYTE>(
-          (volume_id >> shift_bits) & 0xFF);
-    }
-  } else {
-    ASSERT_STRING("GetMachineId: Failed to retrieve volume serial number");
-    volume_id = 0;
+  // Convert from int to binary (makes big-endian).
+  for (int i = 0; i < sizeof(int); i++) {
+    int shift_bits = 8 * (sizeof(int) - i - 1);
+    id_binary[base::SHA1_LENGTH + i] = static_cast<BYTE>(
+        (volume_id >> shift_bits) & 0xFF);
   }
 
   // Append the checksum byte.
@@ -451,13 +462,7 @@ bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
     Crc8::Generate(id_binary.c_str(),
                    kSizeWithoutChecksum, &id_binary[kSizeWithoutChecksum]);
 
-  if (!BytesToString(id_binary.c_str(), kSizeWithoutChecksum + 1,
-                     &calculated_id))
-    return false;
-
-  calculated = true;
-  *machine_id = calculated_id;
-  return true;
+  return BytesToString(id_binary.c_str(), kSizeWithoutChecksum + 1, machine_id);
 }
 
 };  // namespace

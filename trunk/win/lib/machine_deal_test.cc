@@ -185,3 +185,12 @@ TEST(MachineDealCodeTest, GetAsCgi) {
         " *** to see the results of this test.\n";
   }
 }
+
+// This test will fail if the behavior of GetMachineId changes.
+TEST(MachineDealCodeTest, MachineId) {
+  std::wstring computer_sid(L"S-1-5-21-2345599882-2448789067-1921365677");
+  std::wstring id;
+  rlz_lib::MachineDealCode::GetMachineIdImpl(computer_sid, 2651229008, &id);
+  EXPECT_STREQ(L"A341BA986A7E86840688977FCF20C86E253F00919E068B50F8",
+               id.c_str());
+}
