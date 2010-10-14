@@ -67,6 +67,8 @@
         'win/lib/machine_deal_test.cc',
         'win/lib/rlz_lib_test.cc',
         'win/lib/string_utils_unittest.cc',
+        'win/test/rlz_test_helpers.cc',
+        'win/test/rlz_test_helpers.h',
         'win/test/rlz_unittest_main.cc',
       ],
       'dependencies': [

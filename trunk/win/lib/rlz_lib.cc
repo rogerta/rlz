@@ -324,27 +324,6 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
   return true;
 }
 
-// Check if this SID has the desired access by scanning the ACEs in the DACL.
-bool HasAccess(PSID sid, ACCESS_MASK access_mask, ACL* dacl) {
-  ACL_SIZE_INFORMATION info;
-  if (!GetAclInformation(dacl, &info, sizeof(info), AclSizeInformation))
-    return false;
-
-  for (DWORD i = 0; i < info.AceCount; ++i) {
-    ACCESS_ALLOWED_ACE* ace;
-    if (GetAce(dacl, i, reinterpret_cast<void**>(&ace))) {
-      PSID existing_sid = reinterpret_cast<PSID>(reinterpret_cast<char*>(ace) +
-          ace->SidStart);
-      if (ace->Header.AceType == ACCESS_ALLOWED_ACE_TYPE &&
-         (ace->Mask & access_mask) == access_mask &&
-          EqualSid(existing_sid, sid))
-        return true;
-    }
-  }
-
-  return false;
-}
-
 }  // namespace anonymous
 
 
@@ -631,6 +610,44 @@ class typed_buffer_ptr {
     return reinterpret_cast<T*>(buffer_.get());
   }
 };
+
+// Check if this SID has the desired access by scanning the ACEs in the DACL.
+// This function is part of the rlz_lib namespace so that it can be called from
+// unit tests.  Non-unit test code should not call this function.
+bool HasAccess(PSID sid, ACCESS_MASK access_mask, ACL* dacl) {
+  if (dacl == NULL)
+    return false;
+
+  ACL_SIZE_INFORMATION info;
+  if (!GetAclInformation(dacl, &info, sizeof(info), AclSizeInformation))
+    return false;
+
+  GENERIC_MAPPING generic_mapping = {KEY_READ, KEY_WRITE, KEY_EXECUTE,
+                                     KEY_ALL_ACCESS};
+  MapGenericMask(&access_mask, &generic_mapping);
+
+  for (DWORD i = 0; i < info.AceCount; ++i) {
+    ACCESS_ALLOWED_ACE* ace;
+    if (GetAce(dacl, i, reinterpret_cast<void**>(&ace))) {
+      if ((ace->Header.AceFlags & INHERIT_ONLY_ACE) == INHERIT_ONLY_ACE)
+        continue;
+
+      PSID existing_sid = reinterpret_cast<PSID>(&ace->SidStart);
+      DWORD mask = ace->Mask;
+      MapGenericMask(&mask, &generic_mapping);
+
+      if (ace->Header.AceType == ACCESS_ALLOWED_ACE_TYPE &&
+         (mask & access_mask) == access_mask && EqualSid(existing_sid, sid))
+        return true;
+
+      if (ace->Header.AceType == ACCESS_DENIED_ACE_TYPE &&
+         (mask & access_mask) != 0 && EqualSid(existing_sid, sid))
+        return false;
+    }
+  }
+
+  return false;
+}
 
 bool CreateMachineState() {
   LibMutex lock;

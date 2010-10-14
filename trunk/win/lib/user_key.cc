@@ -17,7 +17,14 @@ namespace rlz_lib {
 
 UserKey::UserKey(const wchar_t* sid) {
   if (!sid || !sid[0]) {
-    if (!user_key_.Open(HKEY_CURRENT_USER, L"", KEY_READ))
+    // No SID is specified, so the caller is trying to access HKEY_CURRENT_USER.
+    // Test to see if we can read from there.  Don't try HKEY_CURRENT_USER
+    // because this will cause problems in the unit tests: if we open
+    // HKEY_CURRENT_USER directly here, the overriding done for unit tests will
+    // no longer work.  So we try subkey "Software" which is known to always
+    // exist.
+    RegKey key;
+    if (!key.Open(HKEY_CURRENT_USER, L"Software", KEY_READ))
       ASSERT_STRING("Could not open HKEY_CURRENT_USER");
     return;
   }
@@ -33,12 +40,13 @@ UserKey::UserKey(const wchar_t* sid) {
 }
 
 HKEY UserKey::Get() {
-  CHECK(user_key_.Valid());
-  return user_key_.Handle();
+  // If user_key_ is not valid, this is because the caller is trying to access
+  // HKEY_CURRENT_USER.
+  return user_key_.Valid() ? user_key_.Handle() : HKEY_CURRENT_USER;
 }
 
 bool UserKey::HasAccess(bool write_access) {
-  return HasAccess(user_key_.Handle(), write_access);
+  return HasAccess(Get(), write_access);
 }
 
 bool UserKey::HasAccess(HKEY user_key, bool write_access) {
