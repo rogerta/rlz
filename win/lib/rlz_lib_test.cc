@@ -10,13 +10,16 @@
 //
 // These tests require write access to HKLM and HKCU.
 
+#include <windows.h>
+
 #include "base/logging.h"
+#include "base/scoped_ptr.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 #include "rlz/win/lib/machine_deal.h"
-#include "rlz/win/lib/process_info.h"
 #include "rlz/win/lib/rlz_lib.h"
+#include "rlz/win/test/rlz_test_helpers.h"
 
 class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
  public:
@@ -27,7 +30,10 @@ class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
   ~MachineDealCodeHelper() {}
 };
 
-TEST(RlzLibTest, RecordProductEvent) {
+class RlzLibTest : public RlzLibTestBase {
+};
+
+TEST_F(RlzLibTest, RecordProductEvent) {
   char cgi_50[50];
 
   EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
@@ -45,11 +51,12 @@ TEST(RlzLibTest, RecordProductEvent) {
 
   EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
       rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
-  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER, cgi_50, 50));
+  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                             cgi_50, 50));
   EXPECT_STREQ("events=I7S,W1I", cgi_50);
 }
 
-TEST(RlzLibTest, ClearProductEvent) {
+TEST_F(RlzLibTest, ClearProductEvent) {
   char cgi_50[50];
 
   // Clear 1 of 1 events.
@@ -89,7 +96,7 @@ TEST(RlzLibTest, ClearProductEvent) {
 }
 
 
-TEST(RlzLibTest, GetProductEventsAsCgi) {
+TEST_F(RlzLibTest, GetProductEventsAsCgi) {
   char cgi_50[50];
   char cgi_1[1];
 
@@ -108,7 +115,7 @@ TEST(RlzLibTest, GetProductEventsAsCgi) {
   EXPECT_STREQ("events=I7S,W1I", cgi_50);
 }
 
-TEST(RlzLibTest, ClearAllAllProductEvents) {
+TEST_F(RlzLibTest, ClearAllAllProductEvents) {
   char cgi_50[50];
 
   EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
@@ -124,7 +131,7 @@ TEST(RlzLibTest, ClearAllAllProductEvents) {
   EXPECT_STREQ("", cgi_50);
 }
 
-TEST(RlzLibTest, SetAccessPointRlz) {
+TEST_F(RlzLibTest, SetAccessPointRlz) {
   char rlz_50[50];
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
   EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, rlz_50, 50));
@@ -135,7 +142,7 @@ TEST(RlzLibTest, SetAccessPointRlz) {
   EXPECT_STREQ("IeTbRlz", rlz_50);
 }
 
-TEST(RlzLibTest, GetAccessPointRlz) {
+TEST_F(RlzLibTest, GetAccessPointRlz) {
   char rlz_1[1];
   char rlz_50[50];
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
@@ -148,51 +155,45 @@ TEST(RlzLibTest, GetAccessPointRlz) {
   EXPECT_STREQ("IeTbRlz", rlz_50);
 }
 
-TEST(RlzLibTest, GetPingParams) {
-  if (rlz_lib::ProcessInfo::HasAdminRights()) {
-    MachineDealCodeHelper::Clear();
+TEST_F(RlzLibTest, GetPingParams) {
+  MachineDealCodeHelper::Clear();
 
-    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-        "TbRlzValue"));
-    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IE_HOME_PAGE, ""));
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+      "TbRlzValue"));
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IE_HOME_PAGE, ""));
 
-    char cgi[2048];
-    rlz_lib::AccessPoint points[] =
-      {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
-       rlz_lib::NO_ACCESS_POINT};
+  char cgi[2048];
+  rlz_lib::AccessPoint points[] =
+    {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
+     rlz_lib::NO_ACCESS_POINT};
 
-    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                       cgi, 2048));
-    EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue", cgi);
+  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                     cgi, 2048));
+  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue", cgi);
 
-    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
-    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
-    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                       cgi, 2048));
-    EXPECT_STREQ("rep=2&rlz=T4:&dcc=dcc_value", cgi);
+  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
+  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                     cgi, 2048));
+  EXPECT_STREQ("rep=2&rlz=T4:&dcc=dcc_value", cgi);
 
-    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-                "TbRlzValue"));
-    EXPECT_FALSE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                        cgi, 37));
-    EXPECT_STREQ("", cgi);
-    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                       cgi, 38));
-    EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+              "TbRlzValue"));
+  EXPECT_FALSE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                      cgi, 37));
+  EXPECT_STREQ("", cgi);
+  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                     cgi, 38));
+  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
 
-    EXPECT_TRUE(GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, cgi, 2048));
-    points[2] = rlz_lib::IE_HOME_PAGE;
-    EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                       cgi, 2048));
-    EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
-  } else {
-    LOG(ERROR) <<
-        "\n\n *** Please re-run the unit tests with administrator privileges\n"
-        " *** to see the results of this test.\n";
-  }
+  EXPECT_TRUE(GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, cgi, 2048));
+  points[2] = rlz_lib::IE_HOME_PAGE;
+  EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
+                                     cgi, 2048));
+  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
 }
 
-TEST(RlzLibTest, IsPingResponseValid) {
+TEST_F(RlzLibTest, IsPingResponseValid) {
   const char* kBadPingResponses[] = {
     // No checksum.
     "version: 3.0.914.7250\r\n"
@@ -268,7 +269,7 @@ TEST(RlzLibTest, IsPingResponseValid) {
     EXPECT_TRUE(rlz_lib::IsPingResponseValid(kGoodPingResponses[i], NULL));
 }
 
-TEST(RlzLibTest, ParsePingResponse) {
+TEST_F(RlzLibTest, ParsePingResponse) {
   const char* kPingResponse =
     "version: 3.0.914.7250\r\n"
     "url: http://www.corp.google.com/~av/45/opt/SearchWithGoogleUpdate.exe\r\n"
@@ -284,55 +285,48 @@ TEST(RlzLibTest, ParsePingResponse) {
     "dcc: dcc_value\r\n"
     "crc32: F9070F81";
 
-  // Only run this test if we are admin, otherwise it will surely fail.
-  if (rlz_lib::ProcessInfo::HasAdminRights()) {
-    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value2"));
+  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value2"));
 
-    // Record some product events to check that they get cleared.
-    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
-    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-        rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+  // Record some product events to check that they get cleared.
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
 
-    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(
-        rlz_lib::IETB_SEARCH_BOX, "TbRlzValue"));
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(
+      rlz_lib::IETB_SEARCH_BOX, "TbRlzValue"));
 
-    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                           kPingResponse));
+  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                         kPingResponse));
 
-    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
-    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                           kPingResponse));
+  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                         kPingResponse));
 
-    char value[50];
-    EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
-    EXPECT_STREQ("1T4_____en__252", value);
-    EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
-                                                value, 50));
-    EXPECT_STREQ("", value);
+  char value[50];
+  EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
+  EXPECT_STREQ("1T4_____en__252", value);
+  EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                              value, 50));
+  EXPECT_STREQ("", value);
 
-    const char* kPingResponse2 =
-      "rlzT4:    1T4_____de__253  \r\n"  // Good with extra spaces.
-      "crc32: 321334F5\r\n";
-    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                           kPingResponse2));
-    EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
-    EXPECT_STREQ("1T4_____de__253", value);
+  const char* kPingResponse2 =
+    "rlzT4:    1T4_____de__253  \r\n"  // Good with extra spaces.
+    "crc32: 321334F5\r\n";
+  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                         kPingResponse2));
+  EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, value, 50));
+  EXPECT_STREQ("1T4_____de__253", value);
 
-    const char* kPingResponse3 =
-      "crc32: 0\r\n";  // Good RLZ - empty response.
-    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
-                                           kPingResponse3));
-    EXPECT_STREQ("1T4_____de__253", value);
-  } else {
-    LOG(ERROR) <<
-        "\n\n *** Please re-run the unit tests with administrator privileges\n"
-        " *** to see the results of this test.\n";
-  }
+  const char* kPingResponse3 =
+    "crc32: 0\r\n";  // Good RLZ - empty response.
+  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                         kPingResponse3));
+  EXPECT_STREQ("1T4_____de__253", value);
 }
 
 // Test whether a stateful event will only be sent in financial pings once.
-TEST(RlzLibTest, ParsePingResponseWithStatefulEvents) {
+TEST_F(RlzLibTest, ParsePingResponseWithStatefulEvents) {
   const char* kPingResponse =
     "version: 3.0.914.7250\r\n"
     "url: http://www.corp.google.com/~av/45/opt/SearchWithGoogleUpdate.exe\r\n"
@@ -378,39 +372,32 @@ TEST(RlzLibTest, ParsePingResponseWithStatefulEvents) {
   EXPECT_STREQ("events=I7S", value);
 }
 
-TEST(RlzLibTest, SendFinancialPing) {
-  // Only run this test if we are admin, otherwise it will surely fail.
-  if (rlz_lib::ProcessInfo::HasAdminRights()) {
-    // We don't really check a value or result in this test. All this does is
-    // attempt to ping the financial server, which you can verify in Fiddler.
-    // TODO: Make this a measurable test.
-    MachineDealCodeHelper::Clear();
-    EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+TEST_F(RlzLibTest, SendFinancialPing) {
+  // We don't really check a value or result in this test. All this does is
+  // attempt to ping the financial server, which you can verify in Fiddler.
+  // TODO: Make this a measurable test.
+  MachineDealCodeHelper::Clear();
+  EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
 
-    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
-        "TbRlzValue"));
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
+      "TbRlzValue"));
 
-    EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
-    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
-    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
-        rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
 
-    rlz_lib::AccessPoint points[] =
-      {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
-       rlz_lib::NO_ACCESS_POINT};
+  rlz_lib::AccessPoint points[] =
+    {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
+     rlz_lib::NO_ACCESS_POINT};
 
-    std::string request;
-    rlz_lib::SendFinancialPing(rlz_lib::TOOLBAR_NOTIFIER, points,
-        "swg", "GGLA", "SwgProductId1234", "en-UK", false);
-  } else {
-    LOG(ERROR) <<
-        "\n\n *** Please re-run the unit tests with administrator privileges\n"
-        " *** to see the results of this test.\n";
-  }
+  std::string request;
+  rlz_lib::SendFinancialPing(rlz_lib::TOOLBAR_NOTIFIER, points,
+      "swg", "GGLA", "SwgProductId1234", "en-UK", false);
 }
 
-TEST(RlzLibTest, ClearProductState) {
+TEST_F(RlzLibTest, ClearProductState) {
   MachineDealCodeHelper::Clear();
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
@@ -455,4 +442,119 @@ TEST(RlzLibTest, ClearProductState) {
   EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
                                               cgi, 2048));
   EXPECT_STREQ("", cgi);
+}
+
+template<class T>
+class typed_buffer_ptr {
+  scoped_array<char> buffer_;
+
+ public:
+  typed_buffer_ptr() {
+  }
+
+  explicit typed_buffer_ptr(size_t size) : buffer_(new char[size]) {
+  }
+
+  void reset(size_t size) {
+    buffer_.reset(new char[size]);
+  }
+
+  operator T*() {
+    return reinterpret_cast<T*>(buffer_.get());
+  }
+};
+
+namespace rlz_lib {
+bool HasAccess(PSID sid, ACCESS_MASK access_mask, ACL* dacl);
+}
+
+bool EmptyAcl(ACL* acl) {
+  ACL_SIZE_INFORMATION info;
+  bool ret = GetAclInformation(acl, &info, sizeof(info), AclSizeInformation);
+  EXPECT_TRUE(ret);
+
+  for (DWORD i = 0; i < info.AceCount && ret; ++i) {
+    ret = DeleteAce(acl, 0);
+    EXPECT_TRUE(ret);
+  }
+
+  return ret;
+}
+
+TEST_F(RlzLibTest, HasAccess) {
+  // Create a SID that represents ALL USERS.
+  DWORD users_sid_size = SECURITY_MAX_SID_SIZE;
+  typed_buffer_ptr<SID> users_sid(users_sid_size);
+  CreateWellKnownSid(WinBuiltinUsersSid, NULL, users_sid, &users_sid_size);
+
+  // RLZ always asks for KEY_ALL_ACCESS access to the key.  This is what we
+  // test here.
+
+  // No ACL mean no access.
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, NULL));
+
+  // Create an ACL for these tests.
+  const DWORD kMaxAclSize = 1024;
+  typed_buffer_ptr<ACL> dacl(kMaxAclSize);
+  InitializeAcl(dacl, kMaxAclSize, ACL_REVISION);
+
+  // Empty DACL mean no access.
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // ACE without all needed privileges should mean no access.
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_READ, users_sid));
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // ACE without all needed privileges should mean no access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_WRITE, users_sid));
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // A deny ACE before an allow ACE should not give access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessDeniedAce(dacl, ACL_REVISION, KEY_ALL_ACCESS,
+                                 users_sid));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_ALL_ACCESS,
+                                  users_sid));
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // A deny ACE before an allow ACE should not give access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessDeniedAce(dacl, ACL_REVISION, KEY_READ, users_sid));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_ALL_ACCESS,
+                                  users_sid));
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+
+  // An allow ACE without all required bits should not give access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_WRITE, users_sid));
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // An allow ACE with all required bits should give access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_ALL_ACCESS,
+                                  users_sid));
+  EXPECT_TRUE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // A deny ACE after an allow ACE should not give access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_ALL_ACCESS,
+                                  users_sid));
+  EXPECT_TRUE(AddAccessDeniedAce(dacl, ACL_REVISION, KEY_READ, users_sid));
+  EXPECT_TRUE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // An inherit-only allow ACE should not give access.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessAllowedAceEx(dacl, ACL_REVISION, INHERIT_ONLY_ACE,
+                                    KEY_ALL_ACCESS, users_sid));
+  EXPECT_FALSE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
+
+  // An inherit-only deny ACE should not apply.
+  EXPECT_TRUE(EmptyAcl(dacl));
+  EXPECT_TRUE(AddAccessDeniedAceEx(dacl, ACL_REVISION, INHERIT_ONLY_ACE,
+                                   KEY_ALL_ACCESS, users_sid));
+  EXPECT_TRUE(AddAccessAllowedAce(dacl, ACL_REVISION, KEY_ALL_ACCESS,
+                                  users_sid));
+  EXPECT_TRUE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
 }

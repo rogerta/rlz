@@ -4,6 +4,8 @@
 //
 // Main entry point for all unit tests.
 
+#include <shlwapi.h>
+
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "testing/gmock/include/gmock/gmock.h"
