@@ -3,7 +3,7 @@
 # found in the COPYING file.
 
 vars = {
-  "chrev": "@57567"
+  "chrev": "@62483"
 }
 
 deps = {
@@ -35,10 +35,10 @@ deps = {
     "http://src.chromium.org/svn/trunk/src/testing" + Var("chrev"),
 
   "src/testing/gtest":
-    "http://googletest.googlecode.com/svn/trunk@408",
+    "http://googletest.googlecode.com/svn/trunk@492",
 
   "src/tools/gyp":
-    "http://gyp.googlecode.com/svn/trunk@818",
+    "http://gyp.googlecode.com/svn/trunk@849",
 }
 
 include_rules = [

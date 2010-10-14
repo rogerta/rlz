@@ -14,6 +14,7 @@
 #include "base/registry.h"
 #include "base/scoped_ptr.h"
 #include "base/sha1.h"
+#include "base/string_split.h"
 #include "base/string_util.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/crc8.h"
@@ -107,7 +108,7 @@ bool GetResponseValue(const std::string& response_line,
     return false;
 
   std::vector<std::string> tokens;
-  SplitString(response_line, ':', &tokens);
+  base::SplitString(response_line, ':', &tokens);
   if (tokens.size() != 2)
     return false;
 
