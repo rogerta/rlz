@@ -3,7 +3,7 @@
 # found in the COPYING file.
 
 vars = {
-  "chrev": "@62483"
+  "chrev": "@62928"
 }
 
 deps = {

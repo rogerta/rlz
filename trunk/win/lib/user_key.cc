@@ -8,7 +8,7 @@
 #include "rlz/win/lib/user_key.h"
 
 #include "base/process_util.h"
-#include "base/win_util.h"
+#include "base/win/windows_version.h"
 
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/process_info.h"
@@ -23,7 +23,7 @@ UserKey::UserKey(const wchar_t* sid) {
     // HKEY_CURRENT_USER directly here, the overriding done for unit tests will
     // no longer work.  So we try subkey "Software" which is known to always
     // exist.
-    RegKey key;
+    base::win::RegKey key;
     if (!key.Open(HKEY_CURRENT_USER, L"Software", KEY_READ))
       ASSERT_STRING("Could not open HKEY_CURRENT_USER");
     return;
@@ -64,7 +64,7 @@ bool UserKey::HasAccess(HKEY user_key, bool write_access) {
   }
 
   if (write_access) {
-    if (win_util::GetWinVersion() < win_util::WINVERSION_VISTA) return true;
+    if (base::win::GetVersion() < base::win::VERSION_VISTA) return true;
     base::ProcessHandle process_handle = base::GetCurrentProcessHandle();
     base::IntegrityLevel level = base::INTEGRITY_UNKNOWN;
 

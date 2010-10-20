@@ -13,8 +13,8 @@
 
 #include "base/basictypes.h"
 #include "base/logging.h"
-#include "base/registry.h"
 #include "base/string_util.h"
+#include "base/win/registry.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -139,7 +139,7 @@ static void SetLastPingTime(int64 time, rlz_lib::Product product) {
                 rlz_lib::kPingTimesSubkeyName);
 
   const wchar_t* product_name = GetProductName(product);
-  RegKey key(HKEY_CURRENT_USER, key_location.c_str(), KEY_WRITE);
+  base::win::RegKey key(HKEY_CURRENT_USER, key_location.c_str(), KEY_WRITE);
   EXPECT_TRUE(key.WriteValue(product_name, &time, sizeof(time), REG_QWORD));
 }
 

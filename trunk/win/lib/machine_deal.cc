@@ -265,7 +265,8 @@ bool MachineDealCode::Get(char* dcc, int dcc_size) {
 
   dcc[0] = 0;
 
-  RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName, KEY_READ | KEY_WOW64_32KEY);
+  base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName,
+                            KEY_READ | KEY_WOW64_32KEY);
   if (!dcc_key.Valid())
     return false;  // no DCC key.
 

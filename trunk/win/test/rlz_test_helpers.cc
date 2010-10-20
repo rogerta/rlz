@@ -8,7 +8,7 @@
 
 #include <shlwapi.h>
 
-#include "base/registry.h"
+#include "base/win/registry.h"
 #include "rlz/win/lib/rlz_lib.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -30,8 +30,8 @@ void OverrideRegistryHives() {
   EXPECT_TRUE(err == ERROR_SUCCESS || err == ERROR_FILE_NOT_FOUND);
 
   // Create the keys we're redirecting HKCU and HKLM to.
-  RegKey hkcu;
-  RegKey hklm;
+  base::win::RegKey hkcu;
+  base::win::RegKey hklm;
   ASSERT_TRUE(hkcu.Create(HKEY_CURRENT_USER, kHKCUReplacement, KEY_READ));
   ASSERT_TRUE(hklm.Create(HKEY_CURRENT_USER, kHKLMReplacement, KEY_READ));
 

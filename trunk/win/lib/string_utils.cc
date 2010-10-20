@@ -91,7 +91,7 @@ bool BytesToString(const unsigned char* data,
   return true;
 }
 
-bool RegKeyReadValue(RegKey& key, const wchar_t* name,
+bool RegKeyReadValue(base::win::RegKey& key, const wchar_t* name,
                      char* value, size_t* value_size) {
   value[0] = 0;
 
@@ -111,7 +111,8 @@ bool RegKeyReadValue(RegKey& key, const wchar_t* name,
   return true;
 }
 
-bool RegKeyWriteValue(RegKey& key, const wchar_t* name, const char* value) {
+bool RegKeyWriteValue(base::win::RegKey& key, const wchar_t* name,
+                      const char* value) {
   std::wstring value_string(ASCIIToWide(value));
   return key.WriteValue(name, value_string.c_str());
 }

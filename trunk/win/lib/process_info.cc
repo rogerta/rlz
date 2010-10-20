@@ -14,7 +14,7 @@
 #include "base/process_util.h"
 #include "base/scoped_handle_win.h"
 #include "base/scoped_ptr.h"
-#include "base/win_util.h"
+#include "base/win/windows_version.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/vista_winnt.h"
 
@@ -96,7 +96,7 @@ HRESULT GetElevationType(PTOKEN_ELEVATION_TYPE elevation) {
 
   *elevation = TokenElevationTypeDefault;
 
-  if (win_util::GetWinVersion() < win_util::WINVERSION_VISTA)
+  if (base::win::GetVersion() < base::win::VERSION_VISTA)
     return E_FAIL;
 
   HANDLE process_token;
@@ -171,7 +171,7 @@ bool ProcessInfo::HasAdminRights() {
   if (!evaluated) {
     if (IsRunningAsSystem()) {
       has_rights = true;
-    } else if (win_util::GetWinVersion() >= win_util::WINVERSION_VISTA) {
+    } else if (base::win::GetVersion() >= base::win::VERSION_VISTA) {
       TOKEN_ELEVATION_TYPE elevation;
       base::IntegrityLevel level;
 
