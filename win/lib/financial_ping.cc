@@ -214,7 +214,7 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
   uint64 last_ping;
   DWORD size = sizeof(last_ping);
   DWORD type;
-  RegKey key(user_key.Get(), key_location.c_str(), KEY_READ);
+  base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_READ);
   if (!key.ReadValue(GetProductName(product), &last_ping, &size, &type))
     return true;
 
@@ -253,7 +253,7 @@ bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
   std::wstring key_location;
   StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
 
-  RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
+  base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
   return key.WriteValue(GetProductName(product), &now, sizeof(now), REG_QWORD);
 }
 
@@ -271,7 +271,7 @@ bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
   StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
 
   const wchar_t* value_name = GetProductName(product);
-  RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
+  base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
   key.DeleteValue(value_name);
 
   // Verify deletion.

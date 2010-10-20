@@ -503,7 +503,7 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
     return false;
 
   size_t size = rlz_size;
-  RegKey key(user_key, rlzs_key_name.c_str(), KEY_READ);
+  base::win::RegKey key(user_key, rlzs_key_name.c_str(), KEY_READ);
   if (!RegKeyReadValue(key, ASCIIToWide(access_point_name).c_str(),
                        rlz, &size)) {
     rlz[0] = 0;

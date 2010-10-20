@@ -8,7 +8,7 @@
 #ifndef RLZ_WIN_LIB_USER_KEY_H_
 #define RLZ_WIN_LIB_USER_KEY_H_
 
-#include "base/registry.h"
+#include "base/win/registry.h"
 
 namespace rlz_lib {
 
@@ -22,8 +22,9 @@ class UserKey {
 
  private:
   UserKey() {}
-  RegKey user_key_;
+  base::win::RegKey user_key_;
 };
-};
+
+}  // namespace rlz_lib
 
 #endif  // RLZ_WIN_LIB_USER_KEY_H_
