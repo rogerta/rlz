@@ -11,11 +11,11 @@
 #include <vector>
 
 #include "base/basictypes.h"
-#include "base/registry.h"
 #include "base/scoped_ptr.h"
 #include "base/sha1.h"
 #include "base/string_split.h"
 #include "base/string_util.h"
+#include "base/win/registry.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/crc8.h"
 #include "rlz/win/lib/lib_mutex.h"
@@ -137,8 +137,8 @@ bool MachineDealCode::Set(const char* dcc) {
     return false;
   }
 
-  RegKey hklm_key(HKEY_LOCAL_MACHINE, kLibKeyName,
-                  KEY_READ | KEY_WRITE | KEY_WOW64_32KEY);
+  base::win::RegKey hklm_key(HKEY_LOCAL_MACHINE, kLibKeyName,
+                             KEY_READ | KEY_WRITE | KEY_WOW64_32KEY);
   if (!hklm_key.Valid()) {
     ASSERT_STRING("MachineDealCode::Set: Unable to create / open machine key."
                   " Did you call rlz_lib::CreateMachineState()?");
@@ -282,8 +282,8 @@ bool MachineDealCode::Get(char* dcc, int dcc_size) {
 
 
 bool MachineDealCode::Clear() {
-  RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName,
-                 KEY_READ | KEY_WRITE | KEY_WOW64_32KEY);
+  base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName,
+                            KEY_READ | KEY_WRITE | KEY_WOW64_32KEY);
   if (!dcc_key.Valid())
     return false;  // no DCC key.
 
