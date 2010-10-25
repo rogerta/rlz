@@ -72,7 +72,7 @@ TEST_F(FinancialPingTest, FormRequest) {
       "/tools/pso/ping?as=swg&brand=GGLA&hl=en&"
       "events=I7S,W1I&rep=2&rlz=T4:TbRlzValue&dcc=dcc_value";
   if (got_machine_id)
-    StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
+    base::StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
@@ -81,7 +81,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   expected_response = "/tools/pso/ping?as=swg&brand=GGLA&pid=IdOk2&"
                       "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value";
   if (got_machine_id)
-    StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
+    base::StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
@@ -135,8 +135,8 @@ TEST_F(FinancialPingTest, FormRequest) {
 
 static void SetLastPingTime(int64 time, rlz_lib::Product product) {
   std::wstring key_location;
-  StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
-                rlz_lib::kPingTimesSubkeyName);
+  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
+                      rlz_lib::kPingTimesSubkeyName);
 
   const wchar_t* product_name = GetProductName(product);
   base::win::RegKey key(HKEY_CURRENT_USER, key_location.c_str(), KEY_WRITE);
