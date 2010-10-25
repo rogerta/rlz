@@ -80,28 +80,28 @@ bool FinancialPing::FormRequest(Product product,
     return false;
   }
 
-  StringAppendF(request, "%s?", kFinancialPingPath);
+  base::StringAppendF(request, "%s?", kFinancialPingPath);
 
   // Add the signature, brand, product id and language.
-  StringAppendF(request, "%s=%s", kProductSignatureCgiVariable,
-                product_signature);
+  base::StringAppendF(request, "%s=%s", kProductSignatureCgiVariable,
+                      product_signature);
   if (product_brand)
-    StringAppendF(request, "&%s=%s", kProductBrandCgiVariable,
-                  product_brand);
+    base::StringAppendF(request, "&%s=%s", kProductBrandCgiVariable,
+                        product_brand);
 
   if (product_id)
-    StringAppendF(request, "&%s=%s", kProductIdCgiVariable, product_id);
+    base::StringAppendF(request, "&%s=%s", kProductIdCgiVariable, product_id);
 
   if (product_lang)
-    StringAppendF(request, "&%s=%s", kProductLanguageCgiVariable,
-                  product_lang);
+    base::StringAppendF(request, "&%s=%s", kProductLanguageCgiVariable,
+                        product_lang);
 
   // Add the product events.
   char cgi[kMaxCgiLength + 1];
   cgi[0] = 0;
   bool has_events = GetProductEventsAsCgi(product, cgi, arraysize(cgi), sid);
   if (has_events)
-    StringAppendF(request, "&%s", cgi);
+    base::StringAppendF(request, "&%s", cgi);
 
   // If we don't have any events, we should ping all the AP's on the system
   // that we know about and have a current RLZ value, even if they are not
@@ -125,13 +125,13 @@ bool FinancialPing::FormRequest(Product product,
   cgi[0] = 0;
   if (GetPingParams(product, has_events ? access_points : all_points,
                     cgi, arraysize(cgi), sid))
-    StringAppendF(request, "&%s", cgi);
+    base::StringAppendF(request, "&%s", cgi);
 
   if (has_events && !exclude_machine_id) {
     std::wstring machine_id;
     if (MachineDealCode::GetMachineId(&machine_id)) {
-      StringAppendF(request, "&%s=%ls", kMachineIdCgiVariable,
-                    machine_id.c_str());
+      base::StringAppendF(request, "&%s=%ls", kMachineIdCgiVariable,
+                          machine_id.c_str());
     }
   }
 
@@ -209,7 +209,8 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
     return false;
 
   std::wstring key_location;
-  StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
+  base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
+                      kPingTimesSubkeyName);
 
   uint64 last_ping;
   DWORD size = sizeof(last_ping);
@@ -251,7 +252,8 @@ bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
   uint64 now = GetSystemTimeAsInt64();
 
   std::wstring key_location;
-  StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
+  base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
+                      kPingTimesSubkeyName);
 
   base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
   return key.WriteValue(GetProductName(product), &now, sizeof(now), REG_QWORD);
@@ -268,7 +270,8 @@ bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
     return false;
 
   std::wstring key_location;
-  StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName, kPingTimesSubkeyName);
+  base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
+                      kPingTimesSubkeyName);
 
   const wchar_t* value_name = GetProductName(product);
   base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);

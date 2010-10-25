@@ -207,8 +207,8 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
     return false;
 
   std::wstring key_name;
-  StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
-                rlz_lib::kStatefulEventsSubkeyName, product_name);
+  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
+                      rlz_lib::kStatefulEventsSubkeyName, product_name);
 
   // Write the new event to registry.
   const char* point_name = GetAccessPointName(point);
@@ -222,8 +222,8 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
   std::wstring point_name_wide(ASCIIToWide(point_name));
   std::wstring event_name_wide(ASCIIToWide(event_name));
   std::wstring new_event_value;
-  StringAppendF(&new_event_value, L"%ls%ls", point_name_wide.c_str(),
-                event_name_wide.c_str());
+  base::StringAppendF(&new_event_value, L"%ls%ls", point_name_wide.c_str(),
+                      event_name_wide.c_str());
   DWORD data = 1;
 
   base::win::RegKey key(user_key.Get(), key_name.c_str(), KEY_WRITE);
@@ -240,7 +240,7 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
                                  size_t cgi_size, HKEY user_key) {
   // Prepend the CGI param key to the buffer.
   std::string cgi_arg;
-  StringAppendF(&cgi_arg, "%s=", rlz_lib::kEventsCgiVariable);
+  base::StringAppendF(&cgi_arg, "%s=", rlz_lib::kEventsCgiVariable);
   if (cgi_size <= cgi_arg.size())
     return ERROR_MORE_DATA;
 
@@ -254,8 +254,8 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
     return false;
 
   std::wstring key_name;
-  StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
-                rlz_lib::kEventsSubkeyName, product_name);
+  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
+                      rlz_lib::kEventsSubkeyName, product_name);
   base::win::RegKey events(user_key, key_name.c_str(), KEY_READ);
   if (!events.Valid())
     return ERROR_PATH_NOT_FOUND;
@@ -304,7 +304,7 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
     return false;
 
   std::wstring key_name;
-  StringAppendF(&key_name, L"%ls\\%ls", rlz_lib::kLibKeyName, key);
+  base::StringAppendF(&key_name, L"%ls\\%ls", rlz_lib::kLibKeyName, key);
 
   const wchar_t* product_name = rlz_lib::GetProductName(product);
   if (!product_name)
@@ -314,7 +314,7 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
   reg_key.DeleteKey(product_name);
 
   // Verify that the value no longer exists.
-  StringAppendF(&key_name, L"\\%ls", product_name);
+  base::StringAppendF(&key_name, L"\\%ls", product_name);
   base::win::RegKey product_events(user_key.Get(), key_name.c_str(), KEY_READ);
   if (product_events.Valid()) {
     ASSERT_STRING("ClearAllProductEvents: Key deletion failed");
@@ -352,13 +352,13 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
   std::wstring point_name_wide(ASCIIToWide(point_name));
   std::wstring event_name_wide(ASCIIToWide(event_name));
   std::wstring new_event_value;
-  StringAppendF(&new_event_value, L"%ls%ls", point_name_wide.c_str(),
-                event_name_wide.c_str());
+  base::StringAppendF(&new_event_value, L"%ls%ls", point_name_wide.c_str(),
+                      event_name_wide.c_str());
 
   // Check whether this event is a stateful event. If so, don't record it.
   std::wstring stateful_key_name;
-  StringAppendF(&stateful_key_name, L"%ls\\%ls\\%ls", kLibKeyName,
-                kStatefulEventsSubkeyName, product_name);
+  base::StringAppendF(&stateful_key_name, L"%ls\\%ls\\%ls", kLibKeyName,
+                      kStatefulEventsSubkeyName, product_name);
 
   DWORD value;
   base::win::RegKey key(user_key.Get(), stateful_key_name.c_str(), KEY_READ);
@@ -398,8 +398,8 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event,
     return false;
 
   std::wstring key_name;
-  StringAppendF(&key_name, L"%ls\\%ls\\%ls", kLibKeyName, kEventsSubkeyName,
-                product_name);
+  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", kLibKeyName,
+                      kEventsSubkeyName, product_name);
 
   // Get the event's registry value and delete it.
   const char* point_name = GetAccessPointName(point);
@@ -495,7 +495,8 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
 
   // Open the RLZs key.
   std::wstring rlzs_key_name;
-  StringAppendF(&rlzs_key_name, L"%ls\\%ls", kLibKeyName, kRlzsSubkeyName);
+  base::StringAppendF(&rlzs_key_name, L"%ls\\%ls", kLibKeyName,
+                      kRlzsSubkeyName);
 
   // Get the RLZ value.
   const char* access_point_name = GetAccessPointName(point);
@@ -797,7 +798,7 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   std::string cgi_string(kProtocolCgiArgument);
 
   // Copy the &rlz= over.
-  StringAppendF(&cgi_string, "&%s=", kRlzCgiVariable);
+  base::StringAppendF(&cgi_string, "&%s=", kRlzCgiVariable);
 
   // Now add each of the RLZ's.
   bool first_rlz = true;  // comma before every RLZ but the first.
@@ -808,8 +809,9 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
       if (!access_point)
         continue;
 
-      StringAppendF(&cgi_string, "%s%s%s%s", first_rlz ? "" : kRlzCgiSeparator,
-                    access_point, kRlzCgiIndicator, rlz);
+      base::StringAppendF(&cgi_string, "%s%s%s%s",
+                          first_rlz ? "" : kRlzCgiSeparator,
+                          access_point, kRlzCgiIndicator, rlz);
       first_rlz = false;
     }
   }
@@ -818,7 +820,7 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   char dcc[kMaxDccLength + 1];
   dcc[0] = 0;
   if (GetMachineDealCode(dcc, arraysize(dcc)) && dcc[0])
-    StringAppendF(&cgi_string, "&%s=%s", kDccCgiVariable, dcc);
+    base::StringAppendF(&cgi_string, "&%s=%s", kDccCgiVariable, dcc);
 
   if (cgi_string.size() >= cgi_size)
     return false;
@@ -1108,7 +1110,7 @@ void ClearProductState(Product product, const AccessPoint* access_points,
 
   for (int i = 0; i < arraysize(subkeys); i++) {
     std::wstring subkey_name;
-    StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
+    base::StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
     VERIFY(DeleteKeyIfEmpty(user_key.Get(), subkey_name.c_str()));
   }
 

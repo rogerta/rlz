@@ -235,7 +235,7 @@ bool MachineDealCode::GetAsCgi(char* cgi, int cgi_size) {
   cgi[0] = 0;
 
   std::string cgi_arg;
-  StringAppendF(&cgi_arg, "%s=", kDccCgiVariable);
+  base::StringAppendF(&cgi_arg, "%s=", kDccCgiVariable);
   int cgi_arg_length = cgi_arg.size();
 
   if (cgi_arg_length >= cgi_size) {
@@ -381,7 +381,7 @@ std::wstring ConvertSidToString(SID* sid) {
 
   int sub_auth_count = *::GetSidSubAuthorityCount(sid);
   for(int i = 0; i < sub_auth_count; ++i)
-    StringAppendF(&sid_string, L"-%lu", *::GetSidSubAuthority(sid, i));
+    base::StringAppendF(&sid_string, L"-%lu", *::GetSidSubAuthority(sid, i));
 #endif
 
   return sid_string;
