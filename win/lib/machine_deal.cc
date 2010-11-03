@@ -15,6 +15,7 @@
 #include "base/sha1.h"
 #include "base/string_split.h"
 #include "base/string_util.h"
+#include "base/stringprintf.h"
 #include "base/win/registry.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/crc8.h"
@@ -22,7 +23,6 @@
 #include "rlz/win/lib/lib_values.h"
 #include "rlz/win/lib/string_utils.h"
 #include "rlz/win/lib/user_key.h"
-
 
 namespace {
 
@@ -55,7 +55,7 @@ bool IsGoodDccChar(char ch) {
 }
 
 // This function will remove bad rlz chars and also limit the max rlz to some
-// reasonable size.  It also assumes that normalized_dcc is at least
+// reasonable size. It also assumes that normalized_dcc is at least
 // kMaxDccLength+1 long.
 void NormalizeDcc(const char* raw_dcc, char* normalized_dcc) {
   int index = 0;
@@ -120,7 +120,6 @@ bool GetResponseValue(const std::string& response_line,
 
 }  // namespace anonymous
 
-
 namespace rlz_lib {
 
 bool MachineDealCode::Set(const char* dcc) {
@@ -158,7 +157,6 @@ bool MachineDealCode::Set(const char* dcc) {
 
   return true;
 }
-
 
 bool MachineDealCode::GetNewCodeFromPingResponse(const char* response,
     bool* has_new_dcc, char* new_dcc, int new_dcc_size) {
@@ -225,7 +223,6 @@ bool MachineDealCode::SetFromPingResponse(const char* response) {
   return response_valid;
 }
 
-
 bool MachineDealCode::GetAsCgi(char* cgi, int cgi_size) {
   if (!cgi || cgi_size <= 0) {
     ASSERT_STRING("MachineDealCode::GetAsCgi: Invalid buffer");
@@ -251,7 +248,6 @@ bool MachineDealCode::GetAsCgi(char* cgi, int cgi_size) {
   }
   return true;
 }
-
 
 bool MachineDealCode::Get(char* dcc, int dcc_size) {
   LibMutex lock;
@@ -279,7 +275,6 @@ bool MachineDealCode::Get(char* dcc, int dcc_size) {
 
   return true;
 }
-
 
 bool MachineDealCode::Clear() {
   base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName,
@@ -365,7 +360,8 @@ std::wstring ConvertSidToString(SID* sid) {
   SID_IDENTIFIER_AUTHORITY* sia = ::GetSidIdentifierAuthority(sid);
 
   if(sia->Value[0] || sia->Value[1]) {
-    SStringPrintf(&sid_string, L"S-%d-0x%02hx%02hx%02hx%02hx%02hx%02hx",
+    base::SStringPrintf(
+        &sid_string, L"S-%d-0x%02hx%02hx%02hx%02hx%02hx%02hx",
         SID_REVISION, (USHORT)sia->Value[0], (USHORT)sia->Value[1],
         (USHORT)sia->Value[2], (USHORT)sia->Value[3], (USHORT)sia->Value[4],
         (USHORT)sia->Value[5]);
@@ -375,8 +371,7 @@ std::wstring ConvertSidToString(SID* sid) {
       authority <<= 8;
       authority |= sia->Value[i];
     }
-
-    SStringPrintf(&sid_string, L"S-%d-%lu", SID_REVISION, authority);
+    base::SStringPrintf(&sid_string, L"S-%d-%lu", SID_REVISION, authority);
   }
 
   int sub_auth_count = *::GetSidSubAuthorityCount(sid);
@@ -426,7 +421,6 @@ bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
   return true;
 }
 
-
 bool MachineDealCode::GetMachineIdImpl(const std::wstring& sid_string,
                                        int volume_id,
                                        std::wstring* machine_id) {
@@ -467,4 +461,4 @@ bool MachineDealCode::GetMachineIdImpl(const std::wstring& sid_string,
   return BytesToString(id_binary.c_str(), kSizeWithoutChecksum + 1, machine_id);
 }
 
-};  // namespace
+}  // namespace rlz_lib

@@ -16,6 +16,7 @@
 #include "base/basictypes.h"
 #include "base/scoped_ptr.h"
 #include "base/string_util.h"
+#include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
 #include "base/win/registry.h"
 #include "rlz/win/lib/assert.h"
@@ -903,8 +904,9 @@ bool ParsePingResponse(Product product, const char* response,
 
   std::string events_variable;
   std::string stateful_events_variable;
-  SStringPrintf(&events_variable, "%s: ", kEventsCgiVariable);
-  SStringPrintf(&stateful_events_variable, "%s: ", kStatefulEventsCgiVariable);
+  base::SStringPrintf(&events_variable, "%s: ", kEventsCgiVariable);
+  base::SStringPrintf(&stateful_events_variable, "%s: ",
+                      kStatefulEventsCgiVariable);
 
   int rlz_cgi_length = strlen(kRlzCgiVariable);
 
