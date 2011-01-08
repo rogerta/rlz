@@ -12,8 +12,8 @@
 
 #include "base/logging.h"
 #include "base/process_util.h"
-#include "base/scoped_handle_win.h"
 #include "base/scoped_ptr.h"
+#include "base/win/scoped_handle.h"
 #include "base/win/windows_version.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/vista_winnt.h"
@@ -37,7 +37,7 @@ HRESULT GetCurrentUser(std::wstring* name,
   if (!::OpenProcessToken(::GetCurrentProcess(), TOKEN_QUERY, &token))
     return E_FAIL;
 
-  ScopedHandle scoped_process_token(token);
+  base::win::ScopedHandle scoped_process_token(token);
 
   // (Following call will fail with ERROR_INSUFFICIENT_BUFFER and give us the
   // required size.)
@@ -103,7 +103,7 @@ HRESULT GetElevationType(PTOKEN_ELEVATION_TYPE elevation) {
   if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &process_token))
     return HRESULT_FROM_WIN32(GetLastError());
 
-  ScopedHandle scoped_process_token(process_token);
+  base::win::ScopedHandle scoped_process_token(process_token);
 
   DWORD size;
   TOKEN_ELEVATION_TYPE elevation_type;
