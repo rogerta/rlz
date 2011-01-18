@@ -212,15 +212,10 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
   base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
                       kPingTimesSubkeyName);
 
-  uint64 last_ping;
-  DWORD size = sizeof(last_ping);
-  DWORD type;
+  int64 last_ping = 0;
   base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_READ);
-  if (!key.ReadValue(GetProductName(product), &last_ping, &size, &type))
+  if (key.ReadInt64(GetProductName(product), &last_ping) != ERROR_SUCCESS)
     return true;
-
-  VERIFY(REG_QWORD == type);
-  VERIFY(sizeof(last_ping) == size);
 
   uint64 now = GetSystemTimeAsInt64();
   int64 interval = now - last_ping;
@@ -256,7 +251,8 @@ bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
                       kPingTimesSubkeyName);
 
   base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
-  return key.WriteValue(GetProductName(product), &now, sizeof(now), REG_QWORD);
+  return (key.WriteValue(GetProductName(product), &now, sizeof(now),
+                         REG_QWORD) == ERROR_SUCCESS);
 }
 
 
@@ -280,7 +276,7 @@ bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
   // Verify deletion.
   uint64 value;
   DWORD size = sizeof(value);
-  if (key.ReadValue(value_name, &value, &size, NULL)) {
+  if (key.ReadValue(value_name, &value, &size, NULL) == ERROR_SUCCESS) {
     ASSERT_STRING("FinancialPing::ClearLastPingTime: Failed to delete value.");
     return false;
   }

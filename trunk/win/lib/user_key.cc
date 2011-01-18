@@ -24,7 +24,7 @@ UserKey::UserKey(const wchar_t* sid) {
     // no longer work.  So we try subkey "Software" which is known to always
     // exist.
     base::win::RegKey key;
-    if (!key.Open(HKEY_CURRENT_USER, L"Software", KEY_READ))
+    if (key.Open(HKEY_CURRENT_USER, L"Software", KEY_READ) != ERROR_SUCCESS)
       ASSERT_STRING("Could not open HKEY_CURRENT_USER");
     return;
   }
@@ -35,7 +35,7 @@ UserKey::UserKey(const wchar_t* sid) {
     return;
   }
 
-  if (!user_key_.Open(HKEY_USERS, sid, KEY_ALL_ACCESS))
+  if (user_key_.Open(HKEY_USERS, sid, KEY_ALL_ACCESS) != ERROR_SUCCESS)
     ASSERT_STRING("UserKey::UserKey Failed to open user key.");
 }
 

@@ -88,7 +88,7 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
 
   // The key is empty - delete it now.
   base::win::RegKey key(root_key, L"", KEY_WRITE);
-  return key.DeleteKey(key_name);
+  return key.DeleteKey(key_name) == ERROR_SUCCESS;
 }
 
 // Current RLZ can only uses [a-zA-Z0-9_\-]
@@ -228,7 +228,7 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
   DWORD data = 1;
 
   base::win::RegKey key(user_key.Get(), key_name.c_str(), KEY_WRITE);
-  if (!key.WriteValue(new_event_value.c_str(), data)) {
+  if (key.WriteValue(new_event_value.c_str(), data) != ERROR_SUCCESS) {
     ASSERT_STRING(
         "RecordStatefulEvent: Could not write the new stateful event");
     return false;
@@ -363,7 +363,7 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
 
   DWORD value;
   base::win::RegKey key(user_key.Get(), stateful_key_name.c_str(), KEY_READ);
-  if (key.ReadValueDW(new_event_value.c_str(), &value)) {
+  if (key.ReadValueDW(new_event_value.c_str(), &value) == ERROR_SUCCESS) {
     // For a stateful event we skip recording, this function is also
     // considered successful.
     return true;
@@ -376,7 +376,7 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
   // Write the new event to registry.
   value = 1;
   base::win::RegKey reg_key(user_key.Get(), key_name.c_str(), KEY_WRITE);
-  if (!reg_key.WriteValue(new_event_value.c_str(), value)) {
+  if (reg_key.WriteValue(new_event_value.c_str(), value) != ERROR_SUCCESS) {
     ASSERT_STRING("RecordProductEvent: Could not write the new event value");
     return false;
   }
@@ -421,7 +421,7 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event,
 
   // Verify deletion.
   DWORD value;
-  if (key.ReadValueDW(event_value.c_str(), &value)) {
+  if (key.ReadValueDW(event_value.c_str(), &value) == ERROR_SUCCESS) {
     ASSERT_STRING("ClearProductEvent: Could not delete the event value.");
     return false;
   }
@@ -576,7 +576,8 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz,
 
     // Verify deletion.
     DWORD value;
-    if (key.ReadValueDW(access_point_name_wide.c_str(), &value)) {
+    if (key.ReadValueDW(access_point_name_wide.c_str(), &value) ==
+        ERROR_SUCCESS) {
       ASSERT_STRING("SetAccessPointRlz: Could not clear the RLZ value.");
       return false;
     }
@@ -658,8 +659,8 @@ bool CreateMachineState() {
     return false;
 
   base::win::RegKey hklm_key;
-  if (!hklm_key.Create(HKEY_LOCAL_MACHINE, kLibKeyName,
-                       KEY_ALL_ACCESS | KEY_WOW64_32KEY)) {
+  if (hklm_key.Create(HKEY_LOCAL_MACHINE, kLibKeyName,
+                      KEY_ALL_ACCESS | KEY_WOW64_32KEY) != ERROR_SUCCESS) {
     ASSERT_STRING("rlz_lib::CreateMachineState: "
                   "Unable to create / open machine key.");
     return false;
