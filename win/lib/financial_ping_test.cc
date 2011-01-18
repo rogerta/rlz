@@ -140,7 +140,8 @@ static void SetLastPingTime(int64 time, rlz_lib::Product product) {
 
   const wchar_t* product_name = GetProductName(product);
   base::win::RegKey key(HKEY_CURRENT_USER, key_location.c_str(), KEY_WRITE);
-  EXPECT_TRUE(key.WriteValue(product_name, &time, sizeof(time), REG_QWORD));
+  EXPECT_EQ(ERROR_SUCCESS, key.WriteValue(product_name, &time, sizeof(time),
+                                          REG_QWORD));
 }
 
 TEST_F(FinancialPingTest, IsPingTime) {

@@ -32,14 +32,16 @@ void OverrideRegistryHives() {
   // Create the keys we're redirecting HKCU and HKLM to.
   base::win::RegKey hkcu;
   base::win::RegKey hklm;
-  ASSERT_TRUE(hkcu.Create(HKEY_CURRENT_USER, kHKCUReplacement, KEY_READ));
-  ASSERT_TRUE(hklm.Create(HKEY_CURRENT_USER, kHKLMReplacement, KEY_READ));
+  ASSERT_EQ(ERROR_SUCCESS,
+      hkcu.Create(HKEY_CURRENT_USER, kHKCUReplacement, KEY_READ));
+  ASSERT_EQ(ERROR_SUCCESS,
+      hklm.Create(HKEY_CURRENT_USER, kHKLMReplacement, KEY_READ));
 
   // And do the switcharoo.
   ASSERT_EQ(ERROR_SUCCESS,
-    ::RegOverridePredefKey(HKEY_CURRENT_USER, hkcu.Handle()));
+      ::RegOverridePredefKey(HKEY_CURRENT_USER, hkcu.Handle()));
   ASSERT_EQ(ERROR_SUCCESS,
-    ::RegOverridePredefKey(HKEY_LOCAL_MACHINE, hklm.Handle()));
+      ::RegOverridePredefKey(HKEY_LOCAL_MACHINE, hklm.Handle()));
 }
 
 void UndoOverrideRegistryHives() {

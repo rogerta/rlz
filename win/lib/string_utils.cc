@@ -96,7 +96,7 @@ bool RegKeyReadValue(base::win::RegKey& key, const wchar_t* name,
   value[0] = 0;
 
   std::wstring value_string;
-  if (!key.ReadValue(name, &value_string)) {
+  if (key.ReadValue(name, &value_string) != ERROR_SUCCESS) {
     return false;
   }
 
@@ -114,7 +114,7 @@ bool RegKeyReadValue(base::win::RegKey& key, const wchar_t* name,
 bool RegKeyWriteValue(base::win::RegKey& key, const wchar_t* name,
                       const char* value) {
   std::wstring value_string(ASCIIToWide(value));
-  return key.WriteValue(name, value_string.c_str());
+  return key.WriteValue(name, value_string.c_str()) == ERROR_SUCCESS;
 }
 
 }  // namespace rlz_lib

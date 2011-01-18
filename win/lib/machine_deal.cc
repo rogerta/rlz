@@ -287,7 +287,7 @@ bool MachineDealCode::Clear() {
   // Verify deletion.
   wchar_t dcc[kMaxDccLength + 1];
   DWORD dcc_size = arraysize(dcc);
-  if (dcc_key.ReadValue(kDccValueName, dcc, &dcc_size, NULL)) {
+  if (dcc_key.ReadValue(kDccValueName, dcc, &dcc_size, NULL) == ERROR_SUCCESS) {
     ASSERT_STRING("MachineDealCode::Clear: Could not delete the DCC value.");
     return false;
   }
