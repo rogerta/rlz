@@ -1,4 +1,4 @@
-# Copyright 2010 Google Inc. All Rights Reserved.
+# Copyright 2011 Google Inc. All Rights Reserved.
 # Use of this source code is governed by an Apache-style license that can be
 # found in the COPYING file.
 
@@ -73,6 +73,7 @@
       ],
       'dependencies': [
         ':rlz_lib',
+        '../base/base.gyp:base',
         '../testing/gmock.gyp:gmock',
         '../testing/gtest.gyp:gtest',
         '../third_party/zlib/zlib.gyp:zlib',
