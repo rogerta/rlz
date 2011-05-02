@@ -35,6 +35,9 @@ deps = {
   "src/testing":
     "http://src.chromium.org/svn/trunk/src/testing" + Var("chrev"),
 
+  "src/testing/gmock":
+    "http://googlemock.googlecode.com/svn/trunk@374",
+
   "src/testing/gtest":
     "http://googletest.googlecode.com/svn/trunk@492",
 
