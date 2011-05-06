@@ -71,14 +71,16 @@ enum AccessPoint {
   TB8_SEARCH_BOX,     // IE/FF Toolbar search box.
   CHROME_FRAME,       // Chrome Frame.
 
+  // Partner access points.
+  PARTNER_AP_1,
+  PARTNER_AP_2,
+  PARTNER_AP_3,
+  PARTNER_AP_4,
+  PARTNER_AP_5,
+
   // Unclaimed access points - should be used first before creating new APs.
   // Please also make sure you re-name the enum before using an unclaimed value;
   // this acts as a check to ensure we don't have collisions.
-  UNDEFINED_AP_C,
-  UNDEFINED_AP_D,
-  UNDEFINED_AP_E,
-  UNDEFINED_AP_F,
-  UNDEFINED_AP_G,
   UNDEFINED_AP_H,
   UNDEFINED_AP_I,
   UNDEFINED_AP_J,
@@ -131,6 +133,7 @@ enum Product {
   QSB_WIN,
   WEBAPPS,
   PINYIN_IME,
+  PARTNER
   // New Products should be added here without changing existing enums.
 };
 
