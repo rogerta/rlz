@@ -33,6 +33,7 @@ const wchar_t* GetProductName(Product product) {
   case QSB_WIN:          return L"K";
   case WEBAPPS:          return L"W";
   case PINYIN_IME:       return L"N";
+  case PARTNER:          return L"V";
   }
 
   ASSERT_STRING("GetProductSubkeyName: Unknown Product");
@@ -118,11 +119,11 @@ const char* GetAccessPointName(AccessPoint point) {
   case IETB7_SEARCH_BOX:              return "T7";
   case TB8_SEARCH_BOX:                return "T8";
   case CHROME_FRAME:                  return "C3";
-  case UNDEFINED_AP_C:                return "RC";
-  case UNDEFINED_AP_D:                return "RD";
-  case UNDEFINED_AP_E:                return "RE";
-  case UNDEFINED_AP_F:                return "RF";
-  case UNDEFINED_AP_G:                return "RG";
+  case PARTNER_AP_1:                  return "V1";
+  case PARTNER_AP_2:                  return "V2";
+  case PARTNER_AP_3:                  return "V3";
+  case PARTNER_AP_4:                  return "V4";
+  case PARTNER_AP_5:                  return "V5";
   case UNDEFINED_AP_H:                return "RH";
   case UNDEFINED_AP_I:                return "RI";
   case UNDEFINED_AP_J:                return "RJ";
