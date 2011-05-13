@@ -22,6 +22,15 @@ The last command may take a few minutes to complete, depending on the speed of y
 
 At any time re-run the {{{gclient sync}}} command to checkout the latest revision of the RLZ code.
 
+== Using Visual Studio 2010 ==
+
+When using Visual Studio 2010, define the environment variable {{{GYP_MSVS_VERSION}}} before running glcient sync:
+
+{{{
+set GYP_MSVS_VERSION=2010
+gclient sync
+}}}
+
 = Building the RLZ code =
 
 {{{gclient sync}}} creates a Visual Studio solution file called {{{C:\src\RLZ\src\rlz\rlz.sln}}} for the entire RLZ project.  To build, either open this solution in the Visual Studio IDE or run the following command in a Command Prompt window:
