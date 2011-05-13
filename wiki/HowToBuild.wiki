@@ -24,7 +24,7 @@ At any time re-run the {{{gclient sync}}} command to checkout the latest revisio
 
 == Using Visual Studio 2010 ==
 
-When using Visual Studio 2010, define the environment variable {{{GYP_MSVS_VERSION}}} before running glcient sync:
+When using Visual Studio 2010, define the environment variable {{{GYP_MSVS_VERSION}}} before running gclient sync:
 
 {{{
 set GYP_MSVS_VERSION=2010
