@@ -11,6 +11,7 @@
 #include "base/basictypes.h"
 #include "base/scoped_ptr.h"
 #include "base/string_util.h"
+#include "base/utf_string_conversions.h"
 #include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/lib_values.h"
@@ -78,6 +79,14 @@ bool FinancialPing::FormRequest(Product product,
   if (!product_signature) {
     ASSERT_STRING("FinancialPing::FormRequest: product_signature is NULL");
     return false;
+  }
+
+  if (!SupplementaryBranding::GetBrand().empty()) {
+    std::wstring product_brand_wide(ASCIIToWide(product_brand));
+    if (SupplementaryBranding::GetBrand() != product_brand_wide) {
+      ASSERT_STRING("FinancialPing::FormRequest: supplementary branding bad");
+      return false;
+    }
   }
 
   base::StringAppendF(request, "%s?", kFinancialPingPath);
@@ -208,13 +217,10 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
   if (!user_key.HasAccess(false))
     return false;
 
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
-                      kPingTimesSubkeyName);
-
   int64 last_ping = 0;
-  base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_READ);
-  if (key.ReadInt64(GetProductName(product), &last_ping) != ERROR_SUCCESS)
+  base::win::RegKey key;
+  if (!GetPingTimesRegKey(user_key.Get(), KEY_READ, &key) ||
+      key.ReadInt64(GetProductName(product), &last_ping) != ERROR_SUCCESS)
     return true;
 
   uint64 now = GetSystemTimeAsInt64();
@@ -245,14 +251,10 @@ bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
     return false;
 
   uint64 now = GetSystemTimeAsInt64();
-
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
-                      kPingTimesSubkeyName);
-
-  base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
-  return (key.WriteValue(GetProductName(product), &now, sizeof(now),
-                         REG_QWORD) == ERROR_SUCCESS);
+  base::win::RegKey key;
+  return GetPingTimesRegKey(user_key.Get(), KEY_WRITE, &key) &&
+      key.WriteValue(GetProductName(product), &now, sizeof(now),
+                     REG_QWORD) == ERROR_SUCCESS;
 }
 
 
@@ -265,12 +267,9 @@ bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
   if (!user_key.HasAccess(true))
     return false;
 
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", kLibKeyName,
-                      kPingTimesSubkeyName);
-
   const wchar_t* value_name = GetProductName(product);
-  base::win::RegKey key(user_key.Get(), key_location.c_str(), KEY_WRITE);
+  base::win::RegKey key;
+  GetPingTimesRegKey(user_key.Get(), KEY_WRITE, &key);
   key.DeleteValue(value_name);
 
   // Verify deletion.

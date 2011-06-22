@@ -5,9 +5,70 @@
 // Key and value names of the location of the RLZ shared state.
 
 #include "rlz/win/lib/lib_values.h"
+
+#include "base/stringprintf.h"
+#include "base/win/registry.h"
 #include "rlz/win/lib/assert.h"
+#include "rlz/win/lib/lib_mutex.h"
+#include "rlz/win/lib/user_key.h"
+
+
+namespace {
+
+bool GetRegKey(HKEY user_key, const wchar_t* name, REGSAM access,
+               base::win::RegKey* key) {
+  std::wstring key_location;
+  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName, name);
+  rlz_lib::SupplementaryBranding::AppendBrandToString(&key_location);
+
+  LONG ret = ERROR_SUCCESS;
+  if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
+    ret = key->Create(user_key, key_location.c_str(), access);
+  } else {
+    ret = key->Open(user_key, key_location.c_str(), access);
+  }
+
+  return ret == ERROR_SUCCESS;
+}
+
+}  // anonymous
+
 
 namespace rlz_lib {
+
+std::wstring SupplementaryBranding::brand_;
+
+SupplementaryBranding::SupplementaryBranding(const wchar_t* brand)
+    : lock_(new LibMutex()) {
+  if (lock_->failed())
+    return;
+
+  if (!brand_.empty()) {
+    ASSERT_STRING("ProductBranding: existing brand is not empty");
+    return;
+  }
+
+  if (brand == NULL || brand[0] == 0) {
+    ASSERT_STRING("ProductBranding: new brand is empty");
+    return;
+  }
+
+  brand_ = brand;
+}
+
+SupplementaryBranding::~SupplementaryBranding() {
+  if (lock_->failed())
+    return;
+
+  brand_.clear();
+}
+
+// static
+void SupplementaryBranding::AppendBrandToString(std::wstring* str) {
+  if (!brand_.empty())
+    base::StringAppendF(str, L"\\_%ls", brand_.c_str());
+}
+
 
 //
 // Registry information.
@@ -214,6 +275,44 @@ bool GetEventFromName(const char* name, Event* event) {
     }
 
   return false;
+}
+
+
+bool GetPingTimesRegKey(HKEY user_key, REGSAM access, base::win::RegKey* key) {
+  return GetRegKey(user_key, kPingTimesSubkeyName, access, key);
+}
+
+
+bool GetEventsRegKey(HKEY user_key, const wchar_t* event_type,
+                     const rlz_lib::Product* product,
+                     REGSAM access, base::win::RegKey* key) {
+  std::wstring key_location;
+  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
+                      event_type);
+  SupplementaryBranding::AppendBrandToString(&key_location);
+
+  if (product != NULL) {
+    const wchar_t* product_name = rlz_lib::GetProductName(*product);
+    if (!product_name)
+      return false;
+
+    base::StringAppendF(&key_location, L"\\%ls", product_name);
+  }
+
+  LONG ret = ERROR_SUCCESS;
+  if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
+    ret = key->Create(user_key, key_location.c_str(), access);
+  } else {
+    ret = key->Open(user_key, key_location.c_str(), access);
+  }
+
+  return ret == ERROR_SUCCESS;
+}
+
+
+bool GetAccessPointRlzsRegKey(HKEY user_key, REGSAM access,
+                              base::win::RegKey* key) {
+  return GetRegKey(user_key, kRlzsSubkeyName, access, key);
 }
 
 }  // namespace rlz_lib
