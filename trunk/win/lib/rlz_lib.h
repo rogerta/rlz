@@ -25,10 +25,15 @@
 #define RLZ_WIN_LIB_RLZ_LIB_H_
 
 #include <stdio.h>
+#include <string>
+
+#include <base/scoped_ptr.h>
 
 #define RLZ_LIB_API __cdecl
 
 namespace rlz_lib {
+
+class LibMutex;
 
 // An Access Point offers a way to search using Google.
 enum AccessPoint {
@@ -398,6 +403,52 @@ void RLZ_LIB_API ClearProductState(Product product,
 // calling application.
 // Access: HKLM read.
 bool GetMachineId(char* buffer, int buffer_size);
+
+
+// Segment RLZ persistence based on branding information.
+// The RLZ library uses the Windows registry to save persistent information.
+// All information for a given product is persisted under keys with the either
+// product's name or its access point's name.  This assumes that only
+// one instance of the product is installed on the machine, and that only one
+// product brand is associated with it.
+//
+// In some cases, a given product may be using supplementary brands.  The RLZ
+// information must be kept separately for each of these brands.  To achieve
+// this segmentation, scope all RLZ library calls that deal with supplementary
+// brands within the lifetime of an rlz_lib::ProductBranding instance.
+//
+// For example, to record events for a supplementary brand, do the following:
+//
+//  {
+//    rlz_lib::SupplementaryBranding branding("AAAA");
+//    // This call to RecordProductEvent is scoped to the AAAA brand.
+//    rlz_lib::RecordProductEvent(rlz_lib::DESKTOP, rlz_lib::GD_DESKBAND,
+//                                rlz_lib::INSTALL);
+//  }
+//
+//  // This call to RecordProductEvent is not scoped to any supplementary brand.
+//  rlz_lib::RecordProductEvent(rlz_lib::DESKTOP, rlz_lib::GD_DESKBAND,
+//                              rlz_lib::INSTALL);
+//
+// In particular, this affects the recording of stateful events and the sending
+// of financial pings.  In the former case, a stateful event recorded while
+// scoped to a supplementary brand will be recorded again when scoped to a
+// different supplementary brand (or not scoped at all).  In the latter case,
+// the time skip check is specific to each supplementary brand.
+class SupplementaryBranding {
+ public:
+  SupplementaryBranding(const wchar_t* brand);
+  ~SupplementaryBranding();
+
+  static const std::wstring& GetBrand() { return brand_; }
+
+  static void AppendBrandToString(std::wstring* str);
+
+ private:
+  scoped_ptr<LibMutex> lock_;
+
+  static std::wstring brand_;
+};
 
 }  // namespace rlz_lib
 

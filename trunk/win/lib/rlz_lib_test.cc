@@ -9,6 +9,9 @@
 // - They modify machine state (registry).
 //
 // These tests require write access to HKLM and HKCU.
+//
+// The "GGLA" brand is used to test the normal code flow of the code, and the
+// "TEST" brand is used to test the supplementary brand code code flow.
 
 #include <windows.h>
 
@@ -558,3 +561,154 @@ TEST_F(RlzLibTest, HasAccess) {
                                   users_sid));
   EXPECT_TRUE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
 }
+
+TEST_F(RlzLibTest, BrandingRecordProductEvent) {
+  // Don't run these tests if a supplementary brand is already in place.  That
+  // way we can control the branding.
+  if (!rlz_lib::SupplementaryBranding::GetBrand().empty())
+    return;
+
+  char cgi_50[50];
+
+  // Record different events for the same product with diffrent branding, and
+  // make sure that the information remains separate.
+  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+  }
+
+  // Test that recording events with the default brand and a supplementary
+  // brand don't overwrite each other.
+
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                             cgi_50, 50));
+  EXPECT_STREQ("events=I7S", cgi_50);
+
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::INSTALL));
+    EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                               cgi_50, 50));
+    EXPECT_STREQ("events=I7I", cgi_50);
+  }
+
+  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                             cgi_50, 50));
+  EXPECT_STREQ("events=I7S", cgi_50);
+}
+
+TEST_F(RlzLibTest, BrandingSetAccessPointRlz) {
+  // Don't run these tests if a supplementary brand is already in place.  That
+  // way we can control the branding.
+  if (!rlz_lib::SupplementaryBranding::GetBrand().empty())
+    return;
+
+  char rlz_50[50];
+
+  // Test that setting RLZ strings with the default brand and a supplementary
+  // brand don't overwrite each other.
+
+  EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, "IeTbRlz"));
+  EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, rlz_50, 50));
+  EXPECT_STREQ("IeTbRlz", rlz_50);
+
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+
+    EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, "SuppRlz"));
+    EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, rlz_50,
+                                           50));
+    EXPECT_STREQ("SuppRlz", rlz_50);
+  }
+
+  EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, rlz_50, 50));
+  EXPECT_STREQ("IeTbRlz", rlz_50);
+
+}
+
+TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
+  // Don't run these tests if a supplementary brand is already in place.  That
+  // way we can control the branding.
+  if (!rlz_lib::SupplementaryBranding::GetBrand().empty())
+    return;
+
+  const char* kPingResponse =
+    "version: 3.0.914.7250\r\n"
+    "url: http://www.corp.google.com/~av/45/opt/SearchWithGoogleUpdate.exe\r\n"
+    "launch-action: custom-action\r\n"
+    "launch-target: SearchWithGoogleUpdate.exe\r\n"
+    "signature: c08a3f4438e1442c4fe5678ee147cf6c5516e5d62bb64e\r\n"
+    "rlzT4: 1T4_____en__252\r\n"  // GoodRLZ.
+    "events: I7S,W1I\r\n"         // Clear all events.
+    "stateful-events: W1I\r\n"    // W1I as an stateful event.
+    "rlz\r\n"
+    "dcc: dcc_value\r\n"
+    "crc32: 55191759";
+
+  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+  }
+
+  // Record some product events for the default and supplementary brand.
+  // Check that they get cleared only for the default brand.
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+    EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+        rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+  }
+
+  EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                         kPingResponse));
+
+  // Check all the events sent earlier are cleared only for default brand.
+  char value[50];
+  EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                              value, 50));
+  EXPECT_STREQ("", value);
+
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                               value, 50));
+    EXPECT_STREQ("events=I7S,W1I", value);
+  }
+
+  // Record both events (one is stateless and the other is stateful) again.
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+
+  // Check the stateful event won't be sent again while the stateless one will.
+  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                             value, 50));
+  EXPECT_STREQ("events=I7S", value);
+
+  {
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
+                                           kPingResponse));
+
+    EXPECT_FALSE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                                value, 50));
+    EXPECT_STREQ("", value);
+  }
+
+  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                             value, 50));
+  EXPECT_STREQ("events=I7S", value);
+}
+

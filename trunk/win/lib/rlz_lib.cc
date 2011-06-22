@@ -203,14 +203,6 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
   if (!user_key.HasAccess(true))
     return false;
 
-  const wchar_t* product_name = rlz_lib::GetProductName(product);
-  if (!product_name)
-    return false;
-
-  std::wstring key_name;
-  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
-                      rlz_lib::kStatefulEventsSubkeyName, product_name);
-
   // Write the new event to registry.
   const char* point_name = GetAccessPointName(point);
   const char* event_name = GetEventName(event);
@@ -227,8 +219,10 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
                       event_name_wide.c_str());
   DWORD data = 1;
 
-  base::win::RegKey key(user_key.Get(), key_name.c_str(), KEY_WRITE);
-  if (key.WriteValue(new_event_value.c_str(), data) != ERROR_SUCCESS) {
+  base::win::RegKey key;
+  if (!GetEventsRegKey(user_key.Get(), rlz_lib::kStatefulEventsSubkeyName,
+                       &product, KEY_WRITE, &key) ||
+      key.WriteValue(new_event_value.c_str(), data) != ERROR_SUCCESS) {
     ASSERT_STRING(
         "RecordStatefulEvent: Could not write the new stateful event");
     return false;
@@ -250,14 +244,9 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
     cgi[index] = cgi_arg[index];
 
   // Open the events key.
-  const wchar_t* product_name = rlz_lib::GetProductName(product);
-  if (!product_name)
-    return false;
-
-  std::wstring key_name;
-  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", rlz_lib::kLibKeyName,
-                      rlz_lib::kEventsSubkeyName, product_name);
-  base::win::RegKey events(user_key, key_name.c_str(), KEY_READ);
+  base::win::RegKey events;
+  GetEventsRegKey(user_key, rlz_lib::kEventsSubkeyName, &product, KEY_READ,
+                  &events);
   if (!events.Valid())
     return ERROR_PATH_NOT_FOUND;
 
@@ -304,19 +293,16 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
   if (!user_key.HasAccess(true))
     return false;
 
-  std::wstring key_name;
-  base::StringAppendF(&key_name, L"%ls\\%ls", rlz_lib::kLibKeyName, key);
-
   const wchar_t* product_name = rlz_lib::GetProductName(product);
   if (!product_name)
     return false;
 
-  base::win::RegKey reg_key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  base::win::RegKey reg_key;
+  rlz_lib::GetEventsRegKey(user_key.Get(), key, NULL, KEY_WRITE, &reg_key);
   reg_key.DeleteKey(product_name);
 
   // Verify that the value no longer exists.
-  base::StringAppendF(&key_name, L"\\%ls", product_name);
-  base::win::RegKey product_events(user_key.Get(), key_name.c_str(), KEY_READ);
+  base::win::RegKey product_events(reg_key.Handle(), product_name, KEY_READ);
   if (product_events.Valid()) {
     ASSERT_STRING("ClearAllProductEvents: Key deletion failed");
     return false;
@@ -357,25 +343,21 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
                       event_name_wide.c_str());
 
   // Check whether this event is a stateful event. If so, don't record it.
-  std::wstring stateful_key_name;
-  base::StringAppendF(&stateful_key_name, L"%ls\\%ls\\%ls", kLibKeyName,
-                      kStatefulEventsSubkeyName, product_name);
-
   DWORD value;
-  base::win::RegKey key(user_key.Get(), stateful_key_name.c_str(), KEY_READ);
+  base::win::RegKey key;
+  rlz_lib::GetEventsRegKey(user_key.Get(), kStatefulEventsSubkeyName, &product,
+                           KEY_READ, &key);
   if (key.ReadValueDW(new_event_value.c_str(), &value) == ERROR_SUCCESS) {
     // For a stateful event we skip recording, this function is also
     // considered successful.
     return true;
   }
 
-  std::wstring key_name;
-  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", kLibKeyName,
-                      kEventsSubkeyName, product_name);
-
   // Write the new event to registry.
   value = 1;
-  base::win::RegKey reg_key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  base::win::RegKey reg_key;
+  rlz_lib::GetEventsRegKey(user_key.Get(), kEventsSubkeyName, &product,
+                           KEY_WRITE, &reg_key);
   if (reg_key.WriteValue(new_event_value.c_str(), value) != ERROR_SUCCESS) {
     ASSERT_STRING("RecordProductEvent: Could not write the new event value");
     return false;
@@ -394,14 +376,6 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event,
   if (!user_key.HasAccess(true))
     return false;
 
-  const wchar_t* product_name = GetProductName(product);
-  if (!product_name)
-    return false;
-
-  std::wstring key_name;
-  base::StringAppendF(&key_name, L"%ls\\%ls\\%ls", kLibKeyName,
-                      kEventsSubkeyName, product_name);
-
   // Get the event's registry value and delete it.
   const char* point_name = GetAccessPointName(point);
   const char* event_name = GetEventName(event);
@@ -416,7 +390,8 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event,
   std::wstring event_value;
   base::StringAppendF(&event_value, L"%ls%ls", point_name_wide.c_str(),
                       event_name_wide.c_str());
-  base::win::RegKey key(user_key.Get(), key_name.c_str(), KEY_WRITE);
+  base::win::RegKey key;
+  GetEventsRegKey(user_key.Get(), kEventsSubkeyName, &product, KEY_WRITE, &key);
   key.DeleteValue(event_value.c_str());
 
   // Verify deletion.
@@ -494,18 +469,14 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
   if (!IsAccessPointSupported(point, user_key))
     return false;
 
-  // Open the RLZs key.
-  std::wstring rlzs_key_name;
-  base::StringAppendF(&rlzs_key_name, L"%ls\\%ls", kLibKeyName,
-                      kRlzsSubkeyName);
-
   // Get the RLZ value.
   const char* access_point_name = GetAccessPointName(point);
   if (!access_point_name)
     return false;
 
   size_t size = rlz_size;
-  base::win::RegKey key(user_key, rlzs_key_name.c_str(), KEY_READ);
+  base::win::RegKey key;
+  GetAccessPointRlzsRegKey(user_key, KEY_READ, &key);
   if (!RegKeyReadValue(key, ASCIIToWide(access_point_name).c_str(),
                        rlz, &size)) {
     rlz[0] = 0;
@@ -557,18 +528,14 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz,
   NormalizeRlz(new_rlz, normalized_rlz);
   VERIFY(strlen(new_rlz) == rlz_length);
 
-  // Open or create the RLZs key.
-  std::wstring rlzs_key_name;
-  base::StringAppendF(&rlzs_key_name, L"%ls\\%ls", kLibKeyName,
-                      kRlzsSubkeyName);
-
   // Write the RLZ for this access point.
   const char* access_point_name = GetAccessPointName(point);
   if (!access_point_name)
     return false;
 
   std::wstring access_point_name_wide(ASCIIToWide(access_point_name));
-  base::win::RegKey key(user_key.Get(), rlzs_key_name.c_str(), KEY_WRITE);
+  base::win::RegKey key;
+  GetAccessPointRlzsRegKey(user_key.Get(), KEY_WRITE, &key);
 
   if (normalized_rlz[0] == 0) {
     // Setting RLZ to empty == clearing. Delete the registry value.
@@ -1114,6 +1081,8 @@ void ClearProductState(Product product, const AccessPoint* access_points,
   for (int i = 0; i < arraysize(subkeys); i++) {
     std::wstring subkey_name;
     base::StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
+    SupplementaryBranding::AppendBrandToString(&subkey_name);
+
     VERIFY(DeleteKeyIfEmpty(user_key.Get(), subkey_name.c_str()));
   }
 

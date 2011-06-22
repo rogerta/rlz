@@ -8,6 +8,7 @@
 
 #include "base/at_exit.h"
 #include "base/command_line.h"
+#include "rlz/win/lib/rlz_lib.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -17,5 +18,14 @@ int main(int argc, char **argv) {
 
   testing::InitGoogleMock(&argc, argv);
   testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  int ret = RUN_ALL_TESTS();
+  if (ret == 0) {
+    // Now re-run all the tests using a supplementary brand code.  This brand
+    // code will remain in effect for the lifetime of the branding object.
+    rlz_lib::SupplementaryBranding branding(L"TEST");
+    ret = RUN_ALL_TESTS();
+  }
+
+  return ret;
 }

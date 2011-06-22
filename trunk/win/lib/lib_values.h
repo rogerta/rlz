@@ -8,6 +8,7 @@
 #define RLZ_WIN_LIB_LIB_VALUES_H_
 
 #include "base/basictypes.h"
+#include "base/win/registry.h"
 #include "rlz/win/lib/rlz_lib.h"
 
 namespace rlz_lib {
@@ -44,6 +45,21 @@ const wchar_t* GetProductName(Product product);
 // if completely empty.
 extern const wchar_t kGoogleKeyName[];
 extern const wchar_t kGoogleCommonKeyName[];
+
+// Function to get the specific registry keys.
+bool GetPingTimesRegKey(HKEY user_key,
+                        REGSAM access,
+                        base::win::RegKey* key);
+
+bool GetEventsRegKey(HKEY user_key,
+                     const wchar_t* event_type,
+                     const rlz_lib::Product* product,
+                     REGSAM access,
+                     base::win::RegKey* key);
+
+bool GetAccessPointRlzsRegKey(HKEY user_key,
+                              REGSAM access,
+                              base::win::RegKey* key);
 
 
 //
