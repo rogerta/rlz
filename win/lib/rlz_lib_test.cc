@@ -1,4 +1,4 @@
-// Copyright 2010 Google Inc. All Rights Reserved.
+// Copyright 2011 Google Inc. All Rights Reserved.
 // Use of this source code is governed by an Apache-style license that can be
 // found in the COPYING file.
 //
@@ -16,7 +16,7 @@
 #include <windows.h>
 
 #include "base/logging.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -711,4 +711,3 @@ TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
                                              value, 50));
   EXPECT_STREQ("events=I7S", value);
 }
-

@@ -1,4 +1,4 @@
-// Copyright 2010 Google Inc. All Rights Reserved.
+// Copyright 2011 Google Inc. All Rights Reserved.
 // Use of this source code is governed by an Apache-style license that can be
 // found in the COPYING file.
 //
@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <string>
 
-#include <base/scoped_ptr.h>
+#include "base/memory/scoped_ptr.h"
 
 #define RLZ_LIB_API __cdecl
 

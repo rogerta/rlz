@@ -1,4 +1,4 @@
-// Copyright 2010 Google Inc. All Rights Reserved.
+// Copyright 2011 Google Inc. All Rights Reserved.
 // Use of this source code is governed by an Apache-style license that can be
 // found in the COPYING file.
 //
@@ -11,8 +11,8 @@
 #include <LMCons.h>  // For UNLEN
 
 #include "base/logging.h"
+#include "base/memory/scoped_ptr.h"
 #include "base/process_util.h"
-#include "base/scoped_ptr.h"
 #include "base/win/scoped_handle.h"
 #include "base/win/windows_version.h"
 #include "rlz/win/lib/assert.h"
