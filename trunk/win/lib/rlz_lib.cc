@@ -1071,10 +1071,11 @@ void ClearProductState(Product product, const AccessPoint* access_points,
     }
   }
 
-  // Delete each of the knows subkeys if empty.
+  // Delete each of the known subkeys if empty.
   const wchar_t* subkeys[] = {
     kRlzsSubkeyName,
     kEventsSubkeyName,
+    kStatefulEventsSubkeyName,
     kPingTimesSubkeyName
   };
 
