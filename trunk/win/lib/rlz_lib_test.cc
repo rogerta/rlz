@@ -373,6 +373,16 @@ TEST_F(RlzLibTest, ParsePingResponseWithStatefulEvents) {
   EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
                                              value, 50));
   EXPECT_STREQ("events=I7S", value);
+
+  // Test that stateful events are cleared by ClearAllProductEvents().  After
+  // calling it, trying to record a stateful again should result in it being
+  // recorded again.
+  EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
+  EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
+  EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
+                                             value, 50));
+  EXPECT_STREQ("events=W1I", value);
 }
 
 TEST_F(RlzLibTest, SendFinancialPing) {
