@@ -9,7 +9,6 @@
 #include <shlwapi.h>
 
 #include "base/win/registry.h"
-#include "base/win/windows_version.h"
 #include "rlz/win/lib/rlz_lib.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -17,32 +16,6 @@ namespace {
 
 const wchar_t* kHKCUReplacement = L"Software\\Google\\RlzUtilUnittest\\HKCU";
 const wchar_t* kHKLMReplacement = L"Software\\Google\\RlzUtilUnittest\\HKLM";
-
-// Path to recursively copy into the replacemment hives.  These are needed
-// to make sure certain win32 APIs continue to run correctly once the real
-// hives are replaced.
-const wchar_t* kHKLMAccessProviders =
-    L"System\\CurrentControlSet\\Control\\Lsa\\AccessProviders";
-
-// Helper functions to create and destroy dummy registry hives for tests.
-// This is needed so that the tests don't need to run with admin privileges.
-
-void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey& dest) {
-  // First copy values.
-  for (base::win::RegistryValueIterator i(src.Handle(), L"");
-       i.Valid(); ++i) {
-    dest.WriteValue(i.Name(), reinterpret_cast<const void*>(i.Value()),
-                    i.ValueSize(), i.Type());
-  }
-
-  // Next copy subkeys recursively.
-  for (base::win::RegistryKeyIterator i(src.Handle(), L"");
-       i.Valid(); ++i) {
-    CopyRegistryTree(base::win::RegKey(src.Handle(), i.Name(), KEY_READ),
-                     base::win::RegKey(dest.Handle(), i.Name(),
-                                       KEY_ALL_ACCESS));
-  }
-}
 
 void OverrideRegistryHives() {
   // Wipe the keys we redirect to.
@@ -61,20 +34,7 @@ void OverrideRegistryHives() {
   ASSERT_EQ(ERROR_SUCCESS,
       hklm.Create(HKEY_CURRENT_USER, kHKLMReplacement, KEY_READ));
 
-  if (base::win::GetVersion() >= base::win::VERSION_WIN7) {
-    // Copy the following HKLM subtrees to the temporary location so that the
-    // win32 APIs used by the tests continue to work:
-    //
-    //    HKLM\System\CurrentControlSet\Control\Lsa\AccessProviders
-    //
-    // This seems to be required since Win7.
-    CopyRegistryTree(base::win::RegKey(HKEY_LOCAL_MACHINE,
-                                       kHKLMAccessProviders,
-                                       KEY_READ),
-                     base::win::RegKey(hklm.Handle(),
-                                       kHKLMAccessProviders,
-                                       KEY_ALL_ACCESS));
-  }
+  rlz_lib::InitializeTempHivesForTesting(hklm, hkcu);
 
   // And do the switcharoo.
   ASSERT_EQ(ERROR_SUCCESS,
