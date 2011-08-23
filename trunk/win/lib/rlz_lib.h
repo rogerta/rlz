@@ -28,6 +28,7 @@
 #include <string>
 
 #include "base/memory/scoped_ptr.h"
+#include "base/win/registry.h"
 
 #define RLZ_LIB_API __cdecl
 
@@ -449,6 +450,20 @@ class SupplementaryBranding {
 
   static std::wstring brand_;
 };
+
+// Initialize temporary HKLM/HKCU registry hives used for testing.
+// Testing RLZ requires reading and writing to the Windows registry.  To keep
+// the tests isolated from the machine's state, as well as to prevent the tests
+// from causing side effects in the registry, HKCU and HKLM are overridden for
+// the duration of the tests. RLZ tests don't expect the HKCU and KHLM hives to
+// be empty though, and this function initializes the minimum value needed so
+// that the test will run successfully.
+//
+// The two arguments to this function should be the keys that will represent
+// the HKLM and HKCU registry hives during the tests.  This function should be
+// called *before* the hives are overridden.
+void InitializeTempHivesForTesting(const base::win::RegKey& temp_hklm_key,
+                                   const base::win::RegKey& temp_hkcu_key);
 
 }  // namespace rlz_lib
 
