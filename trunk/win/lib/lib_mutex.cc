@@ -54,7 +54,6 @@ static bool SetObjectToLowIntegrity(HANDLE object,
 LibMutex::LibMutex() : acquired_(false), mutex_(NULL) {
   mutex_ = CreateMutex(NULL, false, kMutexName);
   bool result = SetObjectToLowIntegrity(mutex_);
-  CHECK(result);
   if (result) {
     acquired_ = (WAIT_OBJECT_0 == WaitForSingleObject(mutex_, 5000L));
   }

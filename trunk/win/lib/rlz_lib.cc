@@ -343,6 +343,9 @@ namespace rlz_lib {
 bool RecordProductEvent(Product product, AccessPoint point, Event event,
                         const wchar_t* sid) {
   LibMutex lock;
+  if (lock.failed())
+    return false;
+
   UserKey user_key(sid);
   if (!user_key.HasAccess(true))
     return false;
