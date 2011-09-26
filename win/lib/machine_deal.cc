@@ -427,7 +427,7 @@ bool MachineDealCode::GetMachineIdImpl(const std::wstring& sid_string,
   machine_id->clear();
 
   // The ID should be the SID hash + the Hard Drive SNo. + checksum byte.
-  static const int kSizeWithoutChecksum = base::SHA1_LENGTH + sizeof(int);
+  static const int kSizeWithoutChecksum = base::kSHA1Length + sizeof(int);
   std::basic_string<unsigned char> id_binary(kSizeWithoutChecksum + 1, 0);
 
   if (!sid_string.empty()) {
@@ -442,14 +442,14 @@ bool MachineDealCode::GetMachineIdImpl(const std::wstring& sid_string,
 
     // Note that digest can have embedded nulls.
     std::string digest(base::SHA1HashString(sid_string_buffer));
-    VERIFY(digest.size() == base::SHA1_LENGTH);
+    VERIFY(digest.size() == base::kSHA1Length);
     std::copy(digest.begin(), digest.end(), id_binary.begin());
   }
 
   // Convert from int to binary (makes big-endian).
   for (int i = 0; i < sizeof(int); i++) {
     int shift_bits = 8 * (sizeof(int) - i - 1);
-    id_binary[base::SHA1_LENGTH + i] = static_cast<BYTE>(
+    id_binary[base::kSHA1Length + i] = static_cast<BYTE>(
         (volume_id >> shift_bits) & 0xFF);
   }
 
