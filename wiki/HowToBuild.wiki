@@ -37,4 +37,11 @@ gclient sync
 
 {{{devenv /build Debug rlz.sln /project rlz_unittests.vcproj}}}
 
-Run {{{C:\src\RLZ\src\rlz\Debug\rlz_unittests.exe}}} and make sure all tests pass.
+Run {{{C:\src\RLZ\src\build\Debug\rlz_unittests.exe}}} and make sure all tests pass.
+
+To build and test a release version of RLZ, use the following commands:
+
+{{{
+devenv /build Release rlz.sln /project rlz_unittests.vcproj
+C:\src\RLZ\src\build\Release\rlz_unittests.exe
+}}}
