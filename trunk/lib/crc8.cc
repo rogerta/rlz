@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache-style license that can be
 // found in the COPYING file.
 
-#include "rlz/win/lib/crc8.h"
+#include "rlz/lib/crc8.h"
 
 namespace {
 
