@@ -8,7 +8,7 @@
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
-#include "rlz/win/lib/crc8.h"
+#include "rlz/lib/crc8.h"
 
 TEST(Crc8Unittest, TestCrc8) {
   struct Data {
