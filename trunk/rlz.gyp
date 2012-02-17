@@ -21,6 +21,8 @@
         'lib/assert.h',
         'lib/crc8.h',
         'lib/crc8.cc',
+        'lib/string_utils.cc',
+        'lib/string_utils.h',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -39,8 +41,6 @@
             'win/lib/process_info.h',
             'win/lib/rlz_lib.cc',
             'win/lib/rlz_lib.h',
-            'win/lib/string_utils.cc',
-            'win/lib/string_utils.h',
             'win/lib/user_key.cc',
             'win/lib/user_key.h',
             'win/lib/vista_winnt.h',
@@ -61,6 +61,7 @@
       ],
       'sources': [
         'lib/crc8_unittest.cc',
+        'lib/string_utils_unittest.cc',
         'test/rlz_unittest_main.cc',
       ],
       'conditions': [
@@ -71,7 +72,6 @@
             'win/lib/lib_values_unittest.cc',
             'win/lib/machine_deal_test.cc',
             'win/lib/rlz_lib_test.cc',
-            'win/lib/string_utils_unittest.cc',
             'win/test/rlz_test_helpers.cc',
             'win/test/rlz_test_helpers.h',
           ],

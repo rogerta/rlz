@@ -4,10 +4,11 @@
 //
 // Unit test for string manipulation functions used in the RLZ library.
 
-#include "rlz/win/lib/string_utils.h"
+#include "rlz/lib/string_utils.h"
 
 #include "base/basictypes.h"
 #include "base/logging.h"
+#include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -55,14 +56,14 @@ TEST(StringUtilsUnittest, HexStringToInteger) {
 
 TEST(StringUtilsUnittest, TestBytesToString) {
   unsigned char data[] = {0x1E, 0x00, 0x21, 0x67, 0xFF};
-  std::wstring result;
+  string16 result;
 
   EXPECT_FALSE(rlz_lib::BytesToString(NULL, 5, &result));
   EXPECT_FALSE(rlz_lib::BytesToString(data, 5, NULL));
   EXPECT_FALSE(rlz_lib::BytesToString(NULL, 5, NULL));
 
   EXPECT_TRUE(rlz_lib::BytesToString(data, 5, &result));
-  EXPECT_STREQ(L"1E002167FF", result.c_str());
+  EXPECT_EQ(ASCIIToUTF16("1E002167FF"), result);
   EXPECT_TRUE(rlz_lib::BytesToString(data, 4, &result));
-  EXPECT_STREQ(L"1E002167", result.c_str());
+  EXPECT_EQ(ASCIIToUTF16("1E002167"), result);
 }

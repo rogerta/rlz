@@ -4,11 +4,14 @@
 //
 // String manipulation functions used in the RLZ library.
 
-#include "rlz/win/lib/string_utils.h"
+#include "rlz/lib/string_utils.h"
 
 #include "base/utf_string_conversions.h"
-#include "base/win/registry.h"
 #include "rlz/lib/assert.h"
+
+#if defined(OS_WIN)
+#include "base/win/registry.h"
+#endif
 
 namespace rlz_lib {
 
@@ -52,7 +55,7 @@ int HexStringToInteger(const char* text) {
 
   int number = 0;
   int digit = 0;
-  for (; text[idx] != NULL; idx++) {
+  for (; text[idx] != '\0'; idx++) {
     if (!GetHexValue(text[idx], &digit)) {
       // Ignore trailing whitespaces, but assert on other trailing characters.
       bool only_whitespaces = true;
@@ -70,7 +73,7 @@ int HexStringToInteger(const char* text) {
 
 bool BytesToString(const unsigned char* data,
                    int data_len,
-                   std::wstring* string) {
+                   string16* string) {
   if (!string)
     return false;
 
@@ -91,6 +94,7 @@ bool BytesToString(const unsigned char* data,
   return true;
 }
 
+#if defined(OS_WIN)
 bool RegKeyReadValue(base::win::RegKey& key, const wchar_t* name,
                      char* value, size_t* value_size) {
   value[0] = 0;
@@ -116,5 +120,6 @@ bool RegKeyWriteValue(base::win::RegKey& key, const wchar_t* name,
   std::wstring value_string(ASCIIToWide(value));
   return key.WriteValue(name, value_string.c_str()) == ERROR_SUCCESS;
 }
+#endif
 
 }  // namespace rlz_lib
