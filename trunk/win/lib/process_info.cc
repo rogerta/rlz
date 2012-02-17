@@ -15,7 +15,7 @@
 #include "base/process_util.h"
 #include "base/win/scoped_handle.h"
 #include "base/win/windows_version.h"
-#include "rlz/win/lib/assert.h"
+#include "rlz/lib/assert.h"
 #include "rlz/win/lib/vista_winnt.h"
 
 namespace {

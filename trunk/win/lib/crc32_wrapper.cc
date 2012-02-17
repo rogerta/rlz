@@ -5,8 +5,8 @@
 // A wrapper around ZLib's CRC functions to put them in the rlz_lib namespace
 // and use our types.
 
+#include "rlz/lib/assert.h"
 #include "rlz/win/lib/crc32.h"
-#include "rlz/win/lib/assert.h"
 #include "rlz/win/lib/string_utils.h"
 #include "third_party/zlib/zlib.h"
 

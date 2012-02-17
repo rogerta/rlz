@@ -20,7 +20,7 @@
 #include "base/utf_string_conversions.h"
 #include "base/win/registry.h"
 #include "base/win/windows_version.h"
-#include "rlz/win/lib/assert.h"
+#include "rlz/lib/assert.h"
 #include "rlz/win/lib/crc32.h"
 #include "rlz/win/lib/financial_ping.h"
 #include "rlz/win/lib/lib_mutex.h"

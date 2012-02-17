@@ -2,12 +2,12 @@
 // Use of this source code is governed by an Apache-style license that can be
 // found in the COPYING file.
 
+#include "rlz/win/lib/lib_values.h"
+
 #include "base/logging.h"
+#include "rlz/lib/assert.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
-
-#include "rlz/win/lib/lib_values.h"
-#include "rlz/win/lib/assert.h"
 
 TEST(LibValuesUnittest, GetAccessPointFromName) {
   rlz_lib::expected_assertion_ = "GetAccessPointFromName: point is NULL";
