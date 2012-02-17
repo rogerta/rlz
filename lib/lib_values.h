@@ -4,15 +4,20 @@
 //
 // Key and value names of the location of the RLZ shared state.
 
-#ifndef RLZ_WIN_LIB_LIB_VALUES_H_
-#define RLZ_WIN_LIB_LIB_VALUES_H_
+#ifndef RLZ_LIB_LIB_VALUES_H_
+#define RLZ_LIB_LIB_VALUES_H_
 
 #include "base/basictypes.h"
-#include "base/win/registry.h"
 #include "rlz/win/lib/rlz_lib.h"
+
+#if defined(OS_WIN)
+#include "base/win/registry.h"
+#endif
 
 namespace rlz_lib {
 
+// TODO(thakis): Move registry stuff somewhere else.
+#if defined(OS_WIN)
 //
 // Registry keys:
 //
@@ -60,6 +65,7 @@ bool GetEventsRegKey(HKEY user_key,
 bool GetAccessPointRlzsRegKey(HKEY user_key,
                               REGSAM access,
                               base::win::RegKey* key);
+#endif  // defined(OS_WIN)
 
 
 //
@@ -144,4 +150,4 @@ bool GetEventFromName(const char* name, Event* event);
 
 }  // namespace rlz_lib
 
-#endif  // RLZ_WIN_LIB_LIB_VALUES_H_
+#endif  // RLZ_LIB_LIB_VALUES_H_

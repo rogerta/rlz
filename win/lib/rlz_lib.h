@@ -27,8 +27,10 @@
 #include <stdio.h>
 #include <string>
 
+#if defined(OS_WIN)
 #include "base/memory/scoped_ptr.h"
 #include "base/win/registry.h"
+#endif
 
 #define RLZ_LIB_API __cdecl
 
@@ -169,6 +171,8 @@ static const int kMaxPingResponseLength = 0x4000;  // 16K
 static const int kMachineIdLength = 50;
 
 
+// TODO(thakis): Port these functions.
+#if defined(OS_WIN)
 // Event storage functions.
 
 // Records an RLZ event.
@@ -464,6 +468,7 @@ class SupplementaryBranding {
 // called *before* the hives are overridden.
 void InitializeTempHivesForTesting(const base::win::RegKey& temp_hklm_key,
                                    const base::win::RegKey& temp_hkcu_key);
+#endif  // defined(OS_WIN)
 
 }  // namespace rlz_lib
 
