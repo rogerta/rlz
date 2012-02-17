@@ -4,7 +4,7 @@
 //
 // Macros specific to the RLZ library.
 
-#include "rlz/win/lib/assert.h"
+#include "rlz/lib/assert.h"
 
 namespace rlz_lib {
 
