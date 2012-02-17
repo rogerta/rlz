@@ -4,8 +4,8 @@
 //
 // Macros specific to the RLZ library.
 
-#ifndef RLZ_WIN_LIB_ASSERT_H_
-#define RLZ_WIN_LIB_ASSERT_H_
+#ifndef RLZ_LIB_ASSERT_H_
+#define RLZ_LIB_ASSERT_H_
 
 #include <string>
 #include "base/logging.h"
@@ -40,4 +40,4 @@ namespace rlz_lib {
   extern std::string expected_assertion_;
 };
 
-#endif  // RLZ_WIN_LIB_ASSERT_H_
+#endif  // RLZ_LIB_ASSERT_H_
