@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include <string>
 
+#include "build/build_config.h"
+
 #if defined(OS_WIN)
 #include "base/memory/scoped_ptr.h"
 #include "base/win/registry.h"
