@@ -8,7 +8,7 @@
 
 #include "base/stringprintf.h"
 #include "base/win/registry.h"
-#include "rlz/win/lib/assert.h"
+#include "rlz/lib/assert.h"
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/user_key.h"
 

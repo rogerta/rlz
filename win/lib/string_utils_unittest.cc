@@ -4,13 +4,13 @@
 //
 // Unit test for string manipulation functions used in the RLZ library.
 
+#include "rlz/win/lib/string_utils.h"
+
 #include "base/basictypes.h"
 #include "base/logging.h"
+#include "rlz/lib/assert.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
-
-#include "rlz/win/lib/string_utils.h"
-#include "rlz/win/lib/assert.h"
 
 TEST(StringUtilsUnittest, IsAscii) {
   rlz_lib::expected_assertion_ = "";

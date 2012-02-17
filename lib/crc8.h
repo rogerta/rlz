@@ -4,8 +4,8 @@
 //
 // Crc8 utility functions.
 
-#ifndef RLZ_WIN_LIB_CRC8_H_
-#define RLZ_WIN_LIB_CRC8_H_
+#ifndef RLZ_LIB_CRC8_H_
+#define RLZ_LIB_CRC8_H_
 
 namespace rlz_lib {
 // CRC-8 methods:
@@ -21,4 +21,4 @@ class Crc8 {
 };
 };  // namespace rlz_lib
 
-#endif  // RLZ_WIN_LIB_CRC8_H_
+#endif  // RLZ_LIB_CRC8_H_

@@ -17,14 +17,14 @@
         '../base/base.gyp:base',
       ],
       'sources': [
+        'lib/assert.cc',
+        'lib/assert.h',
         'lib/crc8.h',
         'lib/crc8.cc',
       ],
       'conditions': [
         ['OS=="win"', {
           'sources': [
-            'win/lib/assert.cc',
-            'win/lib/assert.h',
             'win/lib/crc32.h',
             'win/lib/crc32_wrapper.cc',
             'win/lib/financial_ping.cc',
