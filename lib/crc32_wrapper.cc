@@ -6,8 +6,8 @@
 // and use our types.
 
 #include "rlz/lib/assert.h"
+#include "rlz/lib/crc32.h"
 #include "rlz/lib/string_utils.h"
-#include "rlz/win/lib/crc32.h"
 #include "third_party/zlib/zlib.h"
 
 namespace rlz_lib {

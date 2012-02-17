@@ -19,6 +19,8 @@
       'sources': [
         'lib/assert.cc',
         'lib/assert.h',
+        'lib/crc32.h',
+        'lib/crc32_wrapper.cc',
         'lib/crc8.h',
         'lib/crc8.cc',
         'lib/string_utils.cc',
@@ -27,8 +29,6 @@
       'conditions': [
         ['OS=="win"', {
           'sources': [
-            'win/lib/crc32.h',
-            'win/lib/crc32_wrapper.cc',
             'win/lib/financial_ping.cc',
             'win/lib/financial_ping.h',
             'win/lib/lib_mutex.cc',
@@ -60,6 +60,7 @@
         '../third_party/zlib/zlib.gyp:zlib',
       ],
       'sources': [
+        'lib/crc32_unittest.cc',
         'lib/crc8_unittest.cc',
         'lib/string_utils_unittest.cc',
         'test/rlz_unittest_main.cc',
@@ -67,7 +68,6 @@
       'conditions': [
         ['OS=="win"', {
           'sources': [
-            'win/lib/crc32_unittest.cc',
             'win/lib/financial_ping_test.cc',
             'win/lib/lib_values_unittest.cc',
             'win/lib/machine_deal_test.cc',
