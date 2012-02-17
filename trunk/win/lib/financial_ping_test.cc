@@ -16,19 +16,19 @@
 
 #include <windows.h>
 
+#include "rlz/win/lib/financial_ping.h"
+
 #include "base/basictypes.h"
 #include "base/logging.h"
 #include "base/string_util.h"
 #include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
 #include "base/win/registry.h"
-#include "testing/gmock/include/gmock/gmock.h"
-#include "testing/gtest/include/gtest/gtest.h"
-
-#include "rlz/win/lib/financial_ping.h"
-#include "rlz/win/lib/lib_values.h"
+#include "rlz/lib/lib_values.h"
 #include "rlz/win/lib/machine_deal.h"
 #include "rlz/win/test/rlz_test_helpers.h"
+#include "testing/gmock/include/gmock/gmock.h"
+#include "testing/gtest/include/gtest/gtest.h"
 
 namespace {
 

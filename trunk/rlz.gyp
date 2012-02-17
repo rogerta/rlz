@@ -23,6 +23,8 @@
         'lib/crc32_wrapper.cc',
         'lib/crc8.h',
         'lib/crc8.cc',
+        'lib/lib_values.cc',
+        'lib/lib_values.h',
         'lib/string_utils.cc',
         'lib/string_utils.h',
       ],
@@ -33,8 +35,6 @@
             'win/lib/financial_ping.h',
             'win/lib/lib_mutex.cc',
             'win/lib/lib_mutex.h',
-            'win/lib/lib_values.cc',
-            'win/lib/lib_values.h',
             'win/lib/machine_deal.cc',
             'win/lib/machine_deal.h',
             'win/lib/process_info.cc',
@@ -62,6 +62,7 @@
       'sources': [
         'lib/crc32_unittest.cc',
         'lib/crc8_unittest.cc',
+        'lib/lib_values_unittest.cc',
         'lib/string_utils_unittest.cc',
         'test/rlz_unittest_main.cc',
       ],
@@ -69,7 +70,6 @@
         ['OS=="win"', {
           'sources': [
             'win/lib/financial_ping_test.cc',
-            'win/lib/lib_values_unittest.cc',
             'win/lib/machine_deal_test.cc',
             'win/lib/rlz_lib_test.cc',
             'win/test/rlz_test_helpers.cc',

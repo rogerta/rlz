@@ -4,15 +4,19 @@
 //
 // Key and value names of the location of the RLZ shared state.
 
-#include "rlz/win/lib/lib_values.h"
+#include "rlz/lib/lib_values.h"
 
 #include "base/stringprintf.h"
-#include "base/win/registry.h"
 #include "rlz/lib/assert.h"
+
+#if defined(OS_WIN)
+#include "base/win/registry.h"
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/user_key.h"
+#endif
 
-
+// TODO(thakis): Move registry stuff somewhere else.
+#if defined(OS_WIN)
 namespace {
 
 bool GetRegKey(HKEY user_key, const wchar_t* name, REGSAM access,
@@ -32,12 +36,16 @@ bool GetRegKey(HKEY user_key, const wchar_t* name, REGSAM access,
 }
 
 }  // anonymous
-
+#endif  // defined(OS_WIN)
 
 namespace rlz_lib {
 
+// TODO(thakis): Move registry stuff somewhere else.
+#if defined(OS_WIN)
 std::wstring SupplementaryBranding::brand_;
 
+// TODO(thakis): SupplementaryBranding is defined in rlz_lib.h, so this should
+// be in rlz_lib.cc.
 SupplementaryBranding::SupplementaryBranding(const wchar_t* brand)
     : lock_(new LibMutex()) {
   if (lock_->failed())
@@ -100,6 +108,7 @@ const wchar_t* GetProductName(Product product) {
   ASSERT_STRING("GetProductSubkeyName: Unknown Product");
   return NULL;
 }
+#endif  // defined(OS_WIN)
 
 //
 // Ping information.
@@ -218,6 +227,7 @@ const char* GetAccessPointName(AccessPoint point) {
   case PACK_AP11:                     return "UB";
   case PACK_AP12:                     return "UC";
   case PACK_AP13:                     return "UD";
+  case LAST_ACCESS_POINT:             ;  // Fall through.
   }
 
   ASSERT_STRING("GetAccessPointName: Unknown Access Point");
@@ -252,6 +262,7 @@ const char* GetEventName(Event event) {
   case FIRST_SEARCH:  return "F";
   case REPORT_RLS:    return "R";
   case ACTIVATE:      return "A";
+  case LAST_EVENT:    ;  // Fall through.
   }
 
   ASSERT_STRING("GetPointName: Unknown Event");
@@ -278,6 +289,8 @@ bool GetEventFromName(const char* name, Event* event) {
 }
 
 
+// TODO(thakis): Move registry stuff somewhere else.
+#if defined(OS_WIN)
 bool GetPingTimesRegKey(HKEY user_key, REGSAM access, base::win::RegKey* key) {
   return GetRegKey(user_key, kPingTimesSubkeyName, access, key);
 }
@@ -314,5 +327,6 @@ bool GetAccessPointRlzsRegKey(HKEY user_key, REGSAM access,
                               base::win::RegKey* key) {
   return GetRegKey(user_key, kRlzsSubkeyName, access, key);
 }
+#endif  // defined(OS_WIN)
 
 }  // namespace rlz_lib

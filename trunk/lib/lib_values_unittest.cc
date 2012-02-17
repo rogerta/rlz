@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache-style license that can be
 // found in the COPYING file.
 
-#include "rlz/win/lib/lib_values.h"
+#include "rlz/lib/lib_values.h"
 
 #include "base/logging.h"
 #include "rlz/lib/assert.h"
