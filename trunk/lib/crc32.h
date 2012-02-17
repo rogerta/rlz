@@ -4,8 +4,8 @@
 //
 // A wrapper around ZLib's CRC function.
 
-#ifndef RLZ_WIN_LIB_CRC32_H_
-#define RLZ_WIN_LIB_CRC32_H_
+#ifndef RLZ_LIB_CRC32_H_
+#define RLZ_LIB_CRC32_H_
 
 namespace rlz_lib {
 
@@ -14,4 +14,4 @@ bool Crc32(const char* text, int* crc);
 
 }  // namespace rlz_lib
 
-#endif  // RLZ_WIN_LIB_CRC32_H_
+#endif  // RLZ_LIB_CRC32_H_
