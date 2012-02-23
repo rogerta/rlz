@@ -41,7 +41,7 @@ deps = {
     "http://googletest.googlecode.com/svn/trunk@492",
 
   "src/tools/gyp":
-    "http://gyp.googlecode.com/svn/trunk@849",
+    "http://gyp.googlecode.com/svn/trunk@1233",
 }
 
 include_rules = [
