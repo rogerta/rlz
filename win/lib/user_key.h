@@ -14,15 +14,11 @@ namespace rlz_lib {
 
 class UserKey {
  public:
-  UserKey(const wchar_t* sid);
+  UserKey();
 
   HKEY Get();
   bool HasAccess(bool write_access);
   static bool HasAccess(HKEY user_key, bool write_access);
-
- private:
-  UserKey() {}
-  base::win::RegKey user_key_;
 };
 
 }  // namespace rlz_lib

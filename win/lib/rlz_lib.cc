@@ -206,7 +206,7 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
   if (lock.failed())
     return false;
 
-  rlz_lib::UserKey user_key(NULL);
+  rlz_lib::UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -295,7 +295,7 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
   if (lock.failed())
     return false;
 
-  rlz_lib::UserKey user_key(NULL);
+  rlz_lib::UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -344,7 +344,7 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -396,7 +396,7 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -440,7 +440,7 @@ bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(false))
     return false;
 
@@ -513,7 +513,7 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
 }
 
 bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size) {
-  UserKey user_key(NULL);
+  UserKey user_key;
   return GetAccessPointRlz(point, rlz, rlz_size, user_key.Get());
 }
 
@@ -522,7 +522,7 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -775,7 +775,7 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(false))
     return false;
 
@@ -878,7 +878,7 @@ bool ParsePingResponse(Product product, const char* response) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -1073,7 +1073,7 @@ void ClearProductState(Product product, const AccessPoint* access_points) {
   if (lock.failed())
     return;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return;
 

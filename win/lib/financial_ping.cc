@@ -68,7 +68,7 @@ bool FinancialPing::FormRequest(Product product,
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(false))
     return false;
 
@@ -207,7 +207,7 @@ bool FinancialPing::IsPingTime(Product product, bool no_delay) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(false))
     return false;
 
@@ -240,7 +240,7 @@ bool FinancialPing::UpdateLastPingTime(Product product) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
@@ -257,7 +257,7 @@ bool FinancialPing::ClearLastPingTime(Product product) {
   if (lock.failed())
     return false;
 
-  UserKey user_key(NULL);
+  UserKey user_key;
   if (!user_key.HasAccess(true))
     return false;
 
