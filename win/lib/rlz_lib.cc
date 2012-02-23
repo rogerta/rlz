@@ -1005,7 +1005,7 @@ bool PingFinancialServer(Product product, const char* request, char* response,
   response[0] = 0;
 
   // Check if the time is right to ping.
-  if (!FinancialPing::IsPingTime(product, NULL, false)) return false;
+  if (!FinancialPing::IsPingTime(product, false)) return false;
 
   // Send out the ping.
   std::string response_string;
@@ -1024,7 +1024,7 @@ bool PingFinancialServer(Product product, const char* request, char* response,
 
 bool ParseFinancialPingResponse(Product product, const char* response) {
   // Update the last ping time irrespective of success.
-  FinancialPing::UpdateLastPingTime(product, NULL);
+  FinancialPing::UpdateLastPingTime(product);
   // Parse the ping response - update RLZs, clear events.
   return ParsePingResponse(product, response);
 }
@@ -1054,11 +1054,11 @@ bool SendFinancialPing(Product product, const AccessPoint* access_points,
     return false;
 
   // Check if the time is right to ping.
-  if (!FinancialPing::IsPingTime(product, NULL, skip_time_check))
+  if (!FinancialPing::IsPingTime(product, skip_time_check))
     return false;
 
   // Send out the ping, update the last ping time irrespective of success.
-  FinancialPing::UpdateLastPingTime(product, NULL);
+  FinancialPing::UpdateLastPingTime(product);
   std::string response;
   if (!FinancialPing::PingServer(request.c_str(), &response))
     return false;
@@ -1079,7 +1079,7 @@ void ClearProductState(Product product, const AccessPoint* access_points) {
 
   // Delete all product specific state.
   VERIFY(ClearAllProductEvents(product));
-  VERIFY(FinancialPing::ClearLastPingTime(product, NULL));
+  VERIFY(FinancialPing::ClearLastPingTime(product));
 
   // Delete all RLZ's for access points being uninstalled.
   if (access_points) {
