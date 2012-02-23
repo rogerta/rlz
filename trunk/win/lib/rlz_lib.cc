@@ -1026,7 +1026,7 @@ bool ParseFinancialPingResponse(Product product, const char* response) {
   // Update the last ping time irrespective of success.
   FinancialPing::UpdateLastPingTime(product, NULL);
   // Parse the ping response - update RLZs, clear events.
-  return FinancialPing::ParseResponse(product, response, NULL);
+  return ParsePingResponse(product, response);
 }
 
 bool SendFinancialPing(Product product, const AccessPoint* access_points,
@@ -1064,7 +1064,7 @@ bool SendFinancialPing(Product product, const AccessPoint* access_points,
     return false;
 
   // Parse the ping response - update RLZs, clear events.
-  return FinancialPing::ParseResponse(product, response.c_str(), NULL);
+  return ParsePingResponse(product, response.c_str());
 }
 
 
