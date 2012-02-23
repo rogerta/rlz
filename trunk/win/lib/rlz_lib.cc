@@ -201,12 +201,12 @@ void GetEventsFromResponseString(
 
 // Event storage functions.
 bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
-                         rlz_lib::Event event, const wchar_t* sid) {
+                         rlz_lib::Event event) {
   rlz_lib::LibMutex lock;
   if (lock.failed())
     return false;
 
-  rlz_lib::UserKey user_key(sid);
+  rlz_lib::UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -290,13 +290,12 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
     ERROR_SUCCESS : ERROR_FILE_NOT_FOUND;
 }
 
-bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key,
-                                const wchar_t* sid) {
+bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
   rlz_lib::LibMutex lock;
   if (lock.failed())
     return false;
 
-  rlz_lib::UserKey user_key(sid);
+  rlz_lib::UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -340,13 +339,12 @@ void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
 
 namespace rlz_lib {
 
-bool RecordProductEvent(Product product, AccessPoint point, Event event,
-                        const wchar_t* sid) {
+bool RecordProductEvent(Product product, AccessPoint point, Event event) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -393,13 +391,12 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event,
   return true;
 }
 
-bool ClearProductEvent(Product product, AccessPoint point, Event event,
-                       const wchar_t* sid) {
+bool ClearProductEvent(Product product, AccessPoint point, Event event) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -431,8 +428,7 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event,
   return true;
 }
 
-bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size,
-                           const wchar_t* sid) {
+bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
   if (!cgi || cgi_size <= 0) {
     ASSERT_STRING("GetProductEventsAsCgi: Invalid buffer");
     return false;
@@ -444,7 +440,7 @@ bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size,
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(false))
     return false;
 
@@ -466,11 +462,11 @@ bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size,
   return true;
 }
 
-bool ClearAllProductEvents(Product product, const wchar_t* sid) {
+bool ClearAllProductEvents(Product product) {
   bool result;
 
-  result = ClearAllProductEventValues(product, kEventsSubkeyName, sid);
-  result &= ClearAllProductEventValues(product, kStatefulEventsSubkeyName, sid);
+  result = ClearAllProductEventValues(product, kEventsSubkeyName);
+  result &= ClearAllProductEventValues(product, kStatefulEventsSubkeyName);
   return result;
 }
 
@@ -516,19 +512,17 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
   return true;
 }
 
-bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
-                       const wchar_t* sid) {
-  UserKey user_key(sid);
+bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size) {
+  UserKey user_key(NULL);
   return GetAccessPointRlz(point, rlz, rlz_size, user_key.Get());
 }
 
-bool SetAccessPointRlz(AccessPoint point, const char* new_rlz,
-                       const wchar_t* sid) {
+bool SetAccessPointRlz(AccessPoint point, const char* new_rlz) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -769,7 +763,7 @@ bool GetMachineDealCode(char* dcc, size_t dcc_size) {
 // Combined functions.
 
 bool GetPingParams(Product product, const AccessPoint* access_points,
-                   char* cgi, size_t cgi_size, const wchar_t* sid) {
+                   char* cgi, size_t cgi_size) {
   if (!cgi || cgi_size <= 0) {
     ASSERT_STRING("GetPingParams: Invalid buffer");
     return false;
@@ -781,7 +775,7 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(false))
     return false;
 
@@ -800,7 +794,7 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   bool first_rlz = true;  // comma before every RLZ but the first.
   for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
     char rlz[kMaxRlzLength + 1];
-    if (GetAccessPointRlz(access_points[i], rlz, arraysize(rlz), sid)) {
+    if (GetAccessPointRlz(access_points[i], rlz, arraysize(rlz))) {
       const char* access_point = GetAccessPointName(access_points[i]);
       if (!access_point)
         continue;
@@ -879,13 +873,12 @@ bool IsPingResponseValid(const char* response, int* checksum_idx) {
 
 // TODO: Use something like RSA to make sure the response is
 // from a Google server.
-bool ParsePingResponse(Product product, const char* response,
-                       const wchar_t* sid) {
+bool ParsePingResponse(Product product, const char* response) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -947,14 +940,14 @@ bool ParsePingResponse(Product product, const char* response,
         continue;  // Too long.
 
       if (IsAccessPointSupported(point))
-        SetAccessPointRlz(point, rlz_value.substr(0, rlz_length).c_str(), sid);
+        SetAccessPointRlz(point, rlz_value.substr(0, rlz_length).c_str());
     } else if (StartsWithASCII(response_line, events_variable, true)) {
       // Clear events which server parsed.
       std::vector<ReturnedEvent> event_array;
       GetEventsFromResponseString(response_line, events_variable, &event_array);
       for (size_t i = 0; i < event_array.size(); ++i) {
         ClearProductEvent(product, event_array[i].access_point,
-                          event_array[i].event_type, sid);
+                          event_array[i].event_type);
       }
     } else if (StartsWithASCII(response_line, stateful_events_variable, true)) {
       // Record any stateful events the server send over.
@@ -963,7 +956,7 @@ bool ParsePingResponse(Product product, const char* response,
                                   &event_array);
       for (size_t i = 0; i < event_array.size(); ++i) {
         RecordStatefulEvent(product, event_array[i].access_point,
-                            event_array[i].event_type, sid);
+                            event_array[i].event_type);
       }
     }
   } while (line_end_index >= 0);
@@ -984,8 +977,7 @@ bool FormFinancialPingRequest(Product product, const AccessPoint* access_points,
                               const char* product_id,
                               const char* product_lang,
                               bool exclude_machine_id,
-                              char* request, size_t request_buffer_size,
-                              const wchar_t* sid) {
+                              char* request, size_t request_buffer_size) {
   if (!request || request_buffer_size == 0)
     return false;
   request[0] = 0;
@@ -993,7 +985,7 @@ bool FormFinancialPingRequest(Product product, const AccessPoint* access_points,
   std::string request_string;
   if (!FinancialPing::FormRequest(product, access_points, product_signature,
                                   product_brand, product_id, product_lang,
-                                  exclude_machine_id, sid, &request_string))
+                                  exclude_machine_id, &request_string))
     return false;
 
   if ((request_string.size() < 0) ||
@@ -1007,13 +999,13 @@ bool FormFinancialPingRequest(Product product, const AccessPoint* access_points,
 
 
 bool PingFinancialServer(Product product, const char* request, char* response,
-                         size_t response_buffer_size, const wchar_t* sid) {
+                         size_t response_buffer_size) {
   if (!response || response_buffer_size == 0)
     return false;
   response[0] = 0;
 
   // Check if the time is right to ping.
-  if (!FinancialPing::IsPingTime(product, sid, false)) return false;
+  if (!FinancialPing::IsPingTime(product, NULL, false)) return false;
 
   // Send out the ping.
   std::string response_string;
@@ -1030,22 +1022,21 @@ bool PingFinancialServer(Product product, const char* request, char* response,
 }
 
 
-bool ParseFinancialPingResponse(Product product, const char* response,
-                                const wchar_t* sid) {
+bool ParseFinancialPingResponse(Product product, const char* response) {
   // Update the last ping time irrespective of success.
-  FinancialPing::UpdateLastPingTime(product, sid);
+  FinancialPing::UpdateLastPingTime(product, NULL);
   // Parse the ping response - update RLZs, clear events.
-  return FinancialPing::ParseResponse(product, response, sid);
+  return FinancialPing::ParseResponse(product, response, NULL);
 }
 
 bool SendFinancialPing(Product product, const AccessPoint* access_points,
                        const char* product_signature,
                        const char* product_brand,
                        const char* product_id, const char* product_lang,
-                       bool exclude_machine_id, const wchar_t* sid) {
+                       bool exclude_machine_id) {
   return SendFinancialPing(product, access_points, product_signature,
                            product_brand, product_id, product_lang,
-                           exclude_machine_id, sid, false);
+                           exclude_machine_id, false);
 }
 
 
@@ -1053,48 +1044,47 @@ bool SendFinancialPing(Product product, const AccessPoint* access_points,
                        const char* product_signature,
                        const char* product_brand,
                        const char* product_id, const char* product_lang,
-                       bool exclude_machine_id, const wchar_t* sid,
+                       bool exclude_machine_id,
                        const bool skip_time_check) {
   // Create the financial ping request.
   std::string request;
   if (!FinancialPing::FormRequest(product, access_points, product_signature,
                                   product_brand, product_id, product_lang,
-                                  exclude_machine_id, sid, &request))
+                                  exclude_machine_id, &request))
     return false;
 
   // Check if the time is right to ping.
-  if (!FinancialPing::IsPingTime(product, sid, skip_time_check))
+  if (!FinancialPing::IsPingTime(product, NULL, skip_time_check))
     return false;
 
   // Send out the ping, update the last ping time irrespective of success.
-  FinancialPing::UpdateLastPingTime(product, sid);
+  FinancialPing::UpdateLastPingTime(product, NULL);
   std::string response;
   if (!FinancialPing::PingServer(request.c_str(), &response))
     return false;
 
   // Parse the ping response - update RLZs, clear events.
-  return FinancialPing::ParseResponse(product, response.c_str(), sid);
+  return FinancialPing::ParseResponse(product, response.c_str(), NULL);
 }
 
 
-void ClearProductState(Product product, const AccessPoint* access_points,
-                       const wchar_t* sid) {
+void ClearProductState(Product product, const AccessPoint* access_points) {
   LibMutex lock;
   if (lock.failed())
     return;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return;
 
   // Delete all product specific state.
-  VERIFY(ClearAllProductEvents(product, sid));
-  VERIFY(FinancialPing::ClearLastPingTime(product, sid));
+  VERIFY(ClearAllProductEvents(product));
+  VERIFY(FinancialPing::ClearLastPingTime(product, NULL));
 
   // Delete all RLZ's for access points being uninstalled.
   if (access_points) {
     for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
-      VERIFY(SetAccessPointRlz(access_points[i], "" , sid));
+      VERIFY(SetAccessPointRlz(access_points[i], ""));
     }
   }
 

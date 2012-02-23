@@ -55,7 +55,7 @@ class InternetHandle {
 bool FinancialPing::FormRequest(Product product,
     const AccessPoint* access_points, const char* product_signature,
     const char* product_brand, const char* product_id,
-    const char* product_lang, bool exclude_machine_id, const wchar_t* sid,
+    const char* product_lang, bool exclude_machine_id,
     std::string* request) {
   if (!request) {
     ASSERT_STRING("FinancialPing::FormRequest: request is NULL");
@@ -68,7 +68,7 @@ bool FinancialPing::FormRequest(Product product,
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(false))
     return false;
 
@@ -109,7 +109,7 @@ bool FinancialPing::FormRequest(Product product,
   // Add the product events.
   char cgi[kMaxCgiLength + 1];
   cgi[0] = 0;
-  bool has_events = GetProductEventsAsCgi(product, cgi, arraysize(cgi), sid);
+  bool has_events = GetProductEventsAsCgi(product, cgi, arraysize(cgi));
   if (has_events)
     base::StringAppendF(request, "&%s", cgi);
 
@@ -123,7 +123,7 @@ bool FinancialPing::FormRequest(Product product,
     for (int ap = NO_ACCESS_POINT + 1; ap < LAST_ACCESS_POINT; ap++) {
       rlz[0] = 0;
       AccessPoint point = static_cast<AccessPoint>(ap);
-      if (GetAccessPointRlz(point, rlz, arraysize(rlz), sid) &&
+      if (GetAccessPointRlz(point, rlz, arraysize(rlz)) &&
           rlz[0] != NULL)
         all_points[idx++] = point;
     }
@@ -134,7 +134,7 @@ bool FinancialPing::FormRequest(Product product,
   // This will also include the RLZ Exchange Protocol CGI Argument.
   cgi[0] = 0;
   if (GetPingParams(product, has_events ? access_points : all_points,
-                    cgi, arraysize(cgi), sid))
+                    cgi, arraysize(cgi)))
     base::StringAppendF(request, "&%s", cgi);
 
   if (has_events && !exclude_machine_id) {
@@ -205,7 +205,7 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
 
 bool FinancialPing::ParseResponse(Product product, const char* response,
                                   const wchar_t* sid) {
-  return ParsePingResponse(product, response, sid);
+  return ParsePingResponse(product, response);
 }
 
 bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
@@ -234,7 +234,7 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
   // Check if this product has any unreported events.
   char cgi[kMaxCgiLength + 1];
   cgi[0] = 0;
-  bool has_events = GetProductEventsAsCgi(product, cgi, arraysize(cgi), sid);
+  bool has_events = GetProductEventsAsCgi(product, cgi, arraysize(cgi));
   if (no_delay && has_events)
     return true;
 

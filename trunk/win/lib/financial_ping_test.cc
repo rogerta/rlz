@@ -78,7 +78,7 @@ TEST_F(FinancialPingTest, FormRequest) {
 
   std::string request;
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", brand, NULL, "en", false, NULL, &request));
+      points, "swg", brand, NULL, "en", false, &request));
   std::string expected_response;
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&hl=en&"
@@ -90,7 +90,7 @@ TEST_F(FinancialPingTest, FormRequest) {
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", brand, "IdOk2", NULL, false, NULL, &request));
+      points, "swg", brand, "IdOk2", NULL, false, &request));
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&pid=IdOk2&"
@@ -101,7 +101,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", brand, "IdOk", NULL, true, NULL, &request));
+      points, "swg", brand, "IdOk", NULL, true, &request));
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&pid=IdOk&"
@@ -109,7 +109,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", brand, NULL, NULL, true, NULL, &request));
+      points, "swg", brand, NULL, NULL, true, &request));
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&events=I7S,W1I&rep=2"
@@ -137,7 +137,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::QUICK_SEARCH_BOX,
       "QsbRlzValue"));
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", brand, NULL, NULL, false, NULL, &request));
+      points, "swg", brand, NULL, NULL, false, &request));
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&rep=2&rlz=T4:TbRlzValue,"
@@ -147,7 +147,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   if (!GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, rlz, arraysize(rlz))) {
     points[2] = rlz_lib::IE_HOME_PAGE;
     EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-        points, "swg", brand, "MyId", "en-US", true, NULL, &request));
+        points, "swg", brand, "MyId", "en-US", true, &request));
     expected_response.clear();
     base::StringAppendF(&expected_response,
         "/tools/pso/ping?as=swg&brand=%s&hl=en-US&pid=MyId&rep=2"
@@ -163,7 +163,7 @@ TEST_F(FinancialPingTest, FormRequestBadBrand) {
 
   std::string request;
   bool ok = rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
-      points, "swg", "GOOG", NULL, "en", false, NULL, &request);
+      points, "swg", "GOOG", NULL, "en", false, &request);
   EXPECT_EQ(rlz_lib::SupplementaryBranding::GetBrand().empty(), ok);
 }
 
