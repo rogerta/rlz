@@ -443,7 +443,7 @@ TEST_F(RlzLibTest, ClearProductState) {
   EXPECT_LT(0u, events.find("T4I"));
   EXPECT_LT(0u, events.find("T4R"));
 
-  rlz_lib::ClearProductState(rlz_lib::TOOLBAR_NOTIFIER, points, NULL);
+  rlz_lib::ClearProductState(rlz_lib::TOOLBAR_NOTIFIER, points);
 
   EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
                                          cgi, 2048));

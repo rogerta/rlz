@@ -22,7 +22,7 @@ class FinancialPing {
                           const char* product_signature,
                           const char* product_brand, const char* product_id,
                           const char* product_lang, bool exclude_machine_id,
-                          const wchar_t* sid, std::string* request);
+                          std::string* request);
 
   // Parse the HTTP response from the financial ping server.
   static bool ParseResponse(Product product, const char* response,

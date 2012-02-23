@@ -184,26 +184,24 @@ static const int kMachineIdLength = 50;
 // that information being reported.
 // Access: HKCU write.
 bool RLZ_LIB_API RecordProductEvent(Product product, AccessPoint point,
-                                    Event event_id, const wchar_t* sid=NULL);
+                                    Event event_id);
 
 // Get all the events reported by this product as a CGI string to append to
 // the daily ping.
 // Access: HKCU read.
 bool RLZ_LIB_API GetProductEventsAsCgi(Product product, char* unescaped_cgi,
-                                       size_t unescaped_cgi_size,
-                                       const wchar_t* sid=NULL);
+                                       size_t unescaped_cgi_size);
 
 // Clear all reported events and recorded stateful events of this product.
 // This should be called on complete uninstallation of the product.
 // Access: HKCU write.
-bool RLZ_LIB_API ClearAllProductEvents(Product product,
-                                       const wchar_t* sid=NULL);
+bool RLZ_LIB_API ClearAllProductEvents(Product product);
 
 // Clear an event reported by this product. This should be called after a
 // successful ping to the RLZ server.
 // Access: HKCU write.
 bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
-                                   Event event_id, const wchar_t* sid=NULL);
+                                   Event event_id);
 
 // RLZ storage functions.
 
@@ -211,15 +209,14 @@ bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
 // RLZ will be the empty string and the function will return false.
 // Access: HKCU read.
 bool RLZ_LIB_API GetAccessPointRlz(AccessPoint point, char* rlz,
-                                   size_t rlz_size, const wchar_t* sid=NULL);
+                                   size_t rlz_size);
 
 // Set the RLZ for the access-point. Fails and asserts if called when the access
 // point is not set to Google.
 // new_rlz should come from a server-response. Client applications should not
 // create their own RLZ values.
 // Access: HKCU write.
-bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz,
-                                   const wchar_t* sid=NULL);
+bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz);
 
 
 
@@ -270,7 +267,6 @@ bool RLZ_LIB_API GetMachineDealCode(char* dcc, size_t dcc_size);
 // request            : The buffer where the function returns the HTTP request.
 // request_buffer_size: The size of the request buffer in WCHARs. The buffer
 //                      size (kMaxCgiLength+1) is guaranteed to be enough.
-// sid                : The user account SID - needed when running as system.
 //
 // Access: HKCU read.
 bool RLZ_LIB_API FormFinancialPingRequest(Product product,
@@ -281,8 +277,7 @@ bool RLZ_LIB_API FormFinancialPingRequest(Product product,
                                           const char* product_lang,
                                           bool exclude_machine_id,
                                           char* request,
-                                          size_t request_buffer_size,
-                                          const wchar_t* sid=NULL);
+                                          size_t request_buffer_size);
 
 // Pings the financial server and returns the HTTP response. This will fail
 // if it is too early to ping the server since the last ping.
@@ -296,21 +291,18 @@ bool RLZ_LIB_API FormFinancialPingRequest(Product product,
 //                        legitimate server responses (any response that is
 //                        bigger should be considered the same way as a general
 //                        network problem).
-// sid                  : The user account SID - needed when running as system.
 //
 // Access: HKCU read.
 bool RLZ_LIB_API PingFinancialServer(Product product,
                                      const char* request,
                                      char* response,
-                                     size_t response_buffer_size,
-                                     const wchar_t* sid=NULL);
+                                     size_t response_buffer_size);
 
 // Parses the responses from the financial server and updates product state
 // and access point RLZ's in registry.
 // Access: HKCU write.
 bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
-                                            const char* response,
-                                            const wchar_t* sid=NULL);
+                                            const char* response);
 
 // Complex helpers built on top of other functions.
 
@@ -322,14 +314,12 @@ bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
 // Access: HKCU read.
 bool RLZ_LIB_API GetPingParams(Product product,
                                const AccessPoint* access_points,
-                               char* unescaped_cgi, size_t unescaped_cgi_size,
-                               const wchar_t* sid=NULL);
+                               char* unescaped_cgi, size_t unescaped_cgi_size);
 
 // Parses RLZ related ping response information from the server.
 // Updates stored RLZ values and clears stored events accordingly.
 // Access: HKCU write.
-bool RLZ_LIB_API ParsePingResponse(Product product, const char* response,
-                                   const wchar_t* sid=NULL);
+bool RLZ_LIB_API ParsePingResponse(Product product, const char* response);
 
 // Checks if a ping response is valid - ie. it has a checksum line which
 // is the CRC-32 checksum of the message uptil the checksum. If
@@ -359,7 +349,6 @@ bool RLZ_LIB_API SetMachineDealCodeFromPingResponse(const char* response);
 // product_lang       : The language for the product (used to determine cohort).
 // exclude_machine_id : Whether the Machine ID should be explicitly excluded
 //                      based on the products privacy policy.
-// sid                : The user account SID - needed when running as system.
 //
 // Returns true on successful ping and response, false otherwise.
 // Access: HKCU write.
@@ -369,8 +358,7 @@ bool RLZ_LIB_API SendFinancialPing(Product product,
                                    const char* product_brand,
                                    const char* product_id,
                                    const char* product_lang,
-                                   bool exclude_machine_id,
-                                   const wchar_t* sid=NULL);
+                                   bool exclude_machine_id);
 
 // An alternate implementations of SendFinancialPing with the same behavior,
 // except the caller can optionally choose to skip the timing check.
@@ -381,7 +369,6 @@ bool RLZ_LIB_API SendFinancialPing(Product product,
                                    const char* product_id,
                                    const char* product_lang,
                                    bool exclude_machine_id,
-                                   const wchar_t* sid,
                                    const bool skip_time_check);
 
 
@@ -400,8 +387,7 @@ bool RLZ_LIB_API SendFinancialPing(Product product,
 // failed attempts.
 // Access: HKCU write.
 void RLZ_LIB_API ClearProductState(Product product,
-                                   const AccessPoint* access_points,
-                                   const wchar_t* sid=NULL);
+                                   const AccessPoint* access_points);
 
 // Gets the unique ID for the machine used for RLZ tracking purposes. This ID
 // is derived from the Windows machine SID, and is the string representation of
@@ -413,7 +399,6 @@ bool GetMachineId(char* buffer, int buffer_size);
 
 
 // Segment RLZ persistence based on branding information.
-// The RLZ library uses the Windows registry to save persistent information.
 // All information for a given product is persisted under keys with the either
 // product's name or its access point's name.  This assumes that only
 // one instance of the product is installed on the machine, and that only one
