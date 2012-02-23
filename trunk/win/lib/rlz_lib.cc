@@ -45,7 +45,7 @@ struct ReturnedEvent {
 
 // Helper functions
 
-bool IsAccessPointSupported(rlz_lib::AccessPoint point, HKEY user_key) {
+bool IsAccessPointSupported(rlz_lib::AccessPoint point) {
   switch (point) {
   case rlz_lib::NO_ACCESS_POINT:
   case rlz_lib::LAST_ACCESS_POINT:
@@ -493,7 +493,7 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
     return false;
 
   // Return false if the access point is not supported.
-  if (!IsAccessPointSupported(point, user_key))
+  if (!IsAccessPointSupported(point))
     return false;
 
   // Get the RLZ value.
@@ -538,7 +538,7 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz,
   }
 
   // Return false if the access point is not set to Google.
-  if (!IsAccessPointSupported(point, user_key.Get())) {
+  if (!IsAccessPointSupported(point)) {
     ASSERT_STRING(("SetAccessPointRlz: "
                 "Cannot set RLZ for unsupported access point."));
     return false;
@@ -946,7 +946,7 @@ bool ParsePingResponse(Product product, const char* response,
       if (rlz_length > kMaxRlzLength)
         continue;  // Too long.
 
-      if (IsAccessPointSupported(point, user_key.Get()))
+      if (IsAccessPointSupported(point))
         SetAccessPointRlz(point, rlz_value.substr(0, rlz_length).c_str(), sid);
     } else if (StartsWithASCII(response_line, events_variable, true)) {
       // Clear events which server parsed.
