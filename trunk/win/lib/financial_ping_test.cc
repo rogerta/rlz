@@ -184,19 +184,19 @@ TEST_F(FinancialPingTest, IsPingTime) {
   // No events, last ping just over a day ago.
   EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
   EXPECT_FALSE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                  NULL, false));
+                                                  false));
 
   // Has events, last ping just over a day ago.
   EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
       rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
   EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                 NULL, false));
+                                                 false));
 
   // Has events, last ping just under a day ago.
   last_ping = now - rlz_lib::kEventsPingInterval + k1MinuteInterval;
   SetLastPingTime(last_ping, rlz_lib::TOOLBAR_NOTIFIER);
   EXPECT_FALSE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                  NULL, false));
+                                                  false));
 
   EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
 
@@ -204,23 +204,23 @@ TEST_F(FinancialPingTest, IsPingTime) {
   last_ping = now - rlz_lib::kNoEventsPingInterval + k1MinuteInterval;
   SetLastPingTime(last_ping, rlz_lib::TOOLBAR_NOTIFIER);
   EXPECT_FALSE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                  NULL, false));
+                                                  false));
 
   // No events, last ping just over a week ago.
   last_ping = now - rlz_lib::kNoEventsPingInterval - k1MinuteInterval;
   SetLastPingTime(last_ping, rlz_lib::TOOLBAR_NOTIFIER);
   EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                 NULL, false));
+                                                 false));
 
   // Last ping was in future (invalid).
   last_ping = now + k1MinuteInterval;
   SetLastPingTime(last_ping, rlz_lib::TOOLBAR_NOTIFIER);
   EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                  NULL, false));
+                                                 false));
   EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
       rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
   EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                 NULL, false));
+                                                 false));
 }
 
 TEST_F(FinancialPingTest, BrandingIsPingTime) {
@@ -237,7 +237,7 @@ TEST_F(FinancialPingTest, BrandingIsPingTime) {
   EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
       rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
   EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                 NULL, false));
+                                                 false));
 
   {
     rlz_lib::SupplementaryBranding branding(L"TEST");
@@ -247,19 +247,19 @@ TEST_F(FinancialPingTest, BrandingIsPingTime) {
     EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
         rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
     EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                   NULL, false));
+                                                   false));
   }
 
   last_ping = now - k1MinuteInterval;
   SetLastPingTime(last_ping, rlz_lib::TOOLBAR_NOTIFIER);
 
   EXPECT_FALSE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                  NULL, false));
+                                                  false));
 
   {
     rlz_lib::SupplementaryBranding branding(L"TEST");
     EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                   NULL, false));
+                                                   false));
   }
 }
 
@@ -273,10 +273,10 @@ TEST_F(FinancialPingTest, ClearLastPingTime) {
   EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
       rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
   EXPECT_FALSE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                  NULL, false));
+                                                  false));
 
   EXPECT_TRUE(rlz_lib::FinancialPing::ClearLastPingTime(
-      rlz_lib::TOOLBAR_NOTIFIER, NULL));
+      rlz_lib::TOOLBAR_NOTIFIER));
   EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
-                                                 NULL, false));
+                                                 false));
 }

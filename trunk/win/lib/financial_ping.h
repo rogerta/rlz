@@ -31,13 +31,13 @@ class FinancialPing {
   // (case of time reset) or if one day has passed since last_ping and there
   // are events, or one week has passed since last_ping when there are
   // no new events.
-  static bool IsPingTime(Product product, const wchar_t* sid, bool no_delay);
+  static bool IsPingTime(Product product, bool no_delay);
 
   // Set the last ping time to be now. Writes to HKCU.
-  static bool UpdateLastPingTime(Product product, const wchar_t* sid);
+  static bool UpdateLastPingTime(Product product);
 
   // Clear the last ping time - should be called on uninstall. Writes to HKCU.
-  static bool ClearLastPingTime(Product product, const wchar_t* sid);
+  static bool ClearLastPingTime(Product product);
 
   // Ping the financial server with request. Writes to HKCU.
   static bool PingServer(const char* request, std::string* response);

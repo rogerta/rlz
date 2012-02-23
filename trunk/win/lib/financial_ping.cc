@@ -202,13 +202,12 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
   return true;
 }
 
-bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
-                               bool no_delay) {
+bool FinancialPing::IsPingTime(Product product, bool no_delay) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(false))
     return false;
 
@@ -236,12 +235,12 @@ bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
 }
 
 
-bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
+bool FinancialPing::UpdateLastPingTime(Product product) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
@@ -253,12 +252,12 @@ bool FinancialPing::UpdateLastPingTime(Product product, const wchar_t* sid) {
 }
 
 
-bool FinancialPing::ClearLastPingTime(Product product, const wchar_t* sid) {
+bool FinancialPing::ClearLastPingTime(Product product) {
   LibMutex lock;
   if (lock.failed())
     return false;
 
-  UserKey user_key(sid);
+  UserKey user_key(NULL);
   if (!user_key.HasAccess(true))
     return false;
 
