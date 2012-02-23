@@ -10,41 +10,35 @@
 
 RLZ_DLL_EXPORT bool RecordProductEvent(rlz_lib::Product product,
                                        rlz_lib::AccessPoint point,
-                                       rlz_lib::Event event_id,
-                                       const wchar_t* sid = NULL) {
-  return rlz_lib::RecordProductEvent(product, point, event_id, sid);
+                                       rlz_lib::Event event_id) {
+  return rlz_lib::RecordProductEvent(product, point, event_id);
 }
 
 RLZ_DLL_EXPORT bool GetProductEventsAsCgi(rlz_lib::Product product,
                                           char* unescaped_cgi,
-                                          size_t unescaped_cgi_size,
-                                          const wchar_t* sid = NULL) {
+                                          size_t unescaped_cgi_size) {
   return rlz_lib::GetProductEventsAsCgi(product, unescaped_cgi,
-                                        unescaped_cgi_size, sid);
+                                        unescaped_cgi_size);
 }
-RLZ_DLL_EXPORT bool ClearAllProductEvents(rlz_lib::Product product,
-                                          const wchar_t* sid = NULL) {
-  return rlz_lib::ClearAllProductEvents(product, sid);
+RLZ_DLL_EXPORT bool ClearAllProductEvents(rlz_lib::Product product) {
+  return rlz_lib::ClearAllProductEvents(product);
 }
 
 RLZ_DLL_EXPORT bool ClearProductEvent(rlz_lib::Product product,
                                       rlz_lib::AccessPoint point,
-                                      rlz_lib::Event event_id,
-                                      const wchar_t* sid = NULL) {
-  return rlz_lib::ClearProductEvent(product, point, event_id, sid);
+                                      rlz_lib::Event event_id) {
+  return rlz_lib::ClearProductEvent(product, point, event_id);
 }
 
 RLZ_DLL_EXPORT bool GetAccessPointRlz(rlz_lib::AccessPoint point,
                                       char* rlz,
-                                      size_t rlz_size,
-                                      const wchar_t* sid = NULL) {
-  return rlz_lib::GetAccessPointRlz(point, rlz, rlz_size, sid);
+                                      size_t rlz_size) {
+  return rlz_lib::GetAccessPointRlz(point, rlz, rlz_size);
 }
 
 RLZ_DLL_EXPORT bool SetAccessPointRlz(rlz_lib::AccessPoint point,
-                                      const char* new_rlz,
-                                      const wchar_t* sid = NULL) {
-  return rlz_lib::SetAccessPointRlz(point, new_rlz, sid);
+                                      const char* new_rlz) {
+  return rlz_lib::SetAccessPointRlz(point, new_rlz);
 }
 
 RLZ_DLL_EXPORT bool CreateMachineState() {
@@ -66,16 +60,14 @@ RLZ_DLL_EXPORT bool GetMachineDealCode2(char* dcc, size_t dcc_size) {
 RLZ_DLL_EXPORT bool GetPingParams(rlz_lib::Product product,
                                   const rlz_lib::AccessPoint* access_points,
                                   char* unescaped_cgi,
-                                  size_t unescaped_cgi_size,
-                                  const wchar_t* sid = NULL) {
+                                  size_t unescaped_cgi_size) {
   return rlz_lib::GetPingParams(product, access_points, unescaped_cgi,
-                                unescaped_cgi_size, sid);
+                                unescaped_cgi_size);
 }
 
 RLZ_DLL_EXPORT bool ParsePingResponse(rlz_lib::Product product,
-                                      const char* response,
-                                      const wchar_t* sid = NULL) {
-  return rlz_lib::ParsePingResponse(product, response, sid);
+                                      const char* response) {
+  return rlz_lib::ParsePingResponse(product, response);
 }
 
 RLZ_DLL_EXPORT bool IsPingResponseValid(const char* response,
@@ -93,10 +85,9 @@ RLZ_DLL_EXPORT bool SendFinancialPing(rlz_lib::Product product,
                                       const char* product_brand,
                                       const char* product_id,
                                       const char* product_lang,
-                                      bool exclude_machine_id,
-                                      const wchar_t* sid = NULL) {
+                                      bool exclude_machine_id) {
   return rlz_lib::SendFinancialPing(product, access_points, product_signature,
-      product_brand, product_id, product_lang, exclude_machine_id, sid);
+      product_brand, product_id, product_lang, exclude_machine_id);
 }
 
 RLZ_DLL_EXPORT bool SendFinancialPingNoDelay(
@@ -106,15 +97,12 @@ RLZ_DLL_EXPORT bool SendFinancialPingNoDelay(
     const char* product_brand,
     const char* product_id,
     const char* product_lang,
-    bool exclude_machine_id,
-    const wchar_t* sid) {
+    bool exclude_machine_id) {
   return rlz_lib::SendFinancialPing(product, access_points, product_signature,
-      product_brand, product_id, product_lang, exclude_machine_id, sid,
-      true);
+      product_brand, product_id, product_lang, exclude_machine_id, true);
 }
 
-RLZ_DLL_EXPORT void ClearProductState(rlz_lib::Product product,
-                                      const rlz_lib::AccessPoint* access_points,
-                                      const wchar_t* sid = NULL) {
-  return rlz_lib::ClearProductState(product, access_points, sid);
+RLZ_DLL_EXPORT void ClearProductState(
+    rlz_lib::Product product, const rlz_lib::AccessPoint* access_points) {
+  return rlz_lib::ClearProductState(product, access_points);
 }
