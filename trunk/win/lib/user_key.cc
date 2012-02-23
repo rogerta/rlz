@@ -15,34 +15,19 @@
 
 namespace rlz_lib {
 
-UserKey::UserKey(const wchar_t* sid) {
-  if (!sid || !sid[0]) {
-    // No SID is specified, so the caller is trying to access HKEY_CURRENT_USER.
-    // Test to see if we can read from there.  Don't try HKEY_CURRENT_USER
-    // because this will cause problems in the unit tests: if we open
-    // HKEY_CURRENT_USER directly here, the overriding done for unit tests will
-    // no longer work.  So we try subkey "Software" which is known to always
-    // exist.
-    base::win::RegKey key;
-    if (key.Open(HKEY_CURRENT_USER, L"Software", KEY_READ) != ERROR_SUCCESS)
-      ASSERT_STRING("Could not open HKEY_CURRENT_USER");
-    return;
-  }
-
-  // Disallow impersonation when not running as administrator / high integrity.
-  if (!ProcessInfo::HasAdminRights()) {
-    ASSERT_STRING("UserKey::UserKey Cannot set SID when not administrator.");
-    return;
-  }
-
-  if (user_key_.Open(HKEY_USERS, sid, KEY_ALL_ACCESS) != ERROR_SUCCESS)
-    ASSERT_STRING("UserKey::UserKey Failed to open user key.");
+UserKey::UserKey() {
+  // The caller is trying to access HKEY_CURRENT_USER.  Test to see if we can
+  // read from there.  Don't try HKEY_CURRENT_USER because this will cause
+  // problems in the unit tests: if we open HKEY_CURRENT_USER directly here,
+  // the overriding done for unit tests will no longer work.  So we try subkey
+  // "Software" which is known to always exist.
+  base::win::RegKey key;
+  if (key.Open(HKEY_CURRENT_USER, L"Software", KEY_READ) != ERROR_SUCCESS)
+    ASSERT_STRING("Could not open HKEY_CURRENT_USER");
 }
 
 HKEY UserKey::Get() {
-  // If user_key_ is not valid, this is because the caller is trying to access
-  // HKEY_CURRENT_USER.
-  return user_key_.Valid() ? user_key_.Handle() : HKEY_CURRENT_USER;
+  return HKEY_CURRENT_USER;
 }
 
 bool UserKey::HasAccess(bool write_access) {
