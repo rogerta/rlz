@@ -24,10 +24,6 @@ class FinancialPing {
                           const char* product_lang, bool exclude_machine_id,
                           std::string* request);
 
-  // Parse the HTTP response from the financial ping server.
-  static bool ParseResponse(Product product, const char* response,
-                            const wchar_t* sid);
-
   // Returns whether the time is right to send a ping.
   // If no_delay is true, this should always ping if there are events,
   // or one week has passed since last_ping when there are no new events.

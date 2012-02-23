@@ -202,12 +202,6 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
   return true;
 }
 
-
-bool FinancialPing::ParseResponse(Product product, const char* response,
-                                  const wchar_t* sid) {
-  return ParsePingResponse(product, response);
-}
-
 bool FinancialPing::IsPingTime(Product product, const wchar_t* sid,
                                bool no_delay) {
   LibMutex lock;
