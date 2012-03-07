@@ -472,8 +472,7 @@ bool ClearAllProductEvents(Product product) {
 
 // RLZ storage functions.
 
-bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
-                       HKEY user_key) {
+bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size) {
   if (!rlz || rlz_size <= 0) {
     ASSERT_STRING("GetAccessPointRlz: Invalid buffer");
     return false;
@@ -485,7 +484,8 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
   if (lock.failed())
     return false;
 
-  if (!UserKey::HasAccess(user_key, false))
+  UserKey user_key;
+  if (!user_key.HasAccess(false))
     return false;
 
   // Return false if the access point is not supported.
@@ -499,7 +499,7 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
 
   size_t size = rlz_size;
   base::win::RegKey key;
-  GetAccessPointRlzsRegKey(user_key, KEY_READ, &key);
+  GetAccessPointRlzsRegKey(user_key.Get(), KEY_READ, &key);
   if (!RegKeyReadValue(key, ASCIIToWide(access_point_name).c_str(),
                        rlz, &size)) {
     rlz[0] = 0;
@@ -510,11 +510,6 @@ bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size,
   }
 
   return true;
-}
-
-bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size) {
-  UserKey user_key;
-  return GetAccessPointRlz(point, rlz, rlz_size, user_key.Get());
 }
 
 bool SetAccessPointRlz(AccessPoint point, const char* new_rlz) {
