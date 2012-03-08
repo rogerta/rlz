@@ -6,8 +6,12 @@
 
 #include "rlz/win/lib/financial_ping.h"
 
+// TODO(thakis): use chromium's http stack instead.
+#if defined(OS_WIN)
 #include <windows.h>
 #include <wininet.h>
+#endif
+
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/string_util.h"
@@ -21,25 +25,19 @@
 #include "rlz/win/lib/user_key.h"
 
 
+// TODO(thakis): Make this cross-platform.
+#if defined(OS_WIN)
 namespace {
-
-int64 ToInt64(const FILETIME& ft) {
-  LARGE_INTEGER integer;
-  integer.HighPart = ft.dwHighDateTime;
-  integer.LowPart = ft.dwLowDateTime;
-  return integer.QuadPart;
-}
 
 int64 GetSystemTimeAsInt64() {
   FILETIME now_as_file_time;
   GetSystemTimeAsFileTime(&now_as_file_time);
-  return ToInt64(now_as_file_time);
+
+  LARGE_INTEGER integer;
+  integer.HighPart = now_as_file_time.dwHighDateTime;
+  integer.LowPart = now_as_file_time.dwLowDateTime;
+  return integer.QuadPart;
 }
-
-}  // namespace anonymous
-
-
-namespace rlz_lib {
 
 class InternetHandle {
  public:
@@ -51,6 +49,12 @@ class InternetHandle {
  private:
   HINTERNET handle_;
 };
+
+}  // namespace anonymous
+#endif
+
+
+namespace rlz_lib {
 
 bool FinancialPing::FormRequest(Product product,
     const AccessPoint* access_points, const char* product_signature,
@@ -154,6 +158,7 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
 
   response->clear();
 
+#if defined(OS_WIN)
   // Initialize WinInet.
   InternetHandle inet_handle = InternetOpenA(kFinancialPingUserAgent,
                                              INTERNET_OPEN_TYPE_PRECONFIG,
@@ -198,6 +203,10 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
     response->append(buffer.get(), bytes_read);
     bytes_read = 0;
   };
+#else
+  // TODO(thakis): Make this cross-platform.
+  NOTIMPLEMENTED();
+#endif
 
   return true;
 }
@@ -261,9 +270,10 @@ bool FinancialPing::ClearLastPingTime(Product product) {
   if (!user_key.HasAccess(true))
     return false;
 
-  const wchar_t* value_name = GetProductName(product);
   base::win::RegKey key;
   GetPingTimesRegKey(user_key.Get(), KEY_WRITE, &key);
+
+  const wchar_t* value_name = GetProductName(product);
   key.DeleteValue(value_name);
 
   // Verify deletion.
