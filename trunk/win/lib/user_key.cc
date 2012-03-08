@@ -31,21 +31,9 @@ HKEY UserKey::Get() {
 }
 
 bool UserKey::HasAccess(bool write_access) {
-  return HasAccess(Get(), write_access);
-}
-
-bool UserKey::HasAccess(HKEY user_key, bool write_access) {
-  if (!user_key) {
-    ASSERT_STRING("UserKey::HasAccess: No key opened.");
-    return false;
-  }
-
   if (ProcessInfo::IsRunningAsSystem()) {
-    if (user_key == HKEY_CURRENT_USER) {
-      ASSERT_STRING("UserKey::HasAccess: No access as SYSTEM without SID set.");
-      return false;
-    }
-    return true;
+    ASSERT_STRING("UserKey::HasAccess: No access as SYSTEM without SID set.");
+    return false;
   }
 
   if (write_access) {
