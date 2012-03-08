@@ -52,18 +52,15 @@ extern const wchar_t kGoogleKeyName[];
 extern const wchar_t kGoogleCommonKeyName[];
 
 // Function to get the specific registry keys.
-bool GetPingTimesRegKey(HKEY user_key,
-                        REGSAM access,
+bool GetPingTimesRegKey(REGSAM access,
                         base::win::RegKey* key);
 
-bool GetEventsRegKey(HKEY user_key,
-                     const wchar_t* event_type,
+bool GetEventsRegKey(const wchar_t* event_type,
                      const rlz_lib::Product* product,
                      REGSAM access,
                      base::win::RegKey* key);
 
-bool GetAccessPointRlzsRegKey(HKEY user_key,
-                              REGSAM access,
+bool GetAccessPointRlzsRegKey(REGSAM access,
                               base::win::RegKey* key);
 #endif  // defined(OS_WIN)
 

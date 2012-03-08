@@ -12,24 +12,22 @@
 #if defined(OS_WIN)
 #include "base/win/registry.h"
 #include "rlz/win/lib/lib_mutex.h"
-#include "rlz/win/lib/user_key.h"
 #endif
 
 // TODO(thakis): Move registry stuff somewhere else.
 #if defined(OS_WIN)
 namespace {
 
-bool GetRegKey(HKEY user_key, const wchar_t* name, REGSAM access,
-               base::win::RegKey* key) {
+bool GetRegKey(const wchar_t* name, REGSAM access, base::win::RegKey* key) {
   std::wstring key_location;
   base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName, name);
   rlz_lib::SupplementaryBranding::AppendBrandToString(&key_location);
 
   LONG ret = ERROR_SUCCESS;
   if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
-    ret = key->Create(user_key, key_location.c_str(), access);
+    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
   } else {
-    ret = key->Open(user_key, key_location.c_str(), access);
+    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
   }
 
   return ret == ERROR_SUCCESS;
@@ -291,12 +289,12 @@ bool GetEventFromName(const char* name, Event* event) {
 
 // TODO(thakis): Move registry stuff somewhere else.
 #if defined(OS_WIN)
-bool GetPingTimesRegKey(HKEY user_key, REGSAM access, base::win::RegKey* key) {
-  return GetRegKey(user_key, kPingTimesSubkeyName, access, key);
+bool GetPingTimesRegKey(REGSAM access, base::win::RegKey* key) {
+  return GetRegKey(kPingTimesSubkeyName, access, key);
 }
 
 
-bool GetEventsRegKey(HKEY user_key, const wchar_t* event_type,
+bool GetEventsRegKey(const wchar_t* event_type,
                      const rlz_lib::Product* product,
                      REGSAM access, base::win::RegKey* key) {
   std::wstring key_location;
@@ -314,18 +312,17 @@ bool GetEventsRegKey(HKEY user_key, const wchar_t* event_type,
 
   LONG ret = ERROR_SUCCESS;
   if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
-    ret = key->Create(user_key, key_location.c_str(), access);
+    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
   } else {
-    ret = key->Open(user_key, key_location.c_str(), access);
+    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
   }
 
   return ret == ERROR_SUCCESS;
 }
 
 
-bool GetAccessPointRlzsRegKey(HKEY user_key, REGSAM access,
-                              base::win::RegKey* key) {
-  return GetRegKey(user_key, kRlzsSubkeyName, access, key);
+bool GetAccessPointRlzsRegKey(REGSAM access, base::win::RegKey* key) {
+  return GetRegKey(kRlzsSubkeyName, access, key);
 }
 #endif  // defined(OS_WIN)
 

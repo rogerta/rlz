@@ -222,7 +222,7 @@ bool FinancialPing::IsPingTime(Product product, bool no_delay) {
 
   int64 last_ping = 0;
   base::win::RegKey key;
-  if (!GetPingTimesRegKey(user_key.Get(), KEY_READ, &key) ||
+  if (!GetPingTimesRegKey(KEY_READ, &key) ||
       key.ReadInt64(GetProductName(product), &last_ping) != ERROR_SUCCESS)
     return true;
 
@@ -255,7 +255,7 @@ bool FinancialPing::UpdateLastPingTime(Product product) {
 
   uint64 now = GetSystemTimeAsInt64();
   base::win::RegKey key;
-  return GetPingTimesRegKey(user_key.Get(), KEY_WRITE, &key) &&
+  return GetPingTimesRegKey(KEY_WRITE, &key) &&
       key.WriteValue(GetProductName(product), &now, sizeof(now),
                      REG_QWORD) == ERROR_SUCCESS;
 }
@@ -271,7 +271,7 @@ bool FinancialPing::ClearLastPingTime(Product product) {
     return false;
 
   base::win::RegKey key;
-  GetPingTimesRegKey(user_key.Get(), KEY_WRITE, &key);
+  GetPingTimesRegKey(KEY_WRITE, &key);
 
   const wchar_t* value_name = GetProductName(product);
   key.DeleteValue(value_name);
