@@ -18,7 +18,6 @@ class UserKey {
 
   HKEY Get();
   bool HasAccess(bool write_access);
-  static bool HasAccess(HKEY user_key, bool write_access);
 };
 
 }  // namespace rlz_lib
