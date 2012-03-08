@@ -171,7 +171,7 @@ TEST_F(FinancialPingTest, FormRequestBadBrand) {
 static void SetLastPingTime(int64 time, rlz_lib::Product product) {
   const wchar_t* product_name = GetProductName(product);
   base::win::RegKey key;
-  rlz_lib::GetPingTimesRegKey(HKEY_CURRENT_USER, KEY_WRITE, &key);
+  rlz_lib::GetPingTimesRegKey(KEY_WRITE, &key);
   EXPECT_EQ(ERROR_SUCCESS, key.WriteValue(product_name, &time, sizeof(time),
                                           REG_QWORD));
 }
