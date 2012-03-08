@@ -61,14 +61,6 @@ class MachineDealCode {
   // been successfully called.
   static bool Clear();
 
-  // Helper for DCC extraction from ping responses.
-  // If set_value = true, it extracts the new DCC value to write to registry,
-  // if false, it extracts the server's echo of the current DCC value.
-  static bool ExtractFromResponse(const char* response,
-                                  char* dcc,
-                                  int dcc_size,
-                                  bool set_value);
-
   MachineDealCode() {}
   ~MachineDealCode() {}
 };
