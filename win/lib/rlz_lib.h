@@ -42,13 +42,13 @@ namespace rlz_lib {
 
 class LibMutex;
 
-// The maximum length of an access points RLZ in WCHARs.
+// The maximum length of an access points RLZ in bytes.
 static const int kMaxRlzLength = 64;
-// The maximum length of an access points RLZ in WCHARs.
+// The maximum length of an access points RLZ in bytes.
 static const int kMaxDccLength = 128;
-// The maximum length of a CGI string in WCHARs.
+// The maximum length of a CGI string in bytes.
 static const int kMaxCgiLength = 2048;
-// The maximum length of a ping response we will parse. If the response
+// The maximum length of a ping response we will parse in bytes. If the response
 // is bigger, please break it up into separate calls.
 static const int kMaxPingResponseLength = 0x4000;  // 16K
 // The length of the Machine unique ID in WCHARs, excluding the NULL terminator.
@@ -147,7 +147,7 @@ bool RLZ_LIB_API GetMachineDealCode(char* dcc, size_t dcc_size);
 // exclude_machine_id : Whether the Machine ID should be explicitly excluded
 //                      based on the products privacy policy.
 // request            : The buffer where the function returns the HTTP request.
-// request_buffer_size: The size of the request buffer in WCHARs. The buffer
+// request_buffer_size: The size of the request buffer in bytes. The buffer
 //                      size (kMaxCgiLength+1) is guaranteed to be enough.
 //
 // Access: HKCU read.
@@ -168,7 +168,7 @@ bool RLZ_LIB_API FormFinancialPingRequest(Product product,
 // request              : The HTTP request (for example, returned by
 //                        FormFinancialPingRequest).
 // response             : The buffer in which the HTTP response is returned.
-// response_buffer_size : The size of the response buffer in WCHARs. The buffer
+// response_buffer_size : The size of the response buffer in bytes. The buffer
 //                        size (kMaxPingResponseLength+1) is enough for all
 //                        legitimate server responses (any response that is
 //                        bigger should be considered the same way as a general
