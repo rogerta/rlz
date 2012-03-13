@@ -124,20 +124,6 @@ bool IsGoodRlzChar(const char ch) {
   return false;
 }
 
-bool IsGoodRlz(const char* rlz) {
-  if (!rlz)
-    return false;
-
-  if (strlen(rlz) > rlz_lib::kMaxRlzLength)
-    return false;
-
-  for (int i = 0; rlz[i]; i++)
-    if (!IsGoodRlzChar(rlz[i]))
-      return false;
-
-  return true;
-}
-
 // This function will remove bad rlz chars and also limit the max rlz to some
 // reasonable size.  It also assumes that normalized_rlz is at least
 // kMaxRlzLength+1 long.
