@@ -4,13 +4,7 @@
 //
 // Library functions related to the Financial Server ping.
 
-#include "rlz/win/lib/financial_ping.h"
-
-// TODO(thakis): use chromium's http stack instead.
-#if defined(OS_WIN)
-#include <windows.h>
-#include <wininet.h>
-#endif
+#include "rlz/lib/financial_ping.h"
 
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
@@ -19,11 +13,17 @@
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
 #include "rlz/lib/lib_values.h"
+#include "rlz/lib/rlz_value_store.h"
 #include "rlz/lib/string_utils.h"
+
+#if defined(OS_WIN)
+// TODO(thakis): use chromium's http stack instead, http://crbug.com/117741
+#include <windows.h>
+#include <wininet.h>
+
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/machine_deal.h"
-#include "rlz/win/lib/user_key.h"
-
+#endif
 
 // TODO(thakis): Make this cross-platform.
 #if defined(OS_WIN)
@@ -51,6 +51,27 @@ class InternetHandle {
 };
 
 }  // namespace anonymous
+#else
+namespace rlz_lib {
+// TODO(thakis): Use the real functions on mac.
+bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
+  NOTIMPLEMENTED();
+  return false;
+}
+bool GetPingParams(Product product, const AccessPoint* access_points,
+                   char* cgi, size_t cgi_size) {
+  NOTIMPLEMENTED();
+  return false;
+}
+bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size) {
+  NOTIMPLEMENTED();
+ return false;
+}
+int64 GetSystemTimeAsInt64() {
+  NOTIMPLEMENTED();
+  return 0;
+}
+}  // namespace rlz_lib
 #endif
 
 
@@ -68,12 +89,9 @@ bool FinancialPing::FormRequest(Product product,
 
   request->clear();
 
-  LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(false))
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
     return false;
 
   if (!access_points) {
@@ -86,6 +104,9 @@ bool FinancialPing::FormRequest(Product product,
     return false;
   }
 
+#if defined(OS_WIN)
+  // TODO(thakis): Figure out if supplementary branding needs to work on mac,
+  // http://crbug.com/117744
   if (!SupplementaryBranding::GetBrand().empty()) {
     std::wstring product_brand_wide(ASCIIToWide(product_brand));
     if (SupplementaryBranding::GetBrand() != product_brand_wide) {
@@ -93,6 +114,7 @@ bool FinancialPing::FormRequest(Product product,
       return false;
     }
   }
+#endif
 
   base::StringAppendF(request, "%s?", kFinancialPingPath);
 
@@ -128,7 +150,7 @@ bool FinancialPing::FormRequest(Product product,
       rlz[0] = 0;
       AccessPoint point = static_cast<AccessPoint>(ap);
       if (GetAccessPointRlz(point, rlz, arraysize(rlz)) &&
-          rlz[0] != NULL)
+          rlz[0] != '\0')
         all_points[idx++] = point;
     }
     all_points[idx] = NO_ACCESS_POINT;
@@ -141,6 +163,8 @@ bool FinancialPing::FormRequest(Product product,
                     cgi, arraysize(cgi)))
     base::StringAppendF(request, "&%s", cgi);
 
+#if defined(OS_WIN)
+  // TODO(thakis): Make GetMachineId() work on mac, http://crbug.com/117739
   if (has_events && !exclude_machine_id) {
     std::wstring machine_id;
     if (MachineDealCode::GetMachineId(&machine_id)) {
@@ -148,6 +172,7 @@ bool FinancialPing::FormRequest(Product product,
                           machine_id.c_str());
     }
   }
+#endif
 
   return true;
 }
@@ -204,7 +229,7 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
     bytes_read = 0;
   };
 #else
-  // TODO(thakis): Make this cross-platform.
+  // TODO(thakis): Make this cross-platform, http://crbug.com/117741
   NOTIMPLEMENTED();
 #endif
 
@@ -212,18 +237,13 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
 }
 
 bool FinancialPing::IsPingTime(Product product, bool no_delay) {
-  LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(false))
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
     return false;
 
   int64 last_ping = 0;
-  base::win::RegKey key;
-  if (!GetPingTimesRegKey(KEY_READ, &key) ||
-      key.ReadInt64(GetProductName(product), &last_ping) != ERROR_SUCCESS)
+  if (!store->ReadPingTime(product, &last_ping))
     return true;
 
   uint64 now = GetSystemTimeAsInt64();
@@ -245,46 +265,22 @@ bool FinancialPing::IsPingTime(Product product, bool no_delay) {
 
 
 bool FinancialPing::UpdateLastPingTime(Product product) {
-  LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(true))
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
     return false;
 
   uint64 now = GetSystemTimeAsInt64();
-  base::win::RegKey key;
-  return GetPingTimesRegKey(KEY_WRITE, &key) &&
-      key.WriteValue(GetProductName(product), &now, sizeof(now),
-                     REG_QWORD) == ERROR_SUCCESS;
+  return store->WritePingTime(product, now);
 }
 
 
 bool FinancialPing::ClearLastPingTime(Product product) {
-  LibMutex lock;
-  if (lock.failed())
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
     return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(true))
-    return false;
-
-  base::win::RegKey key;
-  GetPingTimesRegKey(KEY_WRITE, &key);
-
-  const wchar_t* value_name = GetProductName(product);
-  key.DeleteValue(value_name);
-
-  // Verify deletion.
-  uint64 value;
-  DWORD size = sizeof(value);
-  if (key.ReadValue(value_name, &value, &size, NULL) == ERROR_SUCCESS) {
-    ASSERT_STRING("FinancialPing::ClearLastPingTime: Failed to delete value.");
-    return false;
-  }
-
-  return true;
+  return store->ClearPingTime(product);
 }
 
 }  // namespace

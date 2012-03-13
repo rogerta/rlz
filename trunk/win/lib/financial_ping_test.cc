@@ -16,7 +16,7 @@
 
 #include <windows.h>
 
-#include "rlz/win/lib/financial_ping.h"
+#include "rlz/lib/financial_ping.h"
 
 #include "base/basictypes.h"
 #include "base/logging.h"

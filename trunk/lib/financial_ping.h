@@ -4,11 +4,11 @@
 //
 // Library functions related to the Financial Server ping.
 
-#ifndef RLZ_WIN_LIB_FINANCIAL_PING_H_
-#define RLZ_WIN_LIB_FINANCIAL_PING_H_
+#ifndef RLZ_LIB_FINANCIAL_PING_H_
+#define RLZ_LIB_FINANCIAL_PING_H_
 
 #include <string>
-#include "rlz/win/lib/rlz_lib.h"
+#include "rlz/lib/rlz_enums.h"
 
 namespace rlz_lib {
 
@@ -33,13 +33,14 @@ class FinancialPing {
   // no new events.
   static bool IsPingTime(Product product, bool no_delay);
 
-  // Set the last ping time to be now. Writes to HKCU.
+  // Set the last ping time to be now. Writes to RlzValueStore.
   static bool UpdateLastPingTime(Product product);
 
-  // Clear the last ping time - should be called on uninstall. Writes to HKCU.
+  // Clear the last ping time - should be called on uninstall.
+  // Writes to RlzValueStore.
   static bool ClearLastPingTime(Product product);
 
-  // Ping the financial server with request. Writes to HKCU.
+  // Ping the financial server with request. Writes to RlzValueStore.
   static bool PingServer(const char* request, std::string* response);
 
  private:
@@ -50,4 +51,4 @@ class FinancialPing {
 }  // namespace rlz_lib
 
 
-#endif  // RLZ_WIN_LIB_FINANCIAL_PING_H_
+#endif  // RLZ_LIB_FINANCIAL_PING_H_

@@ -23,16 +23,18 @@
         'lib/crc32_wrapper.cc',
         'lib/crc8.h',
         'lib/crc8.cc',
+        'lib/financial_ping.cc',
+        'lib/financial_ping.h',
         'lib/lib_values.cc',
+        'lib/rlz_enums.h',
         'lib/lib_values.h',
+        'lib/rlz_value_store.h',
         'lib/string_utils.cc',
         'lib/string_utils.h',
       ],
       'conditions': [
         ['OS=="win"', {
           'sources': [
-            'win/lib/financial_ping.cc',
-            'win/lib/financial_ping.h',
             'win/lib/lib_mutex.cc',
             'win/lib/lib_mutex.h',
             'win/lib/machine_deal.cc',
@@ -41,9 +43,17 @@
             'win/lib/process_info.h',
             'win/lib/rlz_lib.cc',
             'win/lib/rlz_lib.h',
+            'win/lib/rlz_value_store_registry.cc',
+            'win/lib/rlz_value_store_registry.h',
             'win/lib/user_key.cc',
             'win/lib/user_key.h',
             'win/lib/vista_winnt.h',
+          ],
+        }],
+        ['OS=="mac"', {
+          'sources': [
+            'mac/lib/rlz_value_store_mac.mm',
+            'mac/lib/rlz_value_store_mac.h',
           ],
         }],
       ],
