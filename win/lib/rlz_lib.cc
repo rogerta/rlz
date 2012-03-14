@@ -630,8 +630,10 @@ bool ParsePingResponse(Product product, const char* response) {
     }
   } while (line_end_index >= 0);
 
+#if defined(OS_WIN)
   // Update the DCC in registry if needed.
-  MachineDealCode::SetFromPingResponse(response);
+  SetMachineDealCodeFromPingResponse(response);
+#endif
 
   return true;
 }

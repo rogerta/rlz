@@ -75,6 +75,6 @@ class ScopedRlzValueStoreLock {
 #endif
 };
 
-}
+}  // namespace rlz_lib
 
 #endif  // RLZ_VALUE_STORE_H_

@@ -77,13 +77,6 @@ bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
 // Access: HKCU write.
 bool RLZ_LIB_API ParsePingResponse(Product product, const char* response);
 
-// Parses a ping response, checks if it is valid and sets the machine DCC
-// from the response. The ping must also contain the current DCC value in
-// order to be considered valid.
-// Access: HKLM write;
-//         HKCU write if CreateMachineState() has been successfully called.
-bool RLZ_LIB_API SetMachineDealCodeFromPingResponse(const char* response);
-
 // Send the ping with RLZs and events to the PSO server.
 // This ping method should be called daily. (More frequent calls will fail).
 // Also, if there are no events, the call will succeed only once a week.
