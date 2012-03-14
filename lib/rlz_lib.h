@@ -54,6 +54,36 @@ bool RLZ_LIB_API GetAccessPointRlz(AccessPoint point, char* rlz,
 bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz);
 
 // Financial Server pinging functions.
+// These functions deal with pinging the RLZ financial server and parsing and
+// acting upon the response. Clients should SendFinancialPing() to avoid needing
+// these functions. However, these functions allow clients to split the various
+// parts of the pinging process up as needed (to avoid firewalls, etc).
+
+// Forms the HTTP request to send to the RLZ financial server.
+//
+// product            : The product to ping for.
+// access_points      : The access points this product affects. Array must be
+//                      terminated with NO_ACCESS_POINT.
+// product_signature  : The signature sent with daily pings (e.g. swg, ietb)
+// product_brand      : The brand of the pinging product, if any.
+// product_id         : The product-specific installation ID (can be NULL).
+// product_lang       : The language for the product (used to determine cohort).
+// exclude_machine_id : Whether the Machine ID should be explicitly excluded
+//                      based on the products privacy policy.
+// request            : The buffer where the function returns the HTTP request.
+// request_buffer_size: The size of the request buffer in bytes. The buffer
+//                      size (kMaxCgiLength+1) is guaranteed to be enough.
+//
+// Access: HKCU read.
+bool RLZ_LIB_API FormFinancialPingRequest(Product product,
+                                          const AccessPoint* access_points,
+                                          const char* product_signature,
+                                          const char* product_brand,
+                                          const char* product_id,
+                                          const char* product_lang,
+                                          bool exclude_machine_id,
+                                          char* request,
+                                          size_t request_buffer_size);
 
 // Pings the financial server and returns the HTTP response. This will fail
 // if it is too early to ping the server since the last ping.
