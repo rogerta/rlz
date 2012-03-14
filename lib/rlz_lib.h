@@ -53,6 +53,62 @@ bool RLZ_LIB_API GetAccessPointRlz(AccessPoint point, char* rlz,
 // Access: HKCU write.
 bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz);
 
+// Complex helpers built on top of other functions.
+
+// Copies the events associated with the product and the RLZ's for each access
+// point in access_points into cgi. This string can be directly appended
+// to a ping (will need an & if not first paramter).
+// access_points must be an array of AccessPoints terminated with
+// NO_ACCESS_POINT.
+// Access: HKCU read.
+bool RLZ_LIB_API GetPingParams(Product product,
+                               const AccessPoint* access_points,
+                               char* unescaped_cgi, size_t unescaped_cgi_size);
+
+// Checks if a ping response is valid - ie. it has a checksum line which
+// is the CRC-32 checksum of the message uptil the checksum. If
+// checksum_idx is not NULL, it will get the index of the checksum, i.e. -
+// the effective end of the message.
+// Access: No restrictions.
+bool RLZ_LIB_API IsPingResponseValid(const char* response,
+                                     int* checksum_idx);
+
+#if defined(OS_WIN)
+// OEM Deal confirmation storage functions. OEM Deals are windows-only.
+
+// Makes the OEM Deal Confirmation code writable by all users on the machine.
+// This should be called before calling SetMachineDealCode from a non-admin
+// account.
+// Access: HKLM write.
+bool RLZ_LIB_API CreateMachineState(void);
+
+// Set the OEM Deal Confirmation Code (DCC). This information is used for RLZ
+// initalization.
+// Access: HKLM write, or
+// HKCU read if rlz_lib::CreateMachineState() has been sucessfully called.
+bool RLZ_LIB_API SetMachineDealCode(const char* dcc);
+
+// Get the DCC cgi argument string to append to a daily ping.
+// Should be used only by OEM deal trackers. Applications should use the
+// GetMachineDealCode method which has an AccessPoint paramter.
+// Access: HKLM read.
+bool RLZ_LIB_API GetMachineDealCodeAsCgi(char* cgi, size_t cgi_size);
+
+// Get the DCC value stored in registry.
+// Should be used only by OEM deal trackers. Applications should use the
+// GetMachineDealCode method which has an AccessPoint paramter.
+// Access: HKLM read.
+bool RLZ_LIB_API GetMachineDealCode(char* dcc, size_t dcc_size);
+
+// Parses the responses from the financial server and updates product state
+// and access point RLZ's in registry.
+// Access: HKCU write.
+bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
+                                            const char* response);
+#endif
+
+
+
 }  // namespace rlz_lib
 
 #endif  // RLZ_LIB_RLZ_LIB_H_

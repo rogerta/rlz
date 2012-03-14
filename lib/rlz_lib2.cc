@@ -8,8 +8,12 @@
 #include "rlz/lib/rlz_lib.h"
 
 #include "base/string_util.h"
+#include "base/stringprintf.h"
 #include "rlz/lib/assert.h"
+#include "rlz/lib/crc32.h"
+#include "rlz/lib/lib_values.h"
 #include "rlz/lib/rlz_value_store.h"
+#include "rlz/lib/string_utils.h"
 
 namespace {
 
@@ -144,6 +148,117 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz) {
   if (normalized_rlz[0] == 0)
     return store->ClearAccessPointRlz(point);
   return store->WriteAccessPointRlz(point, normalized_rlz);
+}
+
+// Combined functions.
+
+bool GetPingParams(Product product, const AccessPoint* access_points,
+                   char* cgi, size_t cgi_size) {
+  if (!cgi || cgi_size <= 0) {
+    ASSERT_STRING("GetPingParams: Invalid buffer");
+    return false;
+  }
+
+  cgi[0] = 0;
+
+  // Keep the lock durin gall GetAccessPointRlz() calls below.
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
+    return false;
+
+  if (!access_points) {
+    ASSERT_STRING("GetPingParams: access_points is NULL");
+    return false;
+  }
+
+  // Add the RLZ Exchange Protocol version.
+  std::string cgi_string(kProtocolCgiArgument);
+
+  // Copy the &rlz= over.
+  base::StringAppendF(&cgi_string, "&%s=", kRlzCgiVariable);
+
+  // Now add each of the RLZ's.
+  bool first_rlz = true;  // comma before every RLZ but the first.
+  for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
+    char rlz[kMaxRlzLength + 1];
+    if (GetAccessPointRlz(access_points[i], rlz, arraysize(rlz))) {
+      const char* access_point = GetAccessPointName(access_points[i]);
+      if (!access_point)
+        continue;
+
+      base::StringAppendF(&cgi_string, "%s%s%s%s",
+                          first_rlz ? "" : kRlzCgiSeparator,
+                          access_point, kRlzCgiIndicator, rlz);
+      first_rlz = false;
+    }
+  }
+
+#if defined(OS_WIN)
+  // Report the DCC too if not empty. DCCs are windows-only.
+  char dcc[kMaxDccLength + 1];
+  dcc[0] = 0;
+  if (GetMachineDealCode(dcc, arraysize(dcc)) && dcc[0])
+    base::StringAppendF(&cgi_string, "&%s=%s", kDccCgiVariable, dcc);
+#endif
+
+  if (cgi_string.size() >= cgi_size)
+    return false;
+
+  strncpy(cgi, cgi_string.c_str(), cgi_size);
+  cgi[cgi_size - 1] = 0;
+
+  return true;
+}
+
+bool IsPingResponseValid(const char* response, int* checksum_idx) {
+  if (!response || !response[0])
+    return false;
+
+  if (checksum_idx)
+    *checksum_idx = -1;
+
+  if (strlen(response) > kMaxPingResponseLength) {
+    ASSERT_STRING("IsPingResponseValid: response is too long to parse.");
+    return false;
+  }
+
+  // Find the checksum line.
+  std::string response_string(response);
+
+  std::string checksum_param("\ncrc32: ");
+  int calculated_crc;
+  int checksum_index = response_string.find(checksum_param);
+  if (checksum_index >= 0) {
+    // Calculate checksum of message preceeding checksum line.
+    // (+ 1 to include the \n)
+    std::string message(response_string.substr(0, checksum_index + 1));
+    if (!Crc32(message.c_str(), &calculated_crc))
+      return false;
+  } else {
+    checksum_param = "crc32: ";  // Empty response case.
+    if (!StartsWithASCII(response_string, checksum_param, true))
+      return false;
+
+    checksum_index = 0;
+    if (!Crc32("", &calculated_crc))
+      return false;
+  }
+
+  // Find the checksum value on the response.
+  int checksum_end = response_string.find("\n", checksum_index + 1);
+  if (checksum_end < 0)
+    checksum_end = response_string.size();
+
+  int checksum_begin = checksum_index + checksum_param.size();
+  std::string checksum = response_string.substr(checksum_begin,
+      checksum_end - checksum_begin + 1);
+  TrimWhitespaceASCII(checksum, TRIM_ALL, &checksum);
+
+  if (checksum_idx)
+    *checksum_idx = checksum_index;
+
+  return calculated_crc == HexStringToInteger(checksum.c_str());
 }
 
 }  // namespace rlz_lib
