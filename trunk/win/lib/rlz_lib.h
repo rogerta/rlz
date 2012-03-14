@@ -70,33 +70,6 @@ bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
                                    Event event_id);
 
 
-// OEM Deal confirmation storage functions.
-
-// Makes the OEM Deal Confirmation code writable by all users on the machine.
-// This should be called before calling SetMachineDealCode from a non-admin
-// account.
-// Access: HKLM write.
-bool RLZ_LIB_API CreateMachineState(void);
-
-// Set the OEM Deal Confirmation Code (DCC). This information is used for RLZ
-// initalization.
-// Access: HKLM write, or
-// HKCU read if rlz_lib::CreateMachineState() has been sucessfully called.
-bool RLZ_LIB_API SetMachineDealCode(const char* dcc);
-
-// Get the DCC cgi argument string to append to a daily ping.
-// Should be used only by OEM deal trackers. Applications should use the
-// GetMachineDealCode method which has an AccessPoint paramter.
-// Access: HKLM read.
-bool RLZ_LIB_API GetMachineDealCodeAsCgi(char* cgi, size_t cgi_size);
-
-// Get the DCC value stored in registry.
-// Should be used only by OEM deal trackers. Applications should use the
-// GetMachineDealCode method which has an AccessPoint paramter.
-// Access: HKLM read.
-bool RLZ_LIB_API GetMachineDealCode(char* dcc, size_t dcc_size);
-
-
 // Financial Server pinging functions.
 // These functions deal with pinging the RLZ financial server and parsing and
 // acting upon the response. Clients should SendFinancialPing() to avoid needing
@@ -148,36 +121,12 @@ bool RLZ_LIB_API PingFinancialServer(Product product,
                                      char* response,
                                      size_t response_buffer_size);
 
-// Parses the responses from the financial server and updates product state
-// and access point RLZ's in registry.
-// Access: HKCU write.
-bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
-                                            const char* response);
-
 // Complex helpers built on top of other functions.
-
-// Copies the events associated with the product and the RLZ's for each access
-// point in access_points into cgi. This string can be directly appended
-// to a ping (will need an & if not first paramter).
-// access_points must be an array of AccessPoints terminated with
-// NO_ACCESS_POINT.
-// Access: HKCU read.
-bool RLZ_LIB_API GetPingParams(Product product,
-                               const AccessPoint* access_points,
-                               char* unescaped_cgi, size_t unescaped_cgi_size);
 
 // Parses RLZ related ping response information from the server.
 // Updates stored RLZ values and clears stored events accordingly.
 // Access: HKCU write.
 bool RLZ_LIB_API ParsePingResponse(Product product, const char* response);
-
-// Checks if a ping response is valid - ie. it has a checksum line which
-// is the CRC-32 checksum of the message uptil the checksum. If
-// checksum_idx is not NULL, it will get the index of the checksum, i.e. -
-// the effective end of the message.
-// Access: No restrictions.
-bool RLZ_LIB_API IsPingResponseValid(const char* response,
-                                     int* checksum_idx);
 
 // Parses a ping response, checks if it is valid and sets the machine DCC
 // from the response. The ping must also contain the current DCC value in
