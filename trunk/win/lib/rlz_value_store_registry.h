@@ -19,6 +19,13 @@ class RlzValueStoreRegistry : public RlzValueStore {
   virtual bool ReadPingTime(Product product, int64* time) OVERRIDE;
   virtual bool ClearPingTime(Product product) OVERRIDE;
 
+  virtual bool WriteAccessPointRlz(AccessPoint access_point,
+                                   const char* new_rlz) OVERRIDE;
+  virtual bool ReadAccessPointRlz(AccessPoint access_point,
+                                  char* rlz,
+                                  size_t rlz_size) OVERRIDE;
+  virtual bool ClearAccessPointRlz(AccessPoint access_point) OVERRIDE;
+
  private:
   RlzValueStoreRegistry() {}
   DISALLOW_COPY_AND_ASSIGN(RlzValueStoreRegistry);

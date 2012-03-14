@@ -24,9 +24,18 @@ class RlzValueStore {
   enum AccessType { kReadAccess, kWriteAccess };
   virtual bool HasAccess(AccessType type) = 0;
 
+  // Ping times.
   virtual bool WritePingTime(Product product, int64 time) = 0;
   virtual bool ReadPingTime(Product product, int64* time) = 0;
   virtual bool ClearPingTime(Product product) = 0;
+
+  // Access point RLZs.
+  virtual bool WriteAccessPointRlz(AccessPoint access_point,
+                                   const char* new_rlz) = 0;
+  virtual bool ReadAccessPointRlz(AccessPoint access_point,
+                                  char* rlz,  // At most kMaxRlzLength + 1 bytes
+                                  size_t rlz_size) = 0;
+  virtual bool ClearAccessPointRlz(AccessPoint access_point) = 0;
 };
 
 // All methods of RlzValueStore must stays consistent even when accessed from

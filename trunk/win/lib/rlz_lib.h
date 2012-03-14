@@ -24,35 +24,19 @@
 #ifndef RLZ_WIN_LIB_RLZ_LIB_H_
 #define RLZ_WIN_LIB_RLZ_LIB_H_
 
-#include <stdio.h>
-#include <string>
-
-#include "build/build_config.h"
-
-#include "rlz/lib/rlz_enums.h"
+#include "rlz/lib/rlz_lib.h"
 
 #if defined(OS_WIN)
 #include "base/memory/scoped_ptr.h"
 #include "base/win/registry.h"
 #endif
 
-#define RLZ_LIB_API __cdecl
-
 namespace rlz_lib {
 
 class LibMutex;
 
-// The maximum length of an access points RLZ in bytes.
-static const int kMaxRlzLength = 64;
-// The maximum length of an access points RLZ in bytes.
-static const int kMaxDccLength = 128;
-// The maximum length of a CGI string in bytes.
-static const int kMaxCgiLength = 2048;
-// The maximum length of a ping response we will parse in bytes. If the response
-// is bigger, please break it up into separate calls.
-static const int kMaxPingResponseLength = 0x4000;  // 16K
 // The length of the Machine unique ID in WCHARs, excluding the NULL terminator.
-static const int kMachineIdLength = 50;
+const int kMachineIdLength = 50;
 
 
 // TODO(thakis): Port these functions.
@@ -84,22 +68,6 @@ bool RLZ_LIB_API ClearAllProductEvents(Product product);
 // Access: HKCU write.
 bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
                                    Event event_id);
-
-// RLZ storage functions.
-
-// Get the RLZ value of the access point. If the access point is not Google, the
-// RLZ will be the empty string and the function will return false.
-// Access: HKCU read.
-bool RLZ_LIB_API GetAccessPointRlz(AccessPoint point, char* rlz,
-                                   size_t rlz_size);
-
-// Set the RLZ for the access-point. Fails and asserts if called when the access
-// point is not set to Google.
-// new_rlz should come from a server-response. Client applications should not
-// create their own RLZ values.
-// Access: HKCU write.
-bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz);
-
 
 
 // OEM Deal confirmation storage functions.

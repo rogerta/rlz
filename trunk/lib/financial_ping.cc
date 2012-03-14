@@ -13,6 +13,7 @@
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
 #include "rlz/lib/lib_values.h"
+#include "rlz/lib/rlz_lib.h"
 #include "rlz/lib/rlz_value_store.h"
 #include "rlz/lib/string_utils.h"
 
@@ -62,10 +63,6 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
                    char* cgi, size_t cgi_size) {
   NOTIMPLEMENTED();
   return false;
-}
-bool GetAccessPointRlz(AccessPoint point, char* rlz, size_t rlz_size) {
-  NOTIMPLEMENTED();
- return false;
 }
 int64 GetSystemTimeAsInt64() {
   NOTIMPLEMENTED();
