@@ -162,6 +162,7 @@ bool FormFinancialPingRequest(Product product, const AccessPoint* access_points,
                               char* request, size_t request_buffer_size) {
   if (!request || request_buffer_size == 0)
     return false;
+
   request[0] = 0;
 
   std::string request_string;
@@ -185,7 +186,8 @@ bool PingFinancialServer(Product product, const char* request, char* response,
   response[0] = 0;
 
   // Check if the time is right to ping.
-  if (!FinancialPing::IsPingTime(product, false)) return false;
+  if (!FinancialPing::IsPingTime(product, false))
+    return false;
 
   // Send out the ping.
   std::string response_string;
@@ -262,12 +264,6 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
 
   cgi[0] = 0;
 
-  // Keep the lock durin gall GetAccessPointRlz() calls below.
-  ScopedRlzValueStoreLock lock;
-  RlzValueStore* store = lock.GetStore();
-  if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
-    return false;
-
   if (!access_points) {
     ASSERT_STRING("GetPingParams: access_points is NULL");
     return false;
@@ -279,29 +275,36 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   // Copy the &rlz= over.
   base::StringAppendF(&cgi_string, "&%s=", kRlzCgiVariable);
 
-  // Now add each of the RLZ's.
-  bool first_rlz = true;  // comma before every RLZ but the first.
-  for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
-    char rlz[kMaxRlzLength + 1];
-    if (GetAccessPointRlz(access_points[i], rlz, arraysize(rlz))) {
-      const char* access_point = GetAccessPointName(access_points[i]);
-      if (!access_point)
-        continue;
+  {
+    // Now add each of the RLZ's. Keep the lock during all GetAccessPointRlz()
+    // calls below.
+    ScopedRlzValueStoreLock lock;
+    RlzValueStore* store = lock.GetStore();
+    if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
+      return false;
+    bool first_rlz = true;  // comma before every RLZ but the first.
+    for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
+      char rlz[kMaxRlzLength + 1];
+      if (GetAccessPointRlz(access_points[i], rlz, arraysize(rlz))) {
+        const char* access_point = GetAccessPointName(access_points[i]);
+        if (!access_point)
+          continue;
 
-      base::StringAppendF(&cgi_string, "%s%s%s%s",
-                          first_rlz ? "" : kRlzCgiSeparator,
-                          access_point, kRlzCgiIndicator, rlz);
-      first_rlz = false;
+        base::StringAppendF(&cgi_string, "%s%s%s%s",
+                            first_rlz ? "" : kRlzCgiSeparator,
+                            access_point, kRlzCgiIndicator, rlz);
+        first_rlz = false;
+      }
     }
-  }
 
 #if defined(OS_WIN)
-  // Report the DCC too if not empty. DCCs are windows-only.
-  char dcc[kMaxDccLength + 1];
-  dcc[0] = 0;
-  if (GetMachineDealCode(dcc, arraysize(dcc)) && dcc[0])
-    base::StringAppendF(&cgi_string, "&%s=%s", kDccCgiVariable, dcc);
+    // Report the DCC too if not empty. DCCs are windows-only.
+    char dcc[kMaxDccLength + 1];
+    dcc[0] = 0;
+    if (GetMachineDealCode(dcc, arraysize(dcc)) && dcc[0])
+      base::StringAppendF(&cgi_string, "&%s=%s", kDccCgiVariable, dcc);
 #endif
+  }
 
   if (cgi_string.size() >= cgi_size)
     return false;
