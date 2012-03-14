@@ -376,6 +376,51 @@ bool IsPingResponseValid(const char* response, int* checksum_idx) {
 
 // Complex helpers built on top of other functions.
 
+bool ParseFinancialPingResponse(Product product, const char* response) {
+  // Update the last ping time irrespective of success.
+  FinancialPing::UpdateLastPingTime(product);
+  // Parse the ping response - update RLZs, clear events.
+  return ParsePingResponse(product, response);
+}
+
+bool SendFinancialPing(Product product, const AccessPoint* access_points,
+                       const char* product_signature,
+                       const char* product_brand,
+                       const char* product_id, const char* product_lang,
+                       bool exclude_machine_id) {
+  return SendFinancialPing(product, access_points, product_signature,
+                           product_brand, product_id, product_lang,
+                           exclude_machine_id, false);
+}
+
+
+bool SendFinancialPing(Product product, const AccessPoint* access_points,
+                       const char* product_signature,
+                       const char* product_brand,
+                       const char* product_id, const char* product_lang,
+                       bool exclude_machine_id,
+                       const bool skip_time_check) {
+  // Create the financial ping request.
+  std::string request;
+  if (!FinancialPing::FormRequest(product, access_points, product_signature,
+                                  product_brand, product_id, product_lang,
+                                  exclude_machine_id, &request))
+    return false;
+
+  // Check if the time is right to ping.
+  if (!FinancialPing::IsPingTime(product, skip_time_check))
+    return false;
+
+  // Send out the ping, update the last ping time irrespective of success.
+  FinancialPing::UpdateLastPingTime(product);
+  std::string response;
+  if (!FinancialPing::PingServer(request.c_str(), &response))
+    return false;
+
+  // Parse the ping response - update RLZs, clear events.
+  return ParsePingResponse(product, response.c_str());
+}
+
 // TODO: Use something like RSA to make sure the response is
 // from a Google server.
 bool ParsePingResponse(Product product, const char* response) {
