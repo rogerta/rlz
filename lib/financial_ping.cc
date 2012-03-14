@@ -59,11 +59,6 @@ bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
   NOTIMPLEMENTED();
   return false;
 }
-bool GetPingParams(Product product, const AccessPoint* access_points,
-                   char* cgi, size_t cgi_size) {
-  NOTIMPLEMENTED();
-  return false;
-}
 int64 GetSystemTimeAsInt64() {
   NOTIMPLEMENTED();
   return 0;
