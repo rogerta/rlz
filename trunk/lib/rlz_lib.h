@@ -130,6 +130,48 @@ bool RLZ_LIB_API IsPingResponseValid(const char* response,
 
 // Complex helpers built on top of other functions.
 
+// Parses the responses from the financial server and updates product state
+// and access point RLZ's in registry. Like ParsePingResponse(), but also
+// updates the last ping time.
+// Access: HKCU write.
+bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
+                                            const char* response);
+
+// Send the ping with RLZs and events to the PSO server.
+// This ping method should be called daily. (More frequent calls will fail).
+// Also, if there are no events, the call will succeed only once a week.
+//
+// product            : The product to ping for.
+// access_points      : The access points this product affects. Array must be
+//                      terminated with NO_ACCESS_POINT.
+// product_signature  : The signature sent with daily pings (e.g. swg, ietb)
+// product_brand      : The brand of the pinging product, if any.
+// product_id         : The product-specific installation ID (can be NULL).
+// product_lang       : The language for the product (used to determine cohort).
+// exclude_machine_id : Whether the Machine ID should be explicitly excluded
+//                      based on the products privacy policy.
+//
+// Returns true on successful ping and response, false otherwise.
+// Access: HKCU write.
+bool RLZ_LIB_API SendFinancialPing(Product product,
+                                   const AccessPoint* access_points,
+                                   const char* product_signature,
+                                   const char* product_brand,
+                                   const char* product_id,
+                                   const char* product_lang,
+                                   bool exclude_machine_id);
+
+// An alternate implementations of SendFinancialPing with the same behavior,
+// except the caller can optionally choose to skip the timing check.
+bool RLZ_LIB_API SendFinancialPing(Product product,
+                                   const AccessPoint* access_points,
+                                   const char* product_signature,
+                                   const char* product_brand,
+                                   const char* product_id,
+                                   const char* product_lang,
+                                   bool exclude_machine_id,
+                                   const bool skip_time_check);
+
 // Parses RLZ related ping response information from the server.
 // Updates stored RLZ values and clears stored events accordingly.
 // Access: HKCU write.
@@ -172,12 +214,6 @@ bool RLZ_LIB_API GetMachineDealCodeAsCgi(char* cgi, size_t cgi_size);
 // GetMachineDealCode method which has an AccessPoint paramter.
 // Access: HKLM read.
 bool RLZ_LIB_API GetMachineDealCode(char* dcc, size_t dcc_size);
-
-// Parses the responses from the financial server and updates product state
-// and access point RLZ's in registry.
-// Access: HKCU write.
-bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
-                                            const char* response);
 
 // Parses a ping response, checks if it is valid and sets the machine DCC
 // from the response. The ping must also contain the current DCC value in
