@@ -53,6 +53,36 @@ bool RLZ_LIB_API GetAccessPointRlz(AccessPoint point, char* rlz,
 // Access: HKCU write.
 bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz);
 
+// Financial Server pinging functions.
+
+// Pings the financial server and returns the HTTP response. This will fail
+// if it is too early to ping the server since the last ping.
+//
+// product              : The product to ping for.
+// request              : The HTTP request (for example, returned by
+//                        FormFinancialPingRequest).
+// response             : The buffer in which the HTTP response is returned.
+// response_buffer_size : The size of the response buffer in bytes. The buffer
+//                        size (kMaxPingResponseLength+1) is enough for all
+//                        legitimate server responses (any response that is
+//                        bigger should be considered the same way as a general
+//                        network problem).
+//
+// Access: HKCU read.
+bool RLZ_LIB_API PingFinancialServer(Product product,
+                                     const char* request,
+                                     char* response,
+                                     size_t response_buffer_size);
+
+// Checks if a ping response is valid - ie. it has a checksum line which
+// is the CRC-32 checksum of the message uptil the checksum. If
+// checksum_idx is not NULL, it will get the index of the checksum, i.e. -
+// the effective end of the message.
+// Access: No restrictions.
+bool RLZ_LIB_API IsPingResponseValid(const char* response,
+                                     int* checksum_idx);
+
+
 // Complex helpers built on top of other functions.
 
 // Copies the events associated with the product and the RLZ's for each access
@@ -64,14 +94,6 @@ bool RLZ_LIB_API SetAccessPointRlz(AccessPoint point, const char* new_rlz);
 bool RLZ_LIB_API GetPingParams(Product product,
                                const AccessPoint* access_points,
                                char* unescaped_cgi, size_t unescaped_cgi_size);
-
-// Checks if a ping response is valid - ie. it has a checksum line which
-// is the CRC-32 checksum of the message uptil the checksum. If
-// checksum_idx is not NULL, it will get the index of the checksum, i.e. -
-// the effective end of the message.
-// Access: No restrictions.
-bool RLZ_LIB_API IsPingResponseValid(const char* response,
-                                     int* checksum_idx);
 
 #if defined(OS_WIN)
 // OEM Deal confirmation storage functions. OEM Deals are windows-only.

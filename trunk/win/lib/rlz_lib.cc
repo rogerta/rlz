@@ -710,36 +710,11 @@ bool FormFinancialPingRequest(Product product, const AccessPoint* access_points,
                                   exclude_machine_id, &request_string))
     return false;
 
-  if (request_string.size() < 0 ||
-      request_string.size() >= request_buffer_size)
+  if (request_string.size() >= request_buffer_size)
     return false;
 
   strncpy(request, request_string.c_str(), request_buffer_size);
   request[request_buffer_size - 1] = 0;
-  return true;
-}
-
-
-bool PingFinancialServer(Product product, const char* request, char* response,
-                         size_t response_buffer_size) {
-  if (!response || response_buffer_size == 0)
-    return false;
-  response[0] = 0;
-
-  // Check if the time is right to ping.
-  if (!FinancialPing::IsPingTime(product, false)) return false;
-
-  // Send out the ping.
-  std::string response_string;
-  if (!FinancialPing::PingServer(request, &response_string))
-    return false;
-
-  if ((response_string.size() < 0) ||
-      (static_cast<DWORD>(response_string.size()) >= response_buffer_size))
-    return false;
-
-  strncpy(response, response_string.c_str(), response_buffer_size);
-  response[response_buffer_size - 1] = 0;
   return true;
 }
 
