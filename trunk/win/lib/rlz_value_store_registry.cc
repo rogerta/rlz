@@ -107,6 +107,21 @@ bool RlzValueStoreRegistry::ClearAccessPointRlz(AccessPoint access_point) {
   return true;
 }
 
+bool RlzValueStoreRegistry::AddProductEvent(Product product,
+                                            const char* event_rlz) {
+  std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
+  DWORD value = 1;
+  base::win::RegKey reg_key;
+  rlz_lib::GetEventsRegKey(kEventsSubkeyName, &product,
+                           KEY_WRITE, &reg_key);
+  if (reg_key.WriteValue(event_rlz_wide.c_str(), value) != ERROR_SUCCESS) {
+    ASSERT_STRING("AddProductEvent: Could not write the new event value");
+    return false;
+  }
+
+  return true;
+}
+
 bool RlzValueStoreRegistry::AddStatefulEvent(Product product,
                                              const char* event_rlz) {
   DWORD data = 1;

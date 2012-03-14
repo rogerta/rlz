@@ -45,6 +45,12 @@ bool RlzValueStoreMac::ClearAccessPointRlz(AccessPoint access_point) {
   return false;
 }
 
+bool RlzValueStoreMac::AddProductEvent(Product product,
+                                       const char* event_rlz) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
 bool RlzValueStoreMac::AddStatefulEvent(Product product,
                                         const char* event_rlz) {
   NOTIMPLEMENTED();
