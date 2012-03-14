@@ -11,6 +11,7 @@
 #include "base/stringprintf.h"
 #include "rlz/lib/assert.h"
 #include "rlz/lib/crc32.h"
+#include "rlz/lib/financial_ping.h"
 #include "rlz/lib/lib_values.h"
 #include "rlz/lib/rlz_value_store.h"
 #include "rlz/lib/string_utils.h"
@@ -150,6 +151,81 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz) {
   return store->WriteAccessPointRlz(point, normalized_rlz);
 }
 
+// Financial Server pinging functions.
+
+bool PingFinancialServer(Product product, const char* request, char* response,
+                         size_t response_buffer_size) {
+  if (!response || response_buffer_size == 0)
+    return false;
+  response[0] = 0;
+
+  // Check if the time is right to ping.
+  if (!FinancialPing::IsPingTime(product, false)) return false;
+
+  // Send out the ping.
+  std::string response_string;
+  if (!FinancialPing::PingServer(request, &response_string))
+    return false;
+
+  if (response_string.size() >= response_buffer_size)
+    return false;
+
+  strncpy(response, response_string.c_str(), response_buffer_size);
+  response[response_buffer_size - 1] = 0;
+  return true;
+}
+
+bool IsPingResponseValid(const char* response, int* checksum_idx) {
+  if (!response || !response[0])
+    return false;
+
+  if (checksum_idx)
+    *checksum_idx = -1;
+
+  if (strlen(response) > kMaxPingResponseLength) {
+    ASSERT_STRING("IsPingResponseValid: response is too long to parse.");
+    return false;
+  }
+
+  // Find the checksum line.
+  std::string response_string(response);
+
+  std::string checksum_param("\ncrc32: ");
+  int calculated_crc;
+  int checksum_index = response_string.find(checksum_param);
+  if (checksum_index >= 0) {
+    // Calculate checksum of message preceeding checksum line.
+    // (+ 1 to include the \n)
+    std::string message(response_string.substr(0, checksum_index + 1));
+    if (!Crc32(message.c_str(), &calculated_crc))
+      return false;
+  } else {
+    checksum_param = "crc32: ";  // Empty response case.
+    if (!StartsWithASCII(response_string, checksum_param, true))
+      return false;
+
+    checksum_index = 0;
+    if (!Crc32("", &calculated_crc))
+      return false;
+  }
+
+  // Find the checksum value on the response.
+  int checksum_end = response_string.find("\n", checksum_index + 1);
+  if (checksum_end < 0)
+    checksum_end = response_string.size();
+
+  int checksum_begin = checksum_index + checksum_param.size();
+  std::string checksum = response_string.substr(checksum_begin,
+      checksum_end - checksum_begin + 1);
+  TrimWhitespaceASCII(checksum, TRIM_ALL, &checksum);
+
+  if (checksum_idx)
+    *checksum_idx = checksum_index;
+
+  return calculated_crc == HexStringToInteger(checksum.c_str());
+}
+
+
 // Combined functions.
 
 bool GetPingParams(Product product, const AccessPoint* access_points,
@@ -209,56 +285,6 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   cgi[cgi_size - 1] = 0;
 
   return true;
-}
-
-bool IsPingResponseValid(const char* response, int* checksum_idx) {
-  if (!response || !response[0])
-    return false;
-
-  if (checksum_idx)
-    *checksum_idx = -1;
-
-  if (strlen(response) > kMaxPingResponseLength) {
-    ASSERT_STRING("IsPingResponseValid: response is too long to parse.");
-    return false;
-  }
-
-  // Find the checksum line.
-  std::string response_string(response);
-
-  std::string checksum_param("\ncrc32: ");
-  int calculated_crc;
-  int checksum_index = response_string.find(checksum_param);
-  if (checksum_index >= 0) {
-    // Calculate checksum of message preceeding checksum line.
-    // (+ 1 to include the \n)
-    std::string message(response_string.substr(0, checksum_index + 1));
-    if (!Crc32(message.c_str(), &calculated_crc))
-      return false;
-  } else {
-    checksum_param = "crc32: ";  // Empty response case.
-    if (!StartsWithASCII(response_string, checksum_param, true))
-      return false;
-
-    checksum_index = 0;
-    if (!Crc32("", &calculated_crc))
-      return false;
-  }
-
-  // Find the checksum value on the response.
-  int checksum_end = response_string.find("\n", checksum_index + 1);
-  if (checksum_end < 0)
-    checksum_end = response_string.size();
-
-  int checksum_begin = checksum_index + checksum_param.size();
-  std::string checksum = response_string.substr(checksum_begin,
-      checksum_end - checksum_begin + 1);
-  TrimWhitespaceASCII(checksum, TRIM_ALL, &checksum);
-
-  if (checksum_idx)
-    *checksum_idx = checksum_index;
-
-  return calculated_crc == HexStringToInteger(checksum.c_str());
 }
 
 }  // namespace rlz_lib
