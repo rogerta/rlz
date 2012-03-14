@@ -153,6 +153,31 @@ bool SetAccessPointRlz(AccessPoint point, const char* new_rlz) {
 
 // Financial Server pinging functions.
 
+bool FormFinancialPingRequest(Product product, const AccessPoint* access_points,
+                              const char* product_signature,
+                              const char* product_brand,
+                              const char* product_id,
+                              const char* product_lang,
+                              bool exclude_machine_id,
+                              char* request, size_t request_buffer_size) {
+  if (!request || request_buffer_size == 0)
+    return false;
+  request[0] = 0;
+
+  std::string request_string;
+  if (!FinancialPing::FormRequest(product, access_points, product_signature,
+                                  product_brand, product_id, product_lang,
+                                  exclude_machine_id, &request_string))
+    return false;
+
+  if (request_string.size() >= request_buffer_size)
+    return false;
+
+  strncpy(request, request_string.c_str(), request_buffer_size);
+  request[request_buffer_size - 1] = 0;
+  return true;
+}
+
 bool PingFinancialServer(Product product, const char* request, char* response,
                          size_t response_buffer_size) {
   if (!response || response_buffer_size == 0)
