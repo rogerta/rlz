@@ -18,6 +18,12 @@
 
 namespace {
 
+// Event information returned from ping response.
+struct ReturnedEvent {
+  rlz_lib::AccessPoint access_point;
+  rlz_lib::Event event_type;
+};
+
 // Helper functions
 
 bool IsAccessPointSupported(rlz_lib::AccessPoint point) {
@@ -91,9 +97,125 @@ void NormalizeRlz(const char* raw_rlz, char* normalized_rlz) {
   normalized_rlz[index] = 0;
 }
 
+void GetEventsFromResponseString(
+    const std::string& response_line,
+    const std::string& field_header,
+    std::vector<ReturnedEvent>* event_array) {
+  // Get the string of events.
+  std::string events = response_line.substr(field_header.size());
+  TrimWhitespaceASCII(events, TRIM_LEADING, &events);
+
+  int events_length = events.find_first_of("\r\n ");
+  if (events_length < 0)
+    events_length = events.size();
+  events = events.substr(0, events_length);
+
+  // Break this up into individual events
+  int event_end_index = -1;
+  do {
+    int event_begin = event_end_index + 1;
+    event_end_index = events.find(rlz_lib::kEventsCgiSeparator, event_begin);
+    int event_end = event_end_index;
+    if (event_end < 0)
+      event_end = events_length;
+
+    std::string event_string = events.substr(event_begin,
+                                             event_end - event_begin);
+    if (event_string.size() != 3)  // 3 = 2(AP) + 1(E)
+      continue;
+
+    rlz_lib::AccessPoint point = rlz_lib::NO_ACCESS_POINT;
+    rlz_lib::Event event = rlz_lib::INVALID_EVENT;
+    if (!GetAccessPointFromName(event_string.substr(0, 2).c_str(), &point) ||
+        point == rlz_lib::NO_ACCESS_POINT) {
+      continue;
+    }
+
+    if (!GetEventFromName(event_string.substr(event_string.size() - 1).c_str(),
+                          &event) || event == rlz_lib::INVALID_EVENT) {
+      continue;
+    }
+
+    ReturnedEvent current_event = {point, event};
+    event_array->push_back(current_event);
+  } while (event_end_index >= 0);
+}
+
+// Event storage functions.
+bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
+                         rlz_lib::Event event) {
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
+    return false;
+
+  // Write the new event to the value store.
+  const char* point_name = GetAccessPointName(point);
+  const char* event_name = GetEventName(event);
+  if (!point_name || !event_name)
+    return false;
+
+  if (!point_name[0] || !event_name[0])
+    return false;
+
+  std::string new_event_value;
+  base::StringAppendF(&new_event_value, "%s%s", point_name, event_name);
+  return store->AddStatefulEvent(product, new_event_value.c_str());
+}
+
 }  // namespace
 
 namespace rlz_lib {
+
+bool RecordProductEvent(Product product, AccessPoint point, Event event) {
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
+    return false;
+
+  // Get this event's value.
+  const char* point_name = GetAccessPointName(point);
+  const char* event_name = GetEventName(event);
+  if (!point_name || !event_name)
+    return false;
+
+  if (!point_name[0] || !event_name[0])
+    return false;
+
+  std::string new_event_value;
+  base::StringAppendF(&new_event_value, "%s%s", point_name, event_name);
+
+  // Check whether this event is a stateful event. If so, don't record it.
+  if (store->IsStatefulEvent(product, new_event_value.c_str())) {
+    // For a stateful event we skip recording, this function is also
+    // considered successful.
+    return true;
+  }
+
+  // Write the new event to registry.
+  return store->AddProductEvent(product, new_event_value.c_str());
+}
+
+bool ClearProductEvent(Product product, AccessPoint point, Event event) {
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
+    return false;
+
+  // Get the event's registry value and delete it.
+  const char* point_name = GetAccessPointName(point);
+  const char* event_name = GetEventName(event);
+  if (!point_name || !event_name)
+    return false;
+
+  if (!point_name[0] || !event_name[0])
+    return false;
+
+  std::string event_value;
+  base::StringAppendF(&event_value, "%s%s", point_name, event_name);
+  return store->ClearProductEvent(product, event_value.c_str());
+}
+
 
 // RLZ storage functions.
 
@@ -252,8 +374,102 @@ bool IsPingResponseValid(const char* response, int* checksum_idx) {
   return calculated_crc == HexStringToInteger(checksum.c_str());
 }
 
+// Complex helpers built on top of other functions.
 
-// Combined functions.
+// TODO: Use something like RSA to make sure the response is
+// from a Google server.
+bool ParsePingResponse(Product product, const char* response) {
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
+    return false;
+
+  std::string response_string(response);
+  int response_length = -1;
+  if (!IsPingResponseValid(response, &response_length))
+    return false;
+
+  if (0 == response_length)
+    return true;  // Empty response - no parsing.
+
+  std::string events_variable;
+  std::string stateful_events_variable;
+  base::SStringPrintf(&events_variable, "%s: ", kEventsCgiVariable);
+  base::SStringPrintf(&stateful_events_variable, "%s: ",
+                      kStatefulEventsCgiVariable);
+
+  int rlz_cgi_length = strlen(kRlzCgiVariable);
+
+  // Split response lines. Expected response format is lines of the form:
+  // rlzW1: 1R1_____en__252
+  int line_end_index = -1;
+  do {
+    int line_begin = line_end_index + 1;
+    line_end_index = response_string.find("\n", line_begin);
+
+    int line_end = line_end_index;
+    if (line_end < 0)
+      line_end = response_length;
+
+    if (line_end <= line_begin)
+      continue;  // Empty line.
+
+    std::string response_line;
+    response_line = response_string.substr(line_begin, line_end - line_begin);
+
+    if (StartsWithASCII(response_line, kRlzCgiVariable, true)) {  // An RLZ.
+      int separator_index = -1;
+      if ((separator_index = response_line.find(": ")) < 0)
+        continue;  // Not a valid key-value pair.
+
+      // Get the access point.
+      std::string point_name =
+        response_line.substr(3, separator_index - rlz_cgi_length);
+      AccessPoint point = NO_ACCESS_POINT;
+      if (!GetAccessPointFromName(point_name.c_str(), &point) ||
+          point == NO_ACCESS_POINT)
+        continue;  // Not a valid access point.
+
+      // Get the new RLZ.
+      std::string rlz_value(response_line.substr(separator_index + 2));
+      TrimWhitespaceASCII(rlz_value, TRIM_LEADING, &rlz_value);
+
+      int rlz_length = rlz_value.find_first_of("\r\n ");
+      if (rlz_length < 0)
+        rlz_length = rlz_value.size();
+
+      if (rlz_length > kMaxRlzLength)
+        continue;  // Too long.
+
+      if (IsAccessPointSupported(point))
+        SetAccessPointRlz(point, rlz_value.substr(0, rlz_length).c_str());
+    } else if (StartsWithASCII(response_line, events_variable, true)) {
+      // Clear events which server parsed.
+      std::vector<ReturnedEvent> event_array;
+      GetEventsFromResponseString(response_line, events_variable, &event_array);
+      for (size_t i = 0; i < event_array.size(); ++i) {
+        ClearProductEvent(product, event_array[i].access_point,
+                          event_array[i].event_type);
+      }
+    } else if (StartsWithASCII(response_line, stateful_events_variable, true)) {
+      // Record any stateful events the server send over.
+      std::vector<ReturnedEvent> event_array;
+      GetEventsFromResponseString(response_line, stateful_events_variable,
+                                  &event_array);
+      for (size_t i = 0; i < event_array.size(); ++i) {
+        RecordStatefulEvent(product, event_array[i].access_point,
+                            event_array[i].event_type);
+      }
+    }
+  } while (line_end_index >= 0);
+
+#if defined(OS_WIN)
+  // Update the DCC in registry if needed.
+  SetMachineDealCodeFromPingResponse(response);
+#endif
+
+  return true;
+}
 
 bool GetPingParams(Product product, const AccessPoint* access_points,
                    char* cgi, size_t cgi_size) {

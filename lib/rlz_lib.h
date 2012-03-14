@@ -40,6 +40,21 @@ const int kMaxPingResponseLength = 0x4000;  // 16K
 
 // RLZ storage functions.
 
+// Records an RLZ event.
+// Some events can be product-independent (e.g: First search from home page),
+// and some can be access point independent (e.g. Pack installed). However,
+// product independent events must still include the product which cares about
+// that information being reported.
+// Access: HKCU write.
+bool RLZ_LIB_API RecordProductEvent(Product product, AccessPoint point,
+                                    Event event_id);
+
+// Clear an event reported by this product. This should be called after a
+// successful ping to the RLZ server.
+// Access: HKCU write.
+bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
+                                   Event event_id);
+
 // Get the RLZ value of the access point. If the access point is not Google, the
 // RLZ will be the empty string and the function will return false.
 // Access: HKCU read.
@@ -114,6 +129,12 @@ bool RLZ_LIB_API IsPingResponseValid(const char* response,
 
 
 // Complex helpers built on top of other functions.
+
+// Parses RLZ related ping response information from the server.
+// Updates stored RLZ values and clears stored events accordingly.
+// Access: HKCU write.
+bool RLZ_LIB_API ParsePingResponse(Product product, const char* response);
+
 
 // Copies the events associated with the product and the RLZ's for each access
 // point in access_points into cgi. This string can be directly appended
