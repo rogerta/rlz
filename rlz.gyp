@@ -27,6 +27,10 @@
         'lib/financial_ping.h',
         'lib/lib_values.cc',
         'lib/rlz_enums.h',
+        # MSVC can't handle two rlz_lib.cc files in the same library.
+        # TODO(thakis): Rename this file once win/lib/rlz_lib.cc has gone away.
+        'lib/rlz_lib2.cc',
+        'lib/rlz_lib.h',
         'lib/lib_values.h',
         'lib/rlz_value_store.h',
         'lib/string_utils.cc',

@@ -27,6 +27,24 @@ bool RlzValueStoreMac::ClearPingTime(Product product) {
   return false;
 }
 
+bool RlzValueStoreMac::WriteAccessPointRlz(AccessPoint access_point,
+                                                const char* new_rlz) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
+bool RlzValueStoreMac::ReadAccessPointRlz(AccessPoint access_point,
+                                               char* rlz,
+                                               size_t rlz_size) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
+bool RlzValueStoreMac::ClearAccessPointRlz(AccessPoint access_point) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
   // TODO(thakis): Figure out locking.
   store_.reset(new RlzValueStoreMac);

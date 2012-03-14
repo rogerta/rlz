@@ -15,9 +15,17 @@ namespace rlz_lib {
 class RlzValueStoreMac : public RlzValueStore {
  public:
   virtual bool HasAccess(AccessType type) OVERRIDE;
+
   virtual bool WritePingTime(Product product, int64 time) OVERRIDE;
   virtual bool ReadPingTime(Product product, int64* time) OVERRIDE;
   virtual bool ClearPingTime(Product product) OVERRIDE;
+
+  virtual bool WriteAccessPointRlz(AccessPoint access_point,
+                                   const char* new_rlz) OVERRIDE;
+  virtual bool ReadAccessPointRlz(AccessPoint access_point,
+                                  char* rlz,
+                                  size_t rlz_size) OVERRIDE;
+  virtual bool ClearAccessPointRlz(AccessPoint access_point) OVERRIDE;
 
  private:
   RlzValueStoreMac() {}
