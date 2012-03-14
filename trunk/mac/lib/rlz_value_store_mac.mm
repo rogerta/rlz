@@ -51,8 +51,8 @@ bool RlzValueStoreMac::AddProductEvent(Product product,
   return false;
 }
 
-bool RlzValueStoreRegistry::ClearProductEvent(Product product,
-                                              const char* event_rlz) {
+bool RlzValueStoreMac::ClearProductEvent(Product product,
+                                         const char* event_rlz) {
   NOTIMPLEMENTED();
   return false;
 }
