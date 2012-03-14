@@ -40,6 +40,8 @@ class RlzValueStore {
   // Product events.
   // Stores |event_rlz| for product |product| as product event.
   virtual bool AddProductEvent(Product product, const char* event_rlz) = 0;
+  // Removes the stored event |event_rlz| for |product| if it exists.
+  virtual bool ClearProductEvent(Product product, const char* event_rlz) = 0;
 
   // Stateful events.
   // Stores |event_rlz| for product |product| as stateful event.

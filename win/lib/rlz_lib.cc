@@ -298,12 +298,9 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event) {
 }
 
 bool ClearProductEvent(Product product, AccessPoint point, Event event) {
-  LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(true))
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
     return false;
 
   // Get the event's registry value and delete it.
@@ -315,23 +312,9 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event) {
   if (!point_name[0] || !event_name[0])
     return false;
 
-  std::wstring point_name_wide(ASCIIToWide(point_name));
-  std::wstring event_name_wide(ASCIIToWide(event_name));
-  std::wstring event_value;
-  base::StringAppendF(&event_value, L"%ls%ls", point_name_wide.c_str(),
-                      event_name_wide.c_str());
-  base::win::RegKey key;
-  GetEventsRegKey(kEventsSubkeyName, &product, KEY_WRITE, &key);
-  key.DeleteValue(event_value.c_str());
-
-  // Verify deletion.
-  DWORD value;
-  if (key.ReadValueDW(event_value.c_str(), &value) == ERROR_SUCCESS) {
-    ASSERT_STRING("ClearProductEvent: Could not delete the event value.");
-    return false;
-  }
-
-  return true;
+  std::string event_value;
+  base::StringAppendF(&event_value, "%s%s", point_name, event_name);
+  return store->ClearProductEvent(product, event_value.c_str());
 }
 
 bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {

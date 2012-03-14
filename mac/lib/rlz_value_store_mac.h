@@ -28,6 +28,8 @@ class RlzValueStoreMac : public RlzValueStore {
   virtual bool ClearAccessPointRlz(AccessPoint access_point) OVERRIDE;
 
   virtual bool AddProductEvent(Product product, const char* event_rlz) OVERRIDE;
+  virtual bool ClearProductEvent(Product product,
+                                 const char* event_rlz) OVERRIDE;
 
   virtual bool AddStatefulEvent(Product product,
                                 const char* event_rlz) OVERRIDE;

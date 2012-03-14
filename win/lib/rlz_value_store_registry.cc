@@ -122,6 +122,23 @@ bool RlzValueStoreRegistry::AddProductEvent(Product product,
   return true;
 }
 
+bool RlzValueStoreRegistry::ClearProductEvent(Product product,
+                                              const char* event_rlz) {
+  std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
+  base::win::RegKey key;
+  GetEventsRegKey(kEventsSubkeyName, &product, KEY_WRITE, &key);
+  key.DeleteValue(event_rlz_wide.c_str());
+
+  // Verify deletion.
+  DWORD value;
+  if (key.ReadValueDW(event_rlz_wide.c_str(), &value) == ERROR_SUCCESS) {
+    ASSERT_STRING("ClearProductEvent: Could not delete the event value.");
+    return false;
+  }
+
+  return true;
+}
+
 bool RlzValueStoreRegistry::AddStatefulEvent(Product product,
                                              const char* event_rlz) {
   DWORD data = 1;
