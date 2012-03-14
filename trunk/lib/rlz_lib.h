@@ -157,9 +157,15 @@ bool RLZ_LIB_API GetMachineDealCode(char* dcc, size_t dcc_size);
 // Access: HKCU write.
 bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
                                             const char* response);
+
+// Parses a ping response, checks if it is valid and sets the machine DCC
+// from the response. The ping must also contain the current DCC value in
+// order to be considered valid.
+// Access: HKLM write;
+//         HKCU write if CreateMachineState() has been successfully called.
+bool RLZ_LIB_API SetMachineDealCodeFromPingResponse(const char* response);
+
 #endif
-
-
 
 }  // namespace rlz_lib
 
