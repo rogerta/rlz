@@ -294,18 +294,7 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event) {
   }
 
   // Write the new event to registry.
-  std::wstring new_event_value_wide(ASCIIToWide(new_event_value));
-  DWORD value = 1;
-  base::win::RegKey reg_key;
-  rlz_lib::GetEventsRegKey(kEventsSubkeyName, &product,
-                           KEY_WRITE, &reg_key);
-  if (reg_key.WriteValue(
-      new_event_value_wide.c_str(), value) != ERROR_SUCCESS) {
-    ASSERT_STRING("RecordProductEvent: Could not write the new event value");
-    return false;
-  }
-
-  return true;
+  return store->AddProductEvent(product, new_event_value.c_str());
 }
 
 bool ClearProductEvent(Product product, AccessPoint point, Event event) {

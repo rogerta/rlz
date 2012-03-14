@@ -38,7 +38,8 @@ class RlzValueStore {
   virtual bool ClearAccessPointRlz(AccessPoint access_point) = 0;
 
   // Product events.
-  // TODO(thakis): Add.
+  // Stores |event_rlz| for product |product| as product event.
+  virtual bool AddProductEvent(Product product, const char* event_rlz) = 0;
 
   // Stateful events.
   // Stores |event_rlz| for product |product| as stateful event.
