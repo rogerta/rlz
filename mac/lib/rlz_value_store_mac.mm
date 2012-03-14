@@ -45,6 +45,18 @@ bool RlzValueStoreMac::ClearAccessPointRlz(AccessPoint access_point) {
   return false;
 }
 
+bool RlzValueStoreMac::AddStatefulEvent(Product product,
+                                        const char* event_rlz) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
+bool RlzValueStoreMac::IsStatefulEvent(Product product,
+                                       const char* event_rlz) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
   // TODO(thakis): Figure out locking.
   store_.reset(new RlzValueStoreMac);

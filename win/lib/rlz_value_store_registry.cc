@@ -107,6 +107,33 @@ bool RlzValueStoreRegistry::ClearAccessPointRlz(AccessPoint access_point) {
   return true;
 }
 
+bool RlzValueStoreRegistry::AddStatefulEvent(Product product,
+                                             const char* event_rlz) {
+  DWORD data = 1;
+
+  base::win::RegKey key;
+  std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
+  if (!GetEventsRegKey(rlz_lib::kStatefulEventsSubkeyName,
+                       &product, KEY_WRITE, &key) ||
+      key.WriteValue(event_rlz_wide.c_str(), data) != ERROR_SUCCESS) {
+    ASSERT_STRING(
+        "AddStatefulEvent: Could not write the new stateful event");
+    return false;
+  }
+
+  return true;
+}
+
+bool RlzValueStoreRegistry::IsStatefulEvent(Product product,
+                                            const char* event_rlz) {
+  DWORD value;
+  base::win::RegKey key;
+  rlz_lib::GetEventsRegKey(kStatefulEventsSubkeyName, &product,
+                           KEY_READ, &key);
+  std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
+  return key.ReadValueDW(event_rlz_wide.c_str(), &value) == ERROR_SUCCESS;
+}
+
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
   if (!lock_.failed())
     store_.reset(new RlzValueStoreRegistry);

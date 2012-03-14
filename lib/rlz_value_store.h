@@ -36,6 +36,15 @@ class RlzValueStore {
                                   char* rlz,  // At most kMaxRlzLength + 1 bytes
                                   size_t rlz_size) = 0;
   virtual bool ClearAccessPointRlz(AccessPoint access_point) = 0;
+
+  // Product events.
+  // TODO(thakis): Add.
+
+  // Stateful events.
+  // Stores |event_rlz| for product |product| as stateful event.
+  virtual bool AddStatefulEvent(Product product, const char* event_rlz) = 0;
+  // Checks if |event_rlz| has been stored as stateful event for |product|.
+  virtual bool IsStatefulEvent(Product product, const char* event_rlz) = 0;
 };
 
 // All methods of RlzValueStore must stays consistent even when accessed from
