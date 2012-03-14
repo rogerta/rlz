@@ -26,6 +26,11 @@ class RlzValueStoreRegistry : public RlzValueStore {
                                   size_t rlz_size) OVERRIDE;
   virtual bool ClearAccessPointRlz(AccessPoint access_point) OVERRIDE;
 
+  virtual bool AddStatefulEvent(Product product,
+                                const char* event_rlz) OVERRIDE;
+  virtual bool IsStatefulEvent(Product product,
+                               const char* event_rlz) OVERRIDE;
+
  private:
   RlzValueStoreRegistry() {}
   DISALLOW_COPY_AND_ASSIGN(RlzValueStoreRegistry);

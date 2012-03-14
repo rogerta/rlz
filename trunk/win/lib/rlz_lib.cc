@@ -144,15 +144,12 @@ void GetEventsFromResponseString(
 // Event storage functions.
 bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
                          rlz_lib::Event event) {
-  rlz_lib::LibMutex lock;
-  if (lock.failed())
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
     return false;
 
-  rlz_lib::UserKey user_key;
-  if (!user_key.HasAccess(true))
-    return false;
-
-  // Write the new event to registry.
+  // Write the new event to the value store.
   const char* point_name = GetAccessPointName(point);
   const char* event_name = GetEventName(event);
   if (!point_name || !event_name)
@@ -161,23 +158,9 @@ bool RecordStatefulEvent(rlz_lib::Product product, rlz_lib::AccessPoint point,
   if (!point_name[0] || !event_name[0])
     return false;
 
-  std::wstring point_name_wide(ASCIIToWide(point_name));
-  std::wstring event_name_wide(ASCIIToWide(event_name));
-  std::wstring new_event_value;
-  base::StringAppendF(&new_event_value, L"%ls%ls", point_name_wide.c_str(),
-                      event_name_wide.c_str());
-  DWORD data = 1;
-
-  base::win::RegKey key;
-  if (!GetEventsRegKey(rlz_lib::kStatefulEventsSubkeyName,
-                       &product, KEY_WRITE, &key) ||
-      key.WriteValue(new_event_value.c_str(), data) != ERROR_SUCCESS) {
-    ASSERT_STRING(
-        "RecordStatefulEvent: Could not write the new stateful event");
-    return false;
-  }
-
-  return true;
+  std::string new_event_value;
+  base::StringAppendF(&new_event_value, "%s%s", point_name, event_name);
+  return store->AddStatefulEvent(product, new_event_value.c_str());
 }
 
 LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
@@ -282,12 +265,9 @@ void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
 namespace rlz_lib {
 
 bool RecordProductEvent(Product product, AccessPoint point, Event event) {
-  LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(true))
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
     return false;
 
   const wchar_t* product_name = GetProductName(product);
@@ -303,29 +283,24 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event) {
   if (!point_name[0] || !event_name[0])
     return false;
 
-  std::wstring point_name_wide(ASCIIToWide(point_name));
-  std::wstring event_name_wide(ASCIIToWide(event_name));
-  std::wstring new_event_value;
-  base::StringAppendF(&new_event_value, L"%ls%ls", point_name_wide.c_str(),
-                      event_name_wide.c_str());
+  std::string new_event_value;
+  base::StringAppendF(&new_event_value, "%s%s", point_name, event_name);
 
   // Check whether this event is a stateful event. If so, don't record it.
-  DWORD value;
-  base::win::RegKey key;
-  rlz_lib::GetEventsRegKey(kStatefulEventsSubkeyName, &product,
-                           KEY_READ, &key);
-  if (key.ReadValueDW(new_event_value.c_str(), &value) == ERROR_SUCCESS) {
+  if (store->IsStatefulEvent(product, new_event_value.c_str())) {
     // For a stateful event we skip recording, this function is also
     // considered successful.
     return true;
   }
 
   // Write the new event to registry.
-  value = 1;
+  std::wstring new_event_value_wide(ASCIIToWide(new_event_value));
+  DWORD value = 1;
   base::win::RegKey reg_key;
   rlz_lib::GetEventsRegKey(kEventsSubkeyName, &product,
                            KEY_WRITE, &reg_key);
-  if (reg_key.WriteValue(new_event_value.c_str(), value) != ERROR_SUCCESS) {
+  if (reg_key.WriteValue(
+      new_event_value_wide.c_str(), value) != ERROR_SUCCESS) {
     ASSERT_STRING("RecordProductEvent: Could not write the new event value");
     return false;
   }
