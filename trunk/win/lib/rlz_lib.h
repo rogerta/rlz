@@ -43,15 +43,6 @@ const int kMachineIdLength = 50;
 #if defined(OS_WIN)
 // Event storage functions.
 
-// Records an RLZ event.
-// Some events can be product-independent (e.g: First search from home page),
-// and some can be access point independent (e.g. Pack installed). However,
-// product independent events must still include the product which cares about
-// that information being reported.
-// Access: HKCU write.
-bool RLZ_LIB_API RecordProductEvent(Product product, AccessPoint point,
-                                    Event event_id);
-
 // Get all the events reported by this product as a CGI string to append to
 // the daily ping.
 // Access: HKCU read.
@@ -63,19 +54,8 @@ bool RLZ_LIB_API GetProductEventsAsCgi(Product product, char* unescaped_cgi,
 // Access: HKCU write.
 bool RLZ_LIB_API ClearAllProductEvents(Product product);
 
-// Clear an event reported by this product. This should be called after a
-// successful ping to the RLZ server.
-// Access: HKCU write.
-bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
-                                   Event event_id);
-
 
 // Complex helpers built on top of other functions.
-
-// Parses RLZ related ping response information from the server.
-// Updates stored RLZ values and clears stored events accordingly.
-// Access: HKCU write.
-bool RLZ_LIB_API ParsePingResponse(Product product, const char* response);
 
 // Send the ping with RLZs and events to the PSO server.
 // This ping method should be called daily. (More frequent calls will fail).
