@@ -23,6 +23,7 @@
 #include "rlz/lib/assert.h"
 #include "rlz/lib/financial_ping.h"
 #include "rlz/lib/lib_values.h"
+#include "rlz/lib/rlz_value_store.h"
 #include "rlz/lib/string_utils.h"
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/machine_deal.h"
@@ -64,7 +65,8 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
 }
 
 LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
-                                 size_t cgi_size) {
+                                 size_t cgi_size,
+                                 rlz_lib::RlzValueStore* store) {
   // Prepend the CGI param key to the buffer.
   std::string cgi_arg;
   base::StringAppendF(&cgi_arg, "%s=", rlz_lib::kEventsCgiVariable);
@@ -75,19 +77,17 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
   for (index = 0; index < cgi_arg.size(); ++index)
     cgi[index] = cgi_arg[index];
 
-  // Open the events key.
-  base::win::RegKey events;
-  GetEventsRegKey(rlz_lib::kEventsSubkeyName, &product, KEY_READ,
-                  &events);
-  if (!events.Valid())
+  // Read stored events.
+  std::vector<std::string> events;
+  if (!store->ReadProductEvents(product, &events))
     return ERROR_PATH_NOT_FOUND;
 
   // Append the events to the buffer.
   size_t buffer_size = cgi_size - cgi_arg.size();
-  int num_values = 0;
+  size_t num_values = 0;
   LONG result = ERROR_SUCCESS;
 
-  for (num_values = 0; result == ERROR_SUCCESS; ++num_values) {
+  for (num_values = 0; num_values < events.size(); ++num_values) {
     cgi[index] = '\0';
 
     int divider = num_values > 0 ? 1 : 0;
@@ -95,24 +95,19 @@ LONG GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
     if (size <= 0)
       return ERROR_MORE_DATA;
 
-    result = RegEnumValueA(events.Handle(), num_values, cgi + index + divider,
-                           &size, NULL, NULL, NULL, NULL);
-    if (result == ERROR_SUCCESS) {
-      if (divider)
-        cgi[index] = rlz_lib::kEventsCgiSeparator;
+    strncpy(cgi + index + divider, events[num_values].c_str(), size);
+    if (divider)
+      cgi[index] = rlz_lib::kEventsCgiSeparator;
 
-      index += size + divider;
-    }
+    index += std::min((DWORD)events[num_values].length(), size) + divider;
   }
 
-  num_values--;
   cgi[index] = '\0';
 
   if (result == ERROR_MORE_DATA)
     return result;
 
-  return (result == ERROR_NO_MORE_ITEMS && num_values > 0) ?
-    ERROR_SUCCESS : ERROR_FILE_NOT_FOUND;
+  return num_values > 0 ? ERROR_SUCCESS : ERROR_FILE_NOT_FOUND;
 }
 
 bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
@@ -172,18 +167,15 @@ bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
 
   cgi[0] = 0;
 
-  LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(false))
+  ScopedRlzValueStoreLock lock;
+  RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
     return false;
 
   DWORD size_local =
       cgi_size <= kMaxCgiLength + 1 ? cgi_size : kMaxCgiLength + 1;
   UINT length = 0;
-  LONG result = GetProductEventsAsCgiHelper(product, cgi, size_local);
+  LONG result = GetProductEventsAsCgiHelper(product, cgi, size_local, store);
   if (result == ERROR_MORE_DATA && cgi_size >= (kMaxCgiLength + 1))
     result = ERROR_SUCCESS;
 
