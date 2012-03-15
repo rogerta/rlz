@@ -110,16 +110,40 @@ bool RlzValueStoreRegistry::ClearAccessPointRlz(AccessPoint access_point) {
 bool RlzValueStoreRegistry::AddProductEvent(Product product,
                                             const char* event_rlz) {
   std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
-  DWORD value = 1;
   base::win::RegKey reg_key;
-  rlz_lib::GetEventsRegKey(kEventsSubkeyName, &product,
-                           KEY_WRITE, &reg_key);
-  if (reg_key.WriteValue(event_rlz_wide.c_str(), value) != ERROR_SUCCESS) {
+  GetEventsRegKey(kEventsSubkeyName, &product, KEY_WRITE, &reg_key);
+  if (reg_key.WriteValue(event_rlz_wide.c_str(), 1) != ERROR_SUCCESS) {
     ASSERT_STRING("AddProductEvent: Could not write the new event value");
     return false;
   }
 
   return true;
+}
+
+bool RlzValueStoreRegistry::ReadProductEvents(Product product,
+                                             std::vector<std::string>* events) {
+  // Open the events key.
+  base::win::RegKey events_key;
+  GetEventsRegKey(kEventsSubkeyName, &product, KEY_READ, &events_key);
+  if (!events_key.Valid())
+    return false;
+
+  // Append the events to the buffer.
+  int num_values = 0;
+  LONG result = ERROR_SUCCESS;
+  for (num_values = 0; result == ERROR_SUCCESS; ++num_values) {
+    // Max 32767 bytes according to MSDN, but we never use that much.
+    const size_t kMaxValueNameLength = 2048;
+    char buffer[kMaxValueNameLength];
+    DWORD size = arraysize(buffer);
+
+    result = RegEnumValueA(events_key.Handle(), num_values, buffer, &size,
+                           NULL, NULL, NULL, NULL);
+    if (result == ERROR_SUCCESS)
+      events->push_back(std::string(buffer));
+  }
+
+  return result == ERROR_NO_MORE_ITEMS;
 }
 
 bool RlzValueStoreRegistry::ClearProductEvent(Product product,
@@ -141,13 +165,10 @@ bool RlzValueStoreRegistry::ClearProductEvent(Product product,
 
 bool RlzValueStoreRegistry::AddStatefulEvent(Product product,
                                              const char* event_rlz) {
-  DWORD data = 1;
-
   base::win::RegKey key;
   std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
-  if (!GetEventsRegKey(rlz_lib::kStatefulEventsSubkeyName,
-                       &product, KEY_WRITE, &key) ||
-      key.WriteValue(event_rlz_wide.c_str(), data) != ERROR_SUCCESS) {
+  if (!GetEventsRegKey(kStatefulEventsSubkeyName, &product, KEY_WRITE, &key) ||
+      key.WriteValue(event_rlz_wide.c_str(), 1) != ERROR_SUCCESS) {
     ASSERT_STRING(
         "AddStatefulEvent: Could not write the new stateful event");
     return false;
@@ -160,8 +181,7 @@ bool RlzValueStoreRegistry::IsStatefulEvent(Product product,
                                             const char* event_rlz) {
   DWORD value;
   base::win::RegKey key;
-  rlz_lib::GetEventsRegKey(kStatefulEventsSubkeyName, &product,
-                           KEY_READ, &key);
+  GetEventsRegKey(kStatefulEventsSubkeyName, &product, KEY_READ, &key);
   std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
   return key.ReadValueDW(event_rlz_wide.c_str(), &value) == ERROR_SUCCESS;
 }

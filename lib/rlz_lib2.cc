@@ -192,7 +192,7 @@ bool RecordProductEvent(Product product, AccessPoint point, Event event) {
     return true;
   }
 
-  // Write the new event to registry.
+  // Write the new event to the value store.
   return store->AddProductEvent(product, new_event_value.c_str());
 }
 
@@ -202,7 +202,7 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event) {
   if (!store || !store->HasAccess(RlzValueStore::kWriteAccess))
     return false;
 
-  // Get the event's registry value and delete it.
+  // Get the event's value store value and delete it.
   const char* point_name = GetAccessPointName(point);
   const char* event_name = GetEventName(event);
   if (!point_name || !event_name)

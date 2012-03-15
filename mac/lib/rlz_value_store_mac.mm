@@ -51,6 +51,12 @@ bool RlzValueStoreMac::AddProductEvent(Product product,
   return false;
 }
 
+bool RlzValueStoreMac::ReadProductEvents(Product product,
+                                         std::vector<std::string>* events) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
 bool RlzValueStoreMac::ClearProductEvent(Product product,
                                          const char* event_rlz) {
   NOTIMPLEMENTED();
