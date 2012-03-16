@@ -62,6 +62,8 @@ bool GetEventsRegKey(const wchar_t* event_type,
 
 bool GetAccessPointRlzsRegKey(REGSAM access,
                               base::win::RegKey* key);
+
+void AppendBrandToString(std::wstring* str);
 #endif  // defined(OS_WIN)
 
 

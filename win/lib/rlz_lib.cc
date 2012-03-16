@@ -406,7 +406,7 @@ void ClearProductState(Product product, const AccessPoint* access_points) {
   for (int i = 0; i < arraysize(subkeys); i++) {
     std::wstring subkey_name;
     base::StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
-    SupplementaryBranding::AppendBrandToString(&subkey_name);
+    AppendBrandToString(&subkey_name);
 
     VERIFY(DeleteKeyIfEmpty(user_key.Get(), subkey_name.c_str()));
   }
