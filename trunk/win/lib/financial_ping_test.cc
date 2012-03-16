@@ -54,9 +54,8 @@ class FinancialPingTest : public RlzLibTestBase {
 };
 
 TEST_F(FinancialPingTest, FormRequest) {
-  std::wstring brand_wide = rlz_lib::SupplementaryBranding::GetBrand();
-  std::string brand_utf8 = WideToUTF8(brand_wide);
-  const char* brand = brand_utf8.empty() ? "GGLA" : brand_utf8.c_str();
+  std::string brand_string = rlz_lib::SupplementaryBranding::GetBrand();
+  const char* brand = brand_string.empty() ? "GGLA" : brand_string.c_str();
 
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
 
@@ -240,7 +239,7 @@ TEST_F(FinancialPingTest, BrandingIsPingTime) {
                                                  false));
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     SetLastPingTime(last_ping, rlz_lib::TOOLBAR_NOTIFIER);
 
     // Has events, last ping just over a day ago.
@@ -257,7 +256,7 @@ TEST_F(FinancialPingTest, BrandingIsPingTime) {
                                                   false));
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::FinancialPing::IsPingTime(rlz_lib::TOOLBAR_NOTIFIER,
                                                    false));
   }

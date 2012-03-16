@@ -584,7 +584,7 @@ TEST_F(RlzLibTest, BrandingRecordProductEvent) {
   // make sure that the information remains separate.
   EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
   }
 
@@ -598,7 +598,7 @@ TEST_F(RlzLibTest, BrandingRecordProductEvent) {
   EXPECT_STREQ("events=I7S", cgi_50);
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
         rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::INSTALL));
     EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
@@ -627,7 +627,7 @@ TEST_F(RlzLibTest, BrandingSetAccessPointRlz) {
   EXPECT_STREQ("IeTbRlz", rlz_50);
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
 
     EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, "SuppRlz"));
     EXPECT_TRUE(rlz_lib::GetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, rlz_50,
@@ -661,7 +661,7 @@ TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
 
   EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::ClearAllProductEvents(rlz_lib::TOOLBAR_NOTIFIER));
   }
 
@@ -673,7 +673,7 @@ TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
       rlz_lib::IE_HOME_PAGE, rlz_lib::INSTALL));
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
         rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
     EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
@@ -690,7 +690,7 @@ TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
   EXPECT_STREQ("", value);
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::GetProductEventsAsCgi(rlz_lib::TOOLBAR_NOTIFIER,
                                                value, 50));
     EXPECT_STREQ("events=I7S,W1I", value);
@@ -708,7 +708,7 @@ TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
   EXPECT_STREQ("events=I7S", value);
 
   {
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
                                            kPingResponse));
 

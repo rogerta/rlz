@@ -33,7 +33,7 @@
 
 namespace rlz_lib {
 
-class LibMutex;
+class ScopedRlzValueStoreLock;
 
 // The length of the Machine unique ID in WCHARs, excluding the NULL terminator.
 const int kMachineIdLength = 50;
@@ -114,17 +114,17 @@ bool GetMachineId(char* buffer, int buffer_size);
 // the time skip check is specific to each supplementary brand.
 class SupplementaryBranding {
  public:
-  SupplementaryBranding(const wchar_t* brand);
+  SupplementaryBranding(const char* brand);
   ~SupplementaryBranding();
 
-  static const std::wstring& GetBrand() { return brand_; }
+  static const std::string& GetBrand() { return brand_; }
 
   static void AppendBrandToString(std::wstring* str);
 
  private:
-  scoped_ptr<LibMutex> lock_;
+  scoped_ptr<ScopedRlzValueStoreLock> lock_;
 
-  static std::wstring brand_;
+  static std::string brand_;
 };
 
 // Initialize temporary HKLM/HKCU registry hives used for testing.
