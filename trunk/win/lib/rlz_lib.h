@@ -119,8 +119,6 @@ class SupplementaryBranding {
 
   static const std::string& GetBrand() { return brand_; }
 
-  static void AppendBrandToString(std::wstring* str);
-
  private:
   scoped_ptr<ScopedRlzValueStoreLock> lock_;
 

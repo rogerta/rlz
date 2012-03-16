@@ -11,7 +11,7 @@
 
 #if defined(OS_WIN)
 #include "base/win/registry.h"
-#include "rlz/win/lib/lib_mutex.h"
+#include "rlz/lib/rlz_value_store.h"
 #endif
 
 // TODO(thakis): Move registry stuff somewhere else.
@@ -21,7 +21,7 @@ namespace {
 bool GetRegKey(const wchar_t* name, REGSAM access, base::win::RegKey* key) {
   std::wstring key_location;
   base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName, name);
-  rlz_lib::SupplementaryBranding::AppendBrandToString(&key_location);
+  rlz_lib::AppendBrandToString(&key_location);
 
   LONG ret = ERROR_SUCCESS;
   if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
@@ -45,8 +45,8 @@ std::string SupplementaryBranding::brand_;
 // TODO(thakis): SupplementaryBranding is defined in rlz_lib.h, so this should
 // be in rlz_lib.cc.
 SupplementaryBranding::SupplementaryBranding(const wchar_t* brand)
-    : lock_(new LibMutex()) {
-  if (lock_->failed())
+    : lock_(new ScopedRlzValueStoreLock) {
+  if (!lock_->store())
     return;
 
   if (!brand_.empty()) {
@@ -63,16 +63,16 @@ SupplementaryBranding::SupplementaryBranding(const wchar_t* brand)
 }
 
 SupplementaryBranding::~SupplementaryBranding() {
-  if (lock_->failed())
+  if (!lock_->store())
     return;
 
   brand_.clear();
 }
 
-// static
-void SupplementaryBranding::AppendBrandToString(std::wstring* str) {
-  if (!brand_.empty())
-    base::StringAppendF(str, L"\\_%ls", brand_.c_str());
+void AppendBrandToString(std::wstring* str) {
+  std::wstring* wide_brand(ASCIIToUTF16(SupplementaryBranding::GetBrand()));
+  if (!wide_brand.empty())
+    base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
 }
 
 
@@ -300,7 +300,7 @@ bool GetEventsRegKey(const wchar_t* event_type,
   std::wstring key_location;
   base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
                       event_type);
-  SupplementaryBranding::AppendBrandToString(&key_location);
+  AppendBrandToString(&key_location);
 
   if (product != NULL) {
     const wchar_t* product_name = rlz_lib::GetProductName(*product);
