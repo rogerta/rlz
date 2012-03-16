@@ -41,42 +41,6 @@ namespace rlz_lib {
 
 // TODO(thakis): Move registry stuff somewhere else.
 #if defined(OS_WIN)
-std::string SupplementaryBranding::brand_;
-
-// TODO(thakis): SupplementaryBranding is defined in rlz_lib.h, so this should
-// be in rlz_lib.cc.
-SupplementaryBranding::SupplementaryBranding(const char* brand)
-    : lock_(new ScopedRlzValueStoreLock) {
-  if (!lock_->GetStore())
-    return;
-
-  if (!brand_.empty()) {
-    ASSERT_STRING("ProductBranding: existing brand is not empty");
-    return;
-  }
-
-  if (brand == NULL || brand[0] == 0) {
-    ASSERT_STRING("ProductBranding: new brand is empty");
-    return;
-  }
-
-  brand_ = brand;
-}
-
-SupplementaryBranding::~SupplementaryBranding() {
-  if (!lock_->GetStore())
-    return;
-
-  brand_.clear();
-}
-
-void AppendBrandToString(std::wstring* str) {
-  std::wstring wide_brand(ASCIIToWide(SupplementaryBranding::GetBrand()));
-  if (!wide_brand.empty())
-    base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
-}
-
-
 //
 // Registry information.
 //
@@ -106,6 +70,12 @@ const wchar_t* GetProductName(Product product) {
 
   ASSERT_STRING("GetProductSubkeyName: Unknown Product");
   return NULL;
+}
+
+void AppendBrandToString(std::wstring* str) {
+  std::wstring wide_brand(ASCIIToWide(SupplementaryBranding::GetBrand()));
+  if (!wide_brand.empty())
+    base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
 }
 #endif  // defined(OS_WIN)
 
