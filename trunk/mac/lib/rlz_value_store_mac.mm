@@ -63,6 +63,11 @@ bool RlzValueStoreMac::ClearProductEvent(Product product,
   return false;
 }
 
+bool RlzValueStoreMac::ClearAllProductEvents(Product product) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
 bool RlzValueStoreMac::AddStatefulEvent(Product product,
                                         const char* event_rlz) {
   NOTIMPLEMENTED();
@@ -71,6 +76,11 @@ bool RlzValueStoreMac::AddStatefulEvent(Product product,
 
 bool RlzValueStoreMac::IsStatefulEvent(Product product,
                                        const char* event_rlz) {
+  NOTIMPLEMENTED();
+  return false;
+}
+
+bool RlzValueStoreMac::ClearAllStatefulEvents(Product product) {
   NOTIMPLEMENTED();
   return false;
 }

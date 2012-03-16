@@ -64,33 +64,6 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
   return key.DeleteKey(key_name) == ERROR_SUCCESS;
 }
 
-bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
-  rlz_lib::LibMutex lock;
-  if (lock.failed())
-    return false;
-
-  rlz_lib::UserKey user_key;
-  if (!user_key.HasAccess(true))
-    return false;
-
-  const wchar_t* product_name = rlz_lib::GetProductName(product);
-  if (!product_name)
-    return false;
-
-  base::win::RegKey reg_key;
-  rlz_lib::GetEventsRegKey(key, NULL, KEY_WRITE, &reg_key);
-  reg_key.DeleteKey(product_name);
-
-  // Verify that the value no longer exists.
-  base::win::RegKey product_events(reg_key.Handle(), product_name, KEY_READ);
-  if (product_events.Valid()) {
-    ASSERT_STRING("ClearAllProductEvents: Key deletion failed");
-    return false;
-  }
-
-  return true;
-}
-
 void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
   // First copy values.
   for (base::win::RegistryValueIterator i(src.Handle(), L"");
@@ -114,10 +87,14 @@ void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
 namespace rlz_lib {
 
 bool ClearAllProductEvents(Product product) {
-  bool result;
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
+    return false;
 
-  result = ClearAllProductEventValues(product, kEventsSubkeyName);
-  result &= ClearAllProductEventValues(product, kStatefulEventsSubkeyName);
+  bool result;
+  result = store->ClearAllProductEvents(product);
+  result &= store->ClearAllStatefulEvents(product);
   return result;
 }
 
