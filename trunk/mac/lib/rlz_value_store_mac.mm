@@ -85,6 +85,10 @@ bool RlzValueStoreMac::ClearAllStatefulEvents(Product product) {
   return false;
 }
 
+void RlzValueStoreMac::CollectGarbage() {
+  NOTIMPLEMENTED();
+}
+
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
   // TODO(thakis): Figure out locking.
   store_.reset(new RlzValueStoreMac);
