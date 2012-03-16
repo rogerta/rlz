@@ -31,11 +31,13 @@ class RlzValueStoreRegistry : public RlzValueStore {
                                  std::vector<std::string>* events) OVERRIDE;
   virtual bool ClearProductEvent(Product product,
                                  const char* event_rlz) OVERRIDE;
+  virtual bool ClearAllProductEvents(Product product) OVERRIDE;
 
   virtual bool AddStatefulEvent(Product product,
                                 const char* event_rlz) OVERRIDE;
   virtual bool IsStatefulEvent(Product product,
                                const char* event_rlz) OVERRIDE;
+  virtual bool ClearAllStatefulEvents(Product product) OVERRIDE;
 
  private:
   RlzValueStoreRegistry() {}

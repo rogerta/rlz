@@ -48,12 +48,16 @@ class RlzValueStore {
                                  std::vector<std::string>* events) = 0;
   // Removes the stored event |event_rlz| for |product| if it exists.
   virtual bool ClearProductEvent(Product product, const char* event_rlz) = 0;
+  // Removes all stored product events for |product|.
+  virtual bool ClearAllProductEvents(Product product) = 0;
 
   // Stateful events.
   // Stores |event_rlz| for product |product| as stateful event.
   virtual bool AddStatefulEvent(Product product, const char* event_rlz) = 0;
   // Checks if |event_rlz| has been stored as stateful event for |product|.
   virtual bool IsStatefulEvent(Product product, const char* event_rlz) = 0;
+  // Removes all stored stateful events for |product|.
+  virtual bool ClearAllStatefulEvents(Product product) = 0;
 };
 
 // All methods of RlzValueStore must stays consistent even when accessed from

@@ -12,6 +12,29 @@
 
 namespace rlz_lib {
 
+namespace {
+
+bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
+  const wchar_t* product_name = rlz_lib::GetProductName(product);
+  if (!product_name)
+    return false;
+
+  base::win::RegKey reg_key;
+  rlz_lib::GetEventsRegKey(key, NULL, KEY_WRITE, &reg_key);
+  reg_key.DeleteKey(product_name);
+
+  // Verify that the value no longer exists.
+  base::win::RegKey product_events(reg_key.Handle(), product_name, KEY_READ);
+  if (product_events.Valid()) {
+    ASSERT_STRING("ClearAllProductEvents: Key deletion failed");
+    return false;
+  }
+
+  return true;
+}
+
+}  // namespace
+
 bool RlzValueStoreRegistry::HasAccess(AccessType type) {
   UserKey user_key;
   return user_key.HasAccess(type == kWriteAccess);
@@ -163,6 +186,10 @@ bool RlzValueStoreRegistry::ClearProductEvent(Product product,
   return true;
 }
 
+bool RlzValueStoreRegistry::ClearAllProductEvents(Product product) {
+  return ClearAllProductEventValues(product, kEventsSubkeyName);
+}
+
 bool RlzValueStoreRegistry::AddStatefulEvent(Product product,
                                              const char* event_rlz) {
   base::win::RegKey key;
@@ -184,6 +211,10 @@ bool RlzValueStoreRegistry::IsStatefulEvent(Product product,
   GetEventsRegKey(kStatefulEventsSubkeyName, &product, KEY_READ, &key);
   std::wstring event_rlz_wide(ASCIIToWide(event_rlz));
   return key.ReadValueDW(event_rlz_wide.c_str(), &value) == ERROR_SUCCESS;
+}
+
+bool RlzValueStoreRegistry::ClearAllStatefulEvents(Product product) {
+  return ClearAllProductEventValues(product, kStatefulEventsSubkeyName);
 }
 
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
