@@ -40,6 +40,8 @@ class RlzValueStoreMac : public RlzValueStore {
                                const char* event_rlz) OVERRIDE;
   virtual bool ClearAllStatefulEvents(Product product) OVERRIDE;
 
+  virtual void CollectGarbage() OVERRIDE;
+
  private:
   RlzValueStoreMac() {}
   DISALLOW_COPY_AND_ASSIGN(RlzValueStoreMac);

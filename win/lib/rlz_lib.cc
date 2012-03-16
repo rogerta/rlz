@@ -39,31 +39,6 @@ const wchar_t* kHKLMAccessProviders =
 
 // Helper functions
 
-// Deletes a registry key if it exists and has no subkeys or values.
-// TODO: Move this to a registry_utils file and add unittest.
-bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
-  if (!key_name) {
-    ASSERT_STRING("DeleteKeyIfEmpty: key_name is NULL");
-    return false;
-  } else {  // Scope needed for RegKey
-    base::win::RegKey key(root_key, key_name, KEY_READ);
-    if (!key.Valid())
-      return true;  // Key does not exist - nothing to do.
-
-    base::win::RegistryKeyIterator key_iter(root_key, key_name);
-    if (key_iter.SubkeyCount() > 0)
-      return true;  // Not empty, so nothing to do
-
-    base::win::RegistryValueIterator value_iter(root_key, key_name);
-    if (value_iter.ValueCount() > 0)
-      return true;  // Not empty, so nothing to do
-  }
-
-  // The key is empty - delete it now.
-  base::win::RegKey key(root_key, L"", KEY_WRITE);
-  return key.DeleteKey(key_name) == ERROR_SUCCESS;
-}
-
 void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
   // First copy values.
   for (base::win::RegistryValueIterator i(src.Handle(), L"");
@@ -272,12 +247,9 @@ bool SetMachineDealCodeFromPingResponse(const char* response) {
 }
 
 void ClearProductState(Product product, const AccessPoint* access_points) {
-  LibMutex lock;
-  if (lock.failed())
-    return;
-
-  UserKey user_key;
-  if (!user_key.HasAccess(true))
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
     return;
 
   // Delete all product specific state.
@@ -291,26 +263,7 @@ void ClearProductState(Product product, const AccessPoint* access_points) {
     }
   }
 
-  // Delete each of the known subkeys if empty.
-  const wchar_t* subkeys[] = {
-    kRlzsSubkeyName,
-    kEventsSubkeyName,
-    kStatefulEventsSubkeyName,
-    kPingTimesSubkeyName
-  };
-
-  for (int i = 0; i < arraysize(subkeys); i++) {
-    std::wstring subkey_name;
-    base::StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
-    AppendBrandToString(&subkey_name);
-
-    VERIFY(DeleteKeyIfEmpty(user_key.Get(), subkey_name.c_str()));
-  }
-
-  // Delete the library key and its parents too now if empty.
-  VERIFY(DeleteKeyIfEmpty(user_key.Get(), kLibKeyName));
-  VERIFY(DeleteKeyIfEmpty(user_key.Get(), kGoogleCommonKeyName));
-  VERIFY(DeleteKeyIfEmpty(user_key.Get(), kGoogleKeyName));
+  store->CollectGarbage();
 }
 
 bool GetMachineId(wchar_t* buffer, size_t buffer_size) {

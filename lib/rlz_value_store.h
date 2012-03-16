@@ -58,6 +58,11 @@ class RlzValueStore {
   virtual bool IsStatefulEvent(Product product, const char* event_rlz) = 0;
   // Removes all stored stateful events for |product|.
   virtual bool ClearAllStatefulEvents(Product product) = 0;
+
+  // Tells the value store to clean up unimportant internal data structures, for
+  // example empty registry folders, that might remain after clearing other
+  // data. Best-effort.
+  virtual void CollectGarbage() = 0;
 };
 
 // All methods of RlzValueStore must stays consistent even when accessed from

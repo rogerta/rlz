@@ -4,6 +4,7 @@
 
 #include "rlz/win/lib/rlz_value_store_registry.h"
 
+#include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
 #include "rlz/lib/lib_values.h"
@@ -31,6 +32,31 @@ bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
   }
 
   return true;
+}
+
+// Deletes a registry key if it exists and has no subkeys or values.
+// TODO: Move this to a registry_utils file and add unittest.
+bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
+  if (!key_name) {
+    ASSERT_STRING("DeleteKeyIfEmpty: key_name is NULL");
+    return false;
+  } else {  // Scope needed for RegKey
+    base::win::RegKey key(root_key, key_name, KEY_READ);
+    if (!key.Valid())
+      return true;  // Key does not exist - nothing to do.
+
+    base::win::RegistryKeyIterator key_iter(root_key, key_name);
+    if (key_iter.SubkeyCount() > 0)
+      return true;  // Not empty, so nothing to do
+
+    base::win::RegistryValueIterator value_iter(root_key, key_name);
+    if (value_iter.ValueCount() > 0)
+      return true;  // Not empty, so nothing to do
+  }
+
+  // The key is empty - delete it now.
+  base::win::RegKey key(root_key, L"", KEY_WRITE);
+  return key.DeleteKey(key_name) == ERROR_SUCCESS;
 }
 
 }  // namespace
@@ -215,6 +241,29 @@ bool RlzValueStoreRegistry::IsStatefulEvent(Product product,
 
 bool RlzValueStoreRegistry::ClearAllStatefulEvents(Product product) {
   return ClearAllProductEventValues(product, kStatefulEventsSubkeyName);
+}
+
+void RlzValueStoreRegistry::CollectGarbage() {
+  // Delete each of the known subkeys if empty.
+  const wchar_t* subkeys[] = {
+    kRlzsSubkeyName,
+    kEventsSubkeyName,
+    kStatefulEventsSubkeyName,
+    kPingTimesSubkeyName
+  };
+
+  for (int i = 0; i < arraysize(subkeys); i++) {
+    std::wstring subkey_name;
+    base::StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
+    AppendBrandToString(&subkey_name);
+
+    VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, subkey_name.c_str()));
+  }
+
+  // Delete the library key and its parents too now if empty.
+  VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, kLibKeyName));
+  VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, kGoogleCommonKeyName));
+  VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, kGoogleKeyName));
 }
 
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {

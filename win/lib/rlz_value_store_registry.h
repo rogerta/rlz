@@ -39,6 +39,8 @@ class RlzValueStoreRegistry : public RlzValueStore {
                                const char* event_rlz) OVERRIDE;
   virtual bool ClearAllStatefulEvents(Product product) OVERRIDE;
 
+  virtual void CollectGarbage() OVERRIDE;
+
  private:
   RlzValueStoreRegistry() {}
   DISALLOW_COPY_AND_ASSIGN(RlzValueStoreRegistry);
