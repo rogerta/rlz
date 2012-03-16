@@ -71,7 +71,7 @@ SupplementaryBranding::~SupplementaryBranding() {
 }
 
 void AppendBrandToString(std::wstring* str) {
-  std::wstring* wide_brand(ASCIIToUTF16(SupplementaryBranding::GetBrand()));
+  std::wstring wide_brand(ASCIIToWide(SupplementaryBranding::GetBrand()));
   if (!wide_brand.empty())
     base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
 }
