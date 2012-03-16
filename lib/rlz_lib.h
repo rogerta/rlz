@@ -68,6 +68,22 @@ bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
 // Access: HKCU write.
 bool RLZ_LIB_API ClearAllProductEvents(Product product);
 
+// Clears all product-specifc state from the RLZ registry.
+// Should be called during product uninstallation.
+// This removes outstanding product events, product financial ping times,
+// the product RLS argument (if any), and any RLZ's for access points being
+// uninstalled with the product.
+// access_points is an array terminated with NO_ACCESS_POINT.
+// IMPORTANT: These are the access_points the product is removing as part
+// of the uninstallation, not necessarily all the access points passed to
+// SendFinancialPing() and GetPingParams().
+// access_points can be NULL if no points are being uninstalled.
+// No return value - this is best effort. Will assert in debug mode on
+// failed attempts.
+// Access: HKCU write.
+void RLZ_LIB_API ClearProductState(Product product,
+                                   const AccessPoint* access_points);
+
 // Get the RLZ value of the access point. If the access point is not Google, the
 // RLZ will be the empty string and the function will return false.
 // Access: HKCU read.
