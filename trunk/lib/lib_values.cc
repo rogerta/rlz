@@ -10,6 +10,7 @@
 #include "rlz/lib/assert.h"
 
 #if defined(OS_WIN)
+#include "base/utf_string_conversions.h"
 #include "base/win/registry.h"
 #include "rlz/lib/rlz_value_store.h"
 #endif
@@ -44,9 +45,9 @@ std::string SupplementaryBranding::brand_;
 
 // TODO(thakis): SupplementaryBranding is defined in rlz_lib.h, so this should
 // be in rlz_lib.cc.
-SupplementaryBranding::SupplementaryBranding(const wchar_t* brand)
+SupplementaryBranding::SupplementaryBranding(const char* brand)
     : lock_(new ScopedRlzValueStoreLock) {
-  if (!lock_->store())
+  if (!lock_->GetStore())
     return;
 
   if (!brand_.empty()) {
@@ -63,7 +64,7 @@ SupplementaryBranding::SupplementaryBranding(const wchar_t* brand)
 }
 
 SupplementaryBranding::~SupplementaryBranding() {
-  if (!lock_->store())
+  if (!lock_->GetStore())
     return;
 
   brand_.clear();
