@@ -63,6 +63,11 @@ bool RLZ_LIB_API RecordProductEvent(Product product, AccessPoint point,
 bool RLZ_LIB_API ClearProductEvent(Product product, AccessPoint point,
                                    Event event_id);
 
+// Clear all reported events and recorded stateful events of this product.
+// This should be called on complete uninstallation of the product.
+// Access: HKCU write.
+bool RLZ_LIB_API ClearAllProductEvents(Product product);
+
 // Get the RLZ value of the access point. If the access point is not Google, the
 // RLZ will be the empty string and the function will return false.
 // Access: HKCU read.

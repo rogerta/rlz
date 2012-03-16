@@ -284,6 +284,18 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event) {
   return store->ClearProductEvent(product, event_value.c_str());
 }
 
+bool ClearAllProductEvents(Product product) {
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
+    return false;
+
+  bool result;
+  result = store->ClearAllProductEvents(product);
+  result &= store->ClearAllStatefulEvents(product);
+  return result;
+}
+
 
 // RLZ storage functions.
 
