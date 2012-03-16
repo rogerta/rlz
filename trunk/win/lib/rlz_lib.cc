@@ -86,19 +86,6 @@ void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
 
 namespace rlz_lib {
 
-bool ClearAllProductEvents(Product product) {
-  rlz_lib::ScopedRlzValueStoreLock lock;
-  rlz_lib::RlzValueStore* store = lock.GetStore();
-  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
-    return false;
-
-  bool result;
-  result = store->ClearAllProductEvents(product);
-  result &= store->ClearAllStatefulEvents(product);
-  return result;
-}
-
-
 // OEM Deal confirmation storage functions.
 
 template<class T>

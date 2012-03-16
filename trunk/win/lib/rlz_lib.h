@@ -38,16 +38,6 @@ const int kMachineIdLength = 50;
 
 // TODO(thakis): Port these functions.
 #if defined(OS_WIN)
-// Event storage functions.
-
-// Clear all reported events and recorded stateful events of this product.
-// This should be called on complete uninstallation of the product.
-// Access: HKCU write.
-bool RLZ_LIB_API ClearAllProductEvents(Product product);
-
-
-// Complex helpers built on top of other functions.
-
 
 // Clears all product-specifc state from the RLZ registry.
 // Should be called during product uninstallation.
