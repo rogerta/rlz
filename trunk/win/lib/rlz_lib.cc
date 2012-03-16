@@ -64,48 +64,6 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
   return key.DeleteKey(key_name) == ERROR_SUCCESS;
 }
 
-bool GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
-                                 size_t cgi_size,
-                                 rlz_lib::RlzValueStore* store) {
-  // Prepend the CGI param key to the buffer.
-  std::string cgi_arg;
-  base::StringAppendF(&cgi_arg, "%s=", rlz_lib::kEventsCgiVariable);
-  if (cgi_size <= cgi_arg.size())
-    return false;
-
-  size_t index;
-  for (index = 0; index < cgi_arg.size(); ++index)
-    cgi[index] = cgi_arg[index];
-
-  // Read stored events.
-  std::vector<std::string> events;
-  if (!store->ReadProductEvents(product, &events))
-    return false;
-
-  // Append the events to the buffer.
-  size_t buffer_size = cgi_size - cgi_arg.size();
-  size_t num_values = 0;
-
-  for (num_values = 0; num_values < events.size(); ++num_values) {
-    cgi[index] = '\0';
-
-    int divider = num_values > 0 ? 1 : 0;
-    int size = cgi_size - (index + divider);
-    if (size <= 0)
-      return cgi_size >= (rlz_lib::kMaxCgiLength + 1);
-
-    strncpy(cgi + index + divider, events[num_values].c_str(), size);
-    if (divider)
-      cgi[index] = rlz_lib::kEventsCgiSeparator;
-
-    index += std::min((int)events[num_values].length(), size) + divider;
-  }
-
-  cgi[index] = '\0';
-
-  return num_values > 0;
-}
-
 bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
   rlz_lib::LibMutex lock;
   if (lock.failed())
@@ -154,32 +112,6 @@ void CopyRegistryTree(const base::win::RegKey& src, base::win::RegKey* dest) {
 
 
 namespace rlz_lib {
-
-bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
-  if (!cgi || cgi_size <= 0) {
-    ASSERT_STRING("GetProductEventsAsCgi: Invalid buffer");
-    return false;
-  }
-
-  cgi[0] = 0;
-
-  ScopedRlzValueStoreLock lock;
-  RlzValueStore* store = lock.GetStore();
-  if (!store || !store->HasAccess(RlzValueStore::kReadAccess))
-    return false;
-
-  size_t size_local = std::min(
-      static_cast<size_t>(kMaxCgiLength + 1), cgi_size);
-  bool result = GetProductEventsAsCgiHelper(product, cgi, size_local, store);
-
-  if (!result) {
-    ASSERT_STRING("GetProductEventsAsCgi: Possibly insufficient buffer size");
-    cgi[0] = 0;
-    return false;
-  }
-
-  return true;
-}
 
 bool ClearAllProductEvents(Product product) {
   bool result;

@@ -54,11 +54,7 @@ class InternetHandle {
 }  // namespace anonymous
 #else
 namespace rlz_lib {
-// TODO(thakis): Use the real functions on mac.
-bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
-  NOTIMPLEMENTED();
-  return false;
-}
+// TODO(thakis): Use the real function on mac, http://crbug.com/118232
 int64 GetSystemTimeAsInt64() {
   NOTIMPLEMENTED();
   return 0;

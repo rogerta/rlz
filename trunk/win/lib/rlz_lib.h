@@ -43,12 +43,6 @@ const int kMachineIdLength = 50;
 #if defined(OS_WIN)
 // Event storage functions.
 
-// Get all the events reported by this product as a CGI string to append to
-// the daily ping.
-// Access: HKCU read.
-bool RLZ_LIB_API GetProductEventsAsCgi(Product product, char* unescaped_cgi,
-                                       size_t unescaped_cgi_size);
-
 // Clear all reported events and recorded stateful events of this product.
 // This should be called on complete uninstallation of the product.
 // Access: HKCU write.

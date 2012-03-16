@@ -40,6 +40,12 @@ const int kMaxPingResponseLength = 0x4000;  // 16K
 
 // RLZ storage functions.
 
+// Get all the events reported by this product as a CGI string to append to
+// the daily ping.
+// Access: HKCU read.
+bool RLZ_LIB_API GetProductEventsAsCgi(Product product, char* unescaped_cgi,
+                                       size_t unescaped_cgi_size);
+
 // Records an RLZ event.
 // Some events can be product-independent (e.g: First search from home page),
 // and some can be access point independent (e.g. Pack installed). However,
