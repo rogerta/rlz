@@ -40,7 +40,7 @@ namespace rlz_lib {
 
 // TODO(thakis): Move registry stuff somewhere else.
 #if defined(OS_WIN)
-std::wstring SupplementaryBranding::brand_;
+std::string SupplementaryBranding::brand_;
 
 // TODO(thakis): SupplementaryBranding is defined in rlz_lib.h, so this should
 // be in rlz_lib.cc.

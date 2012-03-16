@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   if (ret == 0) {
     // Now re-run all the tests using a supplementary brand code.  This brand
     // code will remain in effect for the lifetime of the branding object.
-    rlz_lib::SupplementaryBranding branding(L"TEST");
+    rlz_lib::SupplementaryBranding branding("TEST");
     ret = RUN_ALL_TESTS();
   }
 #endif

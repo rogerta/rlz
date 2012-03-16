@@ -100,8 +100,7 @@ bool FinancialPing::FormRequest(Product product,
   // TODO(thakis): Figure out if supplementary branding needs to work on mac,
   // http://crbug.com/117744
   if (!SupplementaryBranding::GetBrand().empty()) {
-    std::wstring product_brand_wide(ASCIIToWide(product_brand));
-    if (SupplementaryBranding::GetBrand() != product_brand_wide) {
+    if (SupplementaryBranding::GetBrand() != product_brand) {
       ASSERT_STRING("FinancialPing::FormRequest: supplementary branding bad");
       return false;
     }
