@@ -296,6 +296,26 @@ bool ClearAllProductEvents(Product product) {
   return result;
 }
 
+void ClearProductState(Product product, const AccessPoint* access_points) {
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
+    return;
+
+  // Delete all product specific state.
+  VERIFY(ClearAllProductEvents(product));
+  VERIFY(FinancialPing::ClearLastPingTime(product));
+
+  // Delete all RLZ's for access points being uninstalled.
+  if (access_points) {
+    for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
+      VERIFY(SetAccessPointRlz(access_points[i], ""));
+    }
+  }
+
+  store->CollectGarbage();
+}
+
 
 // RLZ storage functions.
 
