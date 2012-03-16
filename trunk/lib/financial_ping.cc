@@ -92,16 +92,12 @@ bool FinancialPing::FormRequest(Product product,
     return false;
   }
 
-#if defined(OS_WIN)
-  // TODO(thakis): Figure out if supplementary branding needs to work on mac,
-  // http://crbug.com/117744
   if (!SupplementaryBranding::GetBrand().empty()) {
     if (SupplementaryBranding::GetBrand() != product_brand) {
       ASSERT_STRING("FinancialPing::FormRequest: supplementary branding bad");
       return false;
     }
   }
-#endif
 
   base::StringAppendF(request, "%s?", kFinancialPingPath);
 

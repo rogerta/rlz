@@ -644,4 +644,30 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   return true;
 }
 
+SupplementaryBranding::SupplementaryBranding(const char* brand)
+    : lock_(new ScopedRlzValueStoreLock) {
+  if (!lock_->GetStore())
+    return;
+
+  if (!brand_.empty()) {
+    ASSERT_STRING("ProductBranding: existing brand is not empty");
+    return;
+  }
+
+  if (brand == NULL || brand[0] == 0) {
+    ASSERT_STRING("ProductBranding: new brand is empty");
+    return;
+  }
+
+  brand_ = brand;
+}
+
+SupplementaryBranding::~SupplementaryBranding() {
+  if (lock_->GetStore())
+    brand_.clear();
+  delete lock_;
+}
+
+std::string SupplementaryBranding::brand_;
+
 }  // namespace rlz_lib
