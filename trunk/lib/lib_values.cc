@@ -9,75 +9,7 @@
 #include "base/stringprintf.h"
 #include "rlz/lib/assert.h"
 
-#if defined(OS_WIN)
-#include "base/utf_string_conversions.h"
-#include "base/win/registry.h"
-#include "rlz/lib/rlz_value_store.h"
-#endif
-
-// TODO(thakis): Move registry stuff somewhere else.
-#if defined(OS_WIN)
-namespace {
-
-bool GetRegKey(const wchar_t* name, REGSAM access, base::win::RegKey* key) {
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName, name);
-  rlz_lib::AppendBrandToString(&key_location);
-
-  LONG ret = ERROR_SUCCESS;
-  if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
-    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
-  } else {
-    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
-  }
-
-  return ret == ERROR_SUCCESS;
-}
-
-}  // anonymous
-#endif  // defined(OS_WIN)
-
 namespace rlz_lib {
-
-// TODO(thakis): Move registry stuff somewhere else.
-#if defined(OS_WIN)
-//
-// Registry information.
-//
-
-const wchar_t kGoogleKeyName[]            = L"Software\\Google";
-const wchar_t kGoogleCommonKeyName[]      = L"Software\\Google\\Common";
-const wchar_t kLibKeyName[]               = L"Software\\Google\\Common\\Rlz";
-const wchar_t kRlzsSubkeyName[]           = L"RLZs";
-const wchar_t kEventsSubkeyName[]         = L"Events";
-const wchar_t kStatefulEventsSubkeyName[] = L"StatefulEvents";
-const wchar_t kDccValueName[]             = L"DCC";
-const wchar_t kPingTimesSubkeyName[]      = L"PTimes";
-
-const wchar_t* GetProductName(Product product) {
-  switch (product) {
-  case IE_TOOLBAR:       return L"T";
-  case TOOLBAR_NOTIFIER: return L"P";
-  case PACK:             return L"U";
-  case DESKTOP:          return L"D";
-  case CHROME:           return L"C";
-  case FF_TOOLBAR:       return L"B";
-  case QSB_WIN:          return L"K";
-  case WEBAPPS:          return L"W";
-  case PINYIN_IME:       return L"N";
-  case PARTNER:          return L"V";
-  }
-
-  ASSERT_STRING("GetProductSubkeyName: Unknown Product");
-  return NULL;
-}
-
-void AppendBrandToString(std::wstring* str) {
-  std::wstring wide_brand(ASCIIToWide(SupplementaryBranding::GetBrand()));
-  if (!wide_brand.empty())
-    base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
-}
-#endif  // defined(OS_WIN)
 
 //
 // Ping information.
@@ -256,45 +188,5 @@ bool GetEventFromName(const char* name, Event* event) {
 
   return false;
 }
-
-
-// TODO(thakis): Move registry stuff somewhere else.
-#if defined(OS_WIN)
-bool GetPingTimesRegKey(REGSAM access, base::win::RegKey* key) {
-  return GetRegKey(kPingTimesSubkeyName, access, key);
-}
-
-
-bool GetEventsRegKey(const wchar_t* event_type,
-                     const rlz_lib::Product* product,
-                     REGSAM access, base::win::RegKey* key) {
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
-                      event_type);
-  AppendBrandToString(&key_location);
-
-  if (product != NULL) {
-    const wchar_t* product_name = rlz_lib::GetProductName(*product);
-    if (!product_name)
-      return false;
-
-    base::StringAppendF(&key_location, L"\\%ls", product_name);
-  }
-
-  LONG ret = ERROR_SUCCESS;
-  if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
-    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
-  } else {
-    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
-  }
-
-  return ret == ERROR_SUCCESS;
-}
-
-
-bool GetAccessPointRlzsRegKey(REGSAM access, base::win::RegKey* key) {
-  return GetRegKey(kRlzsSubkeyName, access, key);
-}
-#endif  // defined(OS_WIN)
 
 }  // namespace rlz_lib
