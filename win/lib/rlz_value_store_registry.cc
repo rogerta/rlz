@@ -13,15 +13,118 @@
 
 namespace rlz_lib {
 
+const wchar_t kLibKeyName[]               = L"Software\\Google\\Common\\Rlz";
+
 namespace {
 
+//
+// Registry keys:
+//
+//   RLZ's are stored as:
+//   <AccessPointName>  = <RLZ value> @ kRootKey\kLibKeyName\kRlzsSubkeyName.
+//
+//   Events are stored as:
+//   <AccessPointName><EventName> = 1 @
+//   HKCU\kLibKeyName\kEventsSubkeyName\GetProductName(product).
+//
+//   The OEM Deal Confirmation Code (DCC) is stored as
+//   kDccValueName = <DCC value> @ HKLM\kLibKeyName
+//
+//   The last ping time, per product is stored as:
+//   GetProductName(product) = <last ping time> @
+//   HKCU\kLibKeyName\kPingTimesSubkeyName.
+//
+// The server does not care about any of these constants.
+//
+const wchar_t kGoogleKeyName[]            = L"Software\\Google";
+const wchar_t kGoogleCommonKeyName[]      = L"Software\\Google\\Common";
+const wchar_t kRlzsSubkeyName[]           = L"RLZs";
+const wchar_t kEventsSubkeyName[]         = L"Events";
+const wchar_t kStatefulEventsSubkeyName[] = L"StatefulEvents";
+const wchar_t kPingTimesSubkeyName[]      = L"PTimes";
+
+const wchar_t* GetProductName(Product product) {
+  switch (product) {
+  case IE_TOOLBAR:       return L"T";
+  case TOOLBAR_NOTIFIER: return L"P";
+  case PACK:             return L"U";
+  case DESKTOP:          return L"D";
+  case CHROME:           return L"C";
+  case FF_TOOLBAR:       return L"B";
+  case QSB_WIN:          return L"K";
+  case WEBAPPS:          return L"W";
+  case PINYIN_IME:       return L"N";
+  case PARTNER:          return L"V";
+  }
+
+  ASSERT_STRING("GetProductSubkeyName: Unknown Product");
+  return NULL;
+}
+
+void AppendBrandToString(std::wstring* str) {
+  std::wstring wide_brand(ASCIIToWide(SupplementaryBranding::GetBrand()));
+  if (!wide_brand.empty())
+    base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
+}
+
+// Function to get the specific registry keys.
+bool GetRegKey(const wchar_t* name, REGSAM access, base::win::RegKey* key) {
+  std::wstring key_location;
+  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName, name);
+  AppendBrandToString(&key_location);
+
+  LONG ret = ERROR_SUCCESS;
+  if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
+    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
+  } else {
+    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
+  }
+
+  return ret == ERROR_SUCCESS;
+}
+
+bool GetPingTimesRegKey(REGSAM access, base::win::RegKey* key) {
+  return GetRegKey(kPingTimesSubkeyName, access, key);
+}
+
+
+bool GetEventsRegKey(const wchar_t* event_type,
+                     const rlz_lib::Product* product,
+                     REGSAM access, base::win::RegKey* key) {
+  std::wstring key_location;
+  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
+                      event_type);
+  AppendBrandToString(&key_location);
+
+  if (product != NULL) {
+    const wchar_t* product_name = GetProductName(*product);
+    if (!product_name)
+      return false;
+
+    base::StringAppendF(&key_location, L"\\%ls", product_name);
+  }
+
+  LONG ret = ERROR_SUCCESS;
+  if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
+    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
+  } else {
+    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
+  }
+
+  return ret == ERROR_SUCCESS;
+}
+
+bool GetAccessPointRlzsRegKey(REGSAM access, base::win::RegKey* key) {
+  return GetRegKey(kRlzsSubkeyName, access, key);
+}
+
 bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
-  const wchar_t* product_name = rlz_lib::GetProductName(product);
+  const wchar_t* product_name = GetProductName(product);
   if (!product_name)
     return false;
 
   base::win::RegKey reg_key;
-  rlz_lib::GetEventsRegKey(key, NULL, KEY_WRITE, &reg_key);
+  GetEventsRegKey(key, NULL, KEY_WRITE, &reg_key);
   reg_key.DeleteKey(product_name);
 
   // Verify that the value no longer exists.

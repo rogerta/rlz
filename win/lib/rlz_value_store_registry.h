@@ -10,6 +10,8 @@
 
 namespace rlz_lib {
 
+extern const wchar_t kLibKeyName[];
+
 // Implements RlzValueStore by storing values in the windows registry.
 class RlzValueStoreRegistry : public RlzValueStore {
  public:

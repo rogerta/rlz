@@ -9,25 +9,15 @@
 
 #include <windows.h>
 #include <aclapi.h>
-#include <winbase.h>
 #include <winerror.h>
-#include <vector>
 
 #include "base/basictypes.h"
-#include "base/memory/scoped_ptr.h"
-#include "base/string_util.h"
-#include "base/stringprintf.h"
-#include "base/utf_string_conversions.h"
 #include "base/win/registry.h"
 #include "base/win/windows_version.h"
 #include "rlz/lib/assert.h"
-#include "rlz/lib/financial_ping.h"
-#include "rlz/lib/lib_values.h"
 #include "rlz/lib/rlz_value_store.h"
-#include "rlz/lib/string_utils.h"
-#include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/machine_deal.h"
-#include "rlz/win/lib/user_key.h"
+#include "rlz/win/lib/rlz_value_store_registry.h"
 
 namespace {
 
@@ -127,7 +117,7 @@ bool CreateMachineState() {
     return false;
 
   base::win::RegKey hklm_key;
-  if (hklm_key.Create(HKEY_LOCAL_MACHINE, kLibKeyName,
+  if (hklm_key.Create(HKEY_LOCAL_MACHINE, rlz_lib::kLibKeyName,
                       KEY_ALL_ACCESS | KEY_WOW64_32KEY) != ERROR_SUCCESS) {
     ASSERT_STRING("rlz_lib::CreateMachineState: "
                   "Unable to create / open machine key.");

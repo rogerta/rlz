@@ -10,62 +10,7 @@
 #include "base/basictypes.h"
 #include "rlz/win/lib/rlz_lib.h"
 
-#if defined(OS_WIN)
-#include "base/win/registry.h"
-#endif
-
 namespace rlz_lib {
-
-// TODO(thakis): Move registry stuff somewhere else.
-#if defined(OS_WIN)
-//
-// Registry keys:
-//
-//   RLZ's are stored as:
-//   <AccessPointName>  = <RLZ value> @ kRootKey\kLibKeyName\kRlzsSubkeyName.
-//
-//   Events are stored as:
-//   <AccessPointName><EventName> = 1 @
-//   HKCU\kLibKeyName\kEventsSubkeyName\GetProductName(product).
-//
-//   The OEM Deal Confirmation Code (DCC) is stored as
-//   kDccValueName = <DCC value> @ HKLM\kLibKeyName
-//
-//   The last ping time, per product is stored as:
-//   GetProductName(product) = <last ping time> @
-//   HKCU\kLibKeyName\kPingTimesSubkeyName.
-//
-// The server does not care about any of these constants.
-//
-extern const wchar_t kLibKeyName[];
-extern const wchar_t kRlzsSubkeyName[];
-extern const wchar_t kEventsSubkeyName[];
-extern const wchar_t kStatefulEventsSubkeyName[];
-extern const wchar_t kDccValueName[];
-extern const wchar_t kPingTimesSubkeyName[];
-
-const wchar_t* GetProductName(Product product);
-
-// These are the parent keys of kLibKeyName. These can be deleted safely
-// if completely empty.
-extern const wchar_t kGoogleKeyName[];
-extern const wchar_t kGoogleCommonKeyName[];
-
-// Function to get the specific registry keys.
-bool GetPingTimesRegKey(REGSAM access,
-                        base::win::RegKey* key);
-
-bool GetEventsRegKey(const wchar_t* event_type,
-                     const rlz_lib::Product* product,
-                     REGSAM access,
-                     base::win::RegKey* key);
-
-bool GetAccessPointRlzsRegKey(REGSAM access,
-                              base::win::RegKey* key);
-
-void AppendBrandToString(std::wstring* str);
-#endif  // defined(OS_WIN)
-
 
 //
 // Ping CGI arguments:
