@@ -13,20 +13,32 @@
 // The "GGLA" brand is used to test the normal code flow of the code, and the
 // "TEST" brand is used to test the supplementary brand code code flow.
 
-#include <windows.h>
-
 #include "base/logging.h"
 #include "base/memory/scoped_ptr.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
-#include "rlz/win/lib/machine_deal.h"
-#include "rlz/win/lib/rlz_lib.h"
+#include "rlz/lib/rlz_lib.h"
 #include "rlz/win/test/rlz_test_helpers.h"
 
-class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
+#if defined(OS_WIN)
+#include <Windows.h>
+#include "rlz/win/lib/machine_deal.h"
+#endif
+
+class MachineDealCodeHelper
+#if defined(OS_WIN)
+    : public rlz_lib::MachineDealCode
+#endif
+    {
  public:
-  static bool Clear() { return rlz_lib::MachineDealCode::Clear(); }
+  static bool Clear() {
+#if defined(OS_WIN)
+    return rlz_lib::MachineDealCode::Clear();
+#else
+    return true;
+#endif
+  }
 
  private:
   MachineDealCodeHelper() {}
@@ -174,26 +186,32 @@ TEST_F(RlzLibTest, GetPingParams) {
                                      cgi, 2048));
   EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue", cgi);
 
+#if defined(OS_WIN)
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+#define DCC_PARAM "&dcc=dcc_value"
+#else
+#define DCC_PARAM ""
+#endif
+
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
   EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
                                      cgi, 2048));
-  EXPECT_STREQ("rep=2&rlz=T4:&dcc=dcc_value", cgi);
+  EXPECT_STREQ("rep=2&rlz=T4:" DCC_PARAM, cgi);
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
               "TbRlzValue"));
   EXPECT_FALSE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                      cgi, 37));
+                                      cgi, 23 + strlen(DCC_PARAM)));
   EXPECT_STREQ("", cgi);
   EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
-                                     cgi, 38));
-  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
+                                     cgi, 24 + strlen(DCC_PARAM)));
+  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue" DCC_PARAM, cgi);
 
   EXPECT_TRUE(GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, cgi, 2048));
   points[2] = rlz_lib::IE_HOME_PAGE;
   EXPECT_TRUE(rlz_lib::GetPingParams(rlz_lib::TOOLBAR_NOTIFIER, points,
                                      cgi, 2048));
-  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", cgi);
+  EXPECT_STREQ("rep=2&rlz=T4:TbRlzValue" DCC_PARAM, cgi);
 }
 
 TEST_F(RlzLibTest, IsPingResponseValid) {
@@ -288,7 +306,9 @@ TEST_F(RlzLibTest, ParsePingResponse) {
     "dcc: dcc_value\r\n"
     "crc32: F9070F81";
 
+#if defined(OS_WIN)
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value2"));
+#endif
 
   // Record some product events to check that they get cleared.
   EXPECT_TRUE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
@@ -302,7 +322,9 @@ TEST_F(RlzLibTest, ParsePingResponse) {
   EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
                                          kPingResponse));
 
+#if defined(OS_WIN)
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+#endif
   EXPECT_TRUE(rlz_lib::ParsePingResponse(rlz_lib::TOOLBAR_NOTIFIER,
                                          kPingResponse));
 
@@ -390,7 +412,9 @@ TEST_F(RlzLibTest, SendFinancialPing) {
   // attempt to ping the financial server, which you can verify in Fiddler.
   // TODO: Make this a measurable test.
   MachineDealCodeHelper::Clear();
+#if defined(OS_WIN)
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+#endif
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
       "TbRlzValue"));
@@ -457,6 +481,7 @@ TEST_F(RlzLibTest, ClearProductState) {
   EXPECT_STREQ("", cgi);
 }
 
+#if defined(OS_WIN)
 template<class T>
 class typed_buffer_ptr {
   scoped_array<char> buffer_;
@@ -571,6 +596,7 @@ TEST_F(RlzLibTest, HasAccess) {
                                   users_sid));
   EXPECT_TRUE(rlz_lib::HasAccess(users_sid, KEY_ALL_ACCESS, dacl));
 }
+#endif
 
 TEST_F(RlzLibTest, BrandingRecordProductEvent) {
   // Don't run these tests if a supplementary brand is already in place.  That
