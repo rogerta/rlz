@@ -23,8 +23,8 @@
 #include "base/string_util.h"
 #include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
-#include "base/win/registry.h"
 #include "rlz/lib/lib_values.h"
+#include "rlz/lib/rlz_value_store.h"
 #include "rlz/win/lib/machine_deal.h"
 #include "rlz/win/test/rlz_test_helpers.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -32,17 +32,13 @@
 
 namespace {
 
-int64 ToInt64(const FILETIME& ft) {
-  LARGE_INTEGER integer;
-  integer.HighPart = ft.dwHighDateTime;
-  integer.LowPart = ft.dwLowDateTime;
-  return integer.QuadPart;
-}
-
 int64 GetSystemTimeAsInt64() {
   FILETIME now_as_file_time;
   GetSystemTimeAsFileTime(&now_as_file_time);
-  return ToInt64(now_as_file_time);
+  LARGE_INTEGER integer;
+  integer.HighPart = now_as_file_time.dwHighDateTime;
+  integer.LowPart = now_as_file_time.dwLowDateTime;
+  return integer.QuadPart;
 }
 
 // Ping times in 100-nanosecond intervals.
@@ -168,11 +164,11 @@ TEST_F(FinancialPingTest, FormRequestBadBrand) {
 
 
 static void SetLastPingTime(int64 time, rlz_lib::Product product) {
-  const wchar_t* product_name = GetProductName(product);
-  base::win::RegKey key;
-  rlz_lib::GetPingTimesRegKey(KEY_WRITE, &key);
-  EXPECT_EQ(ERROR_SUCCESS, key.WriteValue(product_name, &time, sizeof(time),
-                                          REG_QWORD));
+  rlz_lib::ScopedRlzValueStoreLock lock;
+  rlz_lib::RlzValueStore* store = lock.GetStore();
+  ASSERT_TRUE(store);
+  ASSERT_TRUE(store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess));
+  store->WritePingTime(product, time);
 }
 
 TEST_F(FinancialPingTest, IsPingTime) {
