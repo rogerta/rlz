@@ -14,8 +14,6 @@
 // case below, the brand "GOOG" is used because the code wants to use a brand
 // that is neither of the two mentioned above.
 
-#include <windows.h>
-
 #include "rlz/lib/financial_ping.h"
 
 #include "base/basictypes.h"
@@ -25,20 +23,28 @@
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/lib_values.h"
 #include "rlz/lib/rlz_value_store.h"
-#include "rlz/win/lib/machine_deal.h"
 #include "rlz/win/test/rlz_test_helpers.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
+#if defined(OS_WIN)
+#include "rlz/win/lib/machine_deal.h"
+#endif
+
 namespace {
 
 int64 GetSystemTimeAsInt64() {
+#if defined(OS_WIN)
   FILETIME now_as_file_time;
   GetSystemTimeAsFileTime(&now_as_file_time);
   LARGE_INTEGER integer;
   integer.HighPart = now_as_file_time.dwHighDateTime;
   integer.LowPart = now_as_file_time.dwLowDateTime;
   return integer.QuadPart;
+#else
+  // TODO(thakis): Implement, http://crbug.com/118232
+  return 0;
+#endif
 }
 
 // Ping times in 100-nanosecond intervals.
@@ -53,7 +59,12 @@ TEST_F(FinancialPingTest, FormRequest) {
   std::string brand_string = rlz_lib::SupplementaryBranding::GetBrand();
   const char* brand = brand_string.empty() ? "GGLA" : brand_string.c_str();
 
+#if defined(OS_WIN)
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
+#define DCC_PARAM "&dcc=dcc_value"
+#else
+#define DCC_PARAM ""
+#endif
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX,
       "TbRlzValue"));
@@ -68,8 +79,10 @@ TEST_F(FinancialPingTest, FormRequest) {
     {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
      rlz_lib::NO_ACCESS_POINT};
 
+#if defined(OS_WIN)
   std::wstring machine_id;
   bool got_machine_id = rlz_lib::MachineDealCode::GetMachineId(&machine_id);
+#endif
 
   std::string request;
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
@@ -77,10 +90,13 @@ TEST_F(FinancialPingTest, FormRequest) {
   std::string expected_response;
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&hl=en&"
-      "events=I7S,W1I&rep=2&rlz=T4:TbRlzValue&dcc=dcc_value", brand);
+      "events=I7S,W1I&rep=2&rlz=T4:TbRlzValue" DCC_PARAM
+, brand);
 
+#if defined(OS_WIN)
   if (got_machine_id)
     base::StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
+#endif
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
@@ -89,10 +105,12 @@ TEST_F(FinancialPingTest, FormRequest) {
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&pid=IdOk2&"
-      "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value", brand);
+      "events=I7S,W1I&rep=2&rlz=T4:" DCC_PARAM, brand);
 
+#if defined(OS_WIN)
   if (got_machine_id)
     base::StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
+#endif
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
@@ -100,7 +118,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&pid=IdOk&"
-      "events=I7S,W1I&rep=2&rlz=T4:&dcc=dcc_value", brand);
+      "events=I7S,W1I&rep=2&rlz=T4:" DCC_PARAM, brand);
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
@@ -108,7 +126,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&events=I7S,W1I&rep=2"
-      "&rlz=T4:&dcc=dcc_value", brand);
+      "&rlz=T4:" DCC_PARAM, brand);
   EXPECT_EQ(expected_response, request);
 
 
@@ -136,7 +154,7 @@ TEST_F(FinancialPingTest, FormRequest) {
   expected_response.clear();
   base::StringAppendF(&expected_response,
       "/tools/pso/ping?as=swg&brand=%s&rep=2&rlz=T4:TbRlzValue,"
-      "Q1:QsbRlzValue&dcc=dcc_value", brand);
+      "Q1:QsbRlzValue" DCC_PARAM, brand);
   EXPECT_STREQ(expected_response.c_str(), request.c_str());
 
   if (!GetAccessPointRlz(rlz_lib::IE_HOME_PAGE, rlz, arraysize(rlz))) {
@@ -146,7 +164,7 @@ TEST_F(FinancialPingTest, FormRequest) {
     expected_response.clear();
     base::StringAppendF(&expected_response,
         "/tools/pso/ping?as=swg&brand=%s&hl=en-US&pid=MyId&rep=2"
-        "&rlz=T4:TbRlzValue,Q1:QsbRlzValue&dcc=dcc_value", brand);
+        "&rlz=T4:TbRlzValue,Q1:QsbRlzValue" DCC_PARAM, brand);
   EXPECT_STREQ(expected_response.c_str(), request.c_str());
   }
 }
