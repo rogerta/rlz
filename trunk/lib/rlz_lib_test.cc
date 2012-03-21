@@ -19,7 +19,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 
 #include "rlz/lib/rlz_lib.h"
-#include "rlz/win/test/rlz_test_helpers.h"
+#include "rlz/test/rlz_test_helpers.h"
 
 #if defined(OS_WIN)
 #include <Windows.h>
