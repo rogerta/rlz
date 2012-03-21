@@ -7,16 +7,17 @@
 #ifndef RLZ_WIN_TEST_RLZ_TEST_HELPERS_H
 #define RLZ_WIN_TEST_RLZ_TEST_HELPERS_H
 
+#include "base/compiler_specific.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 class RlzLibTestNoMachineState : public ::testing::Test {
  protected:
-  virtual void SetUp();
-  virtual void TearDown();
+  virtual void SetUp() OVERRIDE;
+  virtual void TearDown() OVERRIDE;
 };
 
 class RlzLibTestBase : public RlzLibTestNoMachineState {
-  virtual void SetUp();
+  virtual void SetUp() OVERRIDE;
 };
 
 
