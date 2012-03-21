@@ -23,7 +23,7 @@
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/lib_values.h"
 #include "rlz/lib/rlz_value_store.h"
-#include "rlz/win/test/rlz_test_helpers.h"
+#include "rlz/test/rlz_test_helpers.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 

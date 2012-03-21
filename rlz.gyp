@@ -83,11 +83,11 @@
       'conditions': [
         ['OS=="win"', {
           'sources': [
+            'test/rlz_test_helpers.cc',
+            'test/rlz_test_helpers.h',
             'win/lib/financial_ping_test.cc',
             'win/lib/machine_deal_test.cc',
             'win/lib/rlz_lib_test.cc',
-            'win/test/rlz_test_helpers.cc',
-            'win/test/rlz_test_helpers.h',
           ],
         }],
       ],

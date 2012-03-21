@@ -15,8 +15,8 @@
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
+#include "rlz/test/rlz_test_helpers.h"
 #include "rlz/win/lib/machine_deal.h"
-#include "rlz/win/test/rlz_test_helpers.h"
 
 class MachineDealCodeHelper : public rlz_lib::MachineDealCode {
  public:

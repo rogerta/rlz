@@ -4,8 +4,8 @@
 //
 // Helper functions used by the tests.
 
-#ifndef RLZ_WIN_TEST_RLZ_TEST_HELPERS_H
-#define RLZ_WIN_TEST_RLZ_TEST_HELPERS_H
+#ifndef RLZ_TEST_RLZ_TEST_HELPERS_H
+#define RLZ_TEST_RLZ_TEST_HELPERS_H
 
 #include "base/compiler_specific.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -21,4 +21,4 @@ class RlzLibTestBase : public RlzLibTestNoMachineState {
 };
 
 
-#endif  // RLZ_WIN_TEST_RLZ_TEST_HELPERS_H
+#endif  // RLZ_TEST_RLZ_TEST_HELPERS_H
