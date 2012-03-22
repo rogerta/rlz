@@ -37,6 +37,8 @@
         'lib/financial_ping.cc',
         'lib/financial_ping.h',
         'lib/lib_values.cc',
+        'lib/machine_id.cc',
+        'lib/machine_id.h',
         'lib/rlz_enums.h',
         # MSVC can't handle two rlz_lib.cc files in the same library.
         # TODO(thakis): Rename this file once win/lib/rlz_lib.cc has gone away.
@@ -54,6 +56,7 @@
             'win/lib/lib_mutex.h',
             'win/lib/machine_deal.cc',
             'win/lib/machine_deal.h',
+            'win/lib/machine_id_win.cc',
             'win/lib/process_info.cc',
             'win/lib/process_info.h',
             'win/lib/rlz_lib.cc',
@@ -67,6 +70,7 @@
         }],
         ['OS=="mac"', {
           'sources': [
+            'mac/lib/machine_id_mac.cc',
             'mac/lib/rlz_value_store_mac.mm',
             'mac/lib/rlz_value_store_mac.h',
           ],
@@ -104,6 +108,7 @@
         'lib/crc8_unittest.cc',
         'lib/financial_ping_test.cc',
         'lib/lib_values_unittest.cc',
+        'lib/machine_id_unittest.cc',
         'lib/rlz_lib_test.cc',
         'lib/string_utils_unittest.cc',
         'test/rlz_test_helpers.cc',

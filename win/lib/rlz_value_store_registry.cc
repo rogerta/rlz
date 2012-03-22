@@ -43,7 +43,7 @@ const wchar_t kEventsSubkeyName[]         = L"Events";
 const wchar_t kStatefulEventsSubkeyName[] = L"StatefulEvents";
 const wchar_t kPingTimesSubkeyName[]      = L"PTimes";
 
-wstring GetWideProductName(Product product) {
+std::wstring GetWideProductName(Product product) {
   return ASCIIToWide(GetProductName(product));
 }
 
@@ -83,7 +83,7 @@ bool GetEventsRegKey(const wchar_t* event_type,
   AppendBrandToString(&key_location);
 
   if (product != NULL) {
-    wstring product_name = GetWideProductName(*product);
+    std::wstring product_name = GetWideProductName(*product);
     if (product_name.empty())
       return false;
 
@@ -106,7 +106,7 @@ bool GetAccessPointRlzsRegKey(REGSAM access, base::win::RegKey* key) {
 
 bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
   std::wstring product_name = GetWideProductName(product);
-  if (!product_name)
+  if (product_name.empty())
     return false;
 
   base::win::RegKey reg_key;

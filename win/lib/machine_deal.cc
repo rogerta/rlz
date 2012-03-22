@@ -12,13 +12,11 @@
 
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
-#include "base/sha1.h"
 #include "base/string_split.h"
 #include "base/string_util.h"
 #include "base/stringprintf.h"
 #include "base/win/registry.h"
 #include "rlz/lib/assert.h"
-#include "rlz/lib/crc8.h"
 #include "rlz/lib/lib_values.h"
 #include "rlz/lib/string_utils.h"
 #include "rlz/win/lib/lib_mutex.h"
@@ -296,172 +294,6 @@ bool MachineDealCode::Clear() {
   }
 
   return true;
-}
-
-static bool GetSystemVolumeSerialNumber(int* number) {
-  if (!number)
-    return false;
-
-  *number = 0;
-
-  // Find the system root path (e.g: C:\).
-  wchar_t system_path[MAX_PATH + 1];
-  if (!GetSystemDirectoryW(system_path, MAX_PATH))
-    return false;
-
-  wchar_t* first_slash = wcspbrk(system_path, L"\\/");
-  if (first_slash != NULL)
-    *(first_slash + 1) = 0;
-
-  DWORD number_local = 0;
-  if (!GetVolumeInformationW(system_path, NULL, 0, &number_local, NULL, NULL,
-                             NULL, 0))
-    return false;
-
-  *number = number_local;
-  return true;
-}
-
-bool GetComputerSid(const wchar_t* account_name, SID* sid, DWORD sid_size) {
-  static const DWORD kStartDomainLength = 128;  // reasonable to start with
-
-  scoped_array<wchar_t> domain_buffer(new wchar_t[kStartDomainLength]);
-  DWORD domain_size = kStartDomainLength;
-  DWORD sid_dword_size = sid_size;
-  SID_NAME_USE sid_name_use;
-
-  BOOL success = ::LookupAccountNameW(NULL, account_name, sid,
-                                      &sid_dword_size, domain_buffer.get(),
-                                      &domain_size, &sid_name_use);
-  if (!success && ::GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-    // We could have gotten the insufficient buffer error because
-    // one or both of sid and szDomain was too small. Check for that
-    // here.
-    if (sid_dword_size > sid_size)
-      return false;
-
-    if (domain_size > kStartDomainLength)
-      domain_buffer.reset(new wchar_t[domain_size]);
-
-    success = ::LookupAccountNameW(NULL, account_name, sid, &sid_dword_size,
-                                   domain_buffer.get(), &domain_size,
-                                   &sid_name_use);
-  }
-
-  return success;
-}
-
-std::wstring ConvertSidToString(SID* sid) {
-  std::wstring sid_string;
-#if _WIN32_WINNT >= 0x500
-  wchar_t* sid_buffer = NULL;
-  if (ConvertSidToStringSidW(sid, &sid_buffer)) {
-    sid_string = sid_buffer;
-    LocalFree(sid_buffer);
-  }
-#else
-  SID_IDENTIFIER_AUTHORITY* sia = ::GetSidIdentifierAuthority(sid);
-
-  if(sia->Value[0] || sia->Value[1]) {
-    base::SStringPrintf(
-        &sid_string, L"S-%d-0x%02hx%02hx%02hx%02hx%02hx%02hx",
-        SID_REVISION, (USHORT)sia->Value[0], (USHORT)sia->Value[1],
-        (USHORT)sia->Value[2], (USHORT)sia->Value[3], (USHORT)sia->Value[4],
-        (USHORT)sia->Value[5]);
-  } else {
-    ULONG authority = 0;
-    for (int i = 2; i < 6; ++i) {
-      authority <<= 8;
-      authority |= sia->Value[i];
-    }
-    base::SStringPrintf(&sid_string, L"S-%d-%lu", SID_REVISION, authority);
-  }
-
-  int sub_auth_count = *::GetSidSubAuthorityCount(sid);
-  for(int i = 0; i < sub_auth_count; ++i)
-    base::StringAppendF(&sid_string, L"-%lu", *::GetSidSubAuthority(sid, i));
-#endif
-
-  return sid_string;
-}
-
-bool MachineDealCode::GetMachineId(std::wstring* machine_id) {
-  if (!machine_id)
-    return false;
-
-  static std::wstring calculated_id;
-  static bool calculated = false;
-  if (calculated) {
-    *machine_id = calculated_id;
-    return true;
-  }
-
-  // Calculate the Windows SID.
-  std::wstring sid_string;
-  wchar_t computer_name[MAX_COMPUTERNAME_LENGTH + 1] = {0};
-  DWORD size = arraysize(computer_name);
-
-  if (GetComputerNameW(computer_name, &size)) {
-    char sid_buffer[SECURITY_MAX_SID_SIZE];
-    SID* sid = reinterpret_cast<SID*>(sid_buffer);
-    if (GetComputerSid(computer_name, sid, SECURITY_MAX_SID_SIZE)) {
-      sid_string = ConvertSidToString(sid);
-    }
-  }
-
-  // Get the system drive volume serial number.
-  int volume_id = 0;
-  if (!GetSystemVolumeSerialNumber(&volume_id)) {
-    ASSERT_STRING("GetMachineId: Failed to retrieve volume serial number");
-    volume_id = 0;
-  }
-
-  if (!GetMachineIdImpl(sid_string, volume_id, machine_id))
-    return false;
-
-  calculated = true;
-  calculated_id = *machine_id;
-  return true;
-}
-
-bool MachineDealCode::GetMachineIdImpl(const std::wstring& sid_string,
-                                       int volume_id,
-                                       std::wstring* machine_id) {
-  machine_id->clear();
-
-  // The ID should be the SID hash + the Hard Drive SNo. + checksum byte.
-  static const int kSizeWithoutChecksum = base::kSHA1Length + sizeof(int);
-  std::basic_string<unsigned char> id_binary(kSizeWithoutChecksum + 1, 0);
-
-  if (!sid_string.empty()) {
-    // In order to be compatible with the old version of RLZ, the hash of the
-    // SID must be done with all the original bytes from the unicode string.
-    // However, the chromebase SHA1 hash function takes only an std::string as
-    // input, so the unicode string needs to be converted to std::string
-    // "as is".
-    size_t byte_count = sid_string.size() * sizeof(std::wstring::value_type);
-    const char* buffer = reinterpret_cast<const char*>(sid_string.c_str());
-    std::string sid_string_buffer(buffer, byte_count);
-
-    // Note that digest can have embedded nulls.
-    std::string digest(base::SHA1HashString(sid_string_buffer));
-    VERIFY(digest.size() == base::kSHA1Length);
-    std::copy(digest.begin(), digest.end(), id_binary.begin());
-  }
-
-  // Convert from int to binary (makes big-endian).
-  for (int i = 0; i < sizeof(int); i++) {
-    int shift_bits = 8 * (sizeof(int) - i - 1);
-    id_binary[base::kSHA1Length + i] = static_cast<BYTE>(
-        (volume_id >> shift_bits) & 0xFF);
-  }
-
-  // Append the checksum byte.
-  if (!sid_string.empty() || (0 != volume_id))
-    Crc8::Generate(id_binary.c_str(),
-                   kSizeWithoutChecksum, &id_binary[kSizeWithoutChecksum]);
-
-  return BytesToString(id_binary.c_str(), kSizeWithoutChecksum + 1, machine_id);
 }
 
 }  // namespace rlz_lib

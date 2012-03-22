@@ -56,14 +56,14 @@ TEST(StringUtilsUnittest, HexStringToInteger) {
 
 TEST(StringUtilsUnittest, TestBytesToString) {
   unsigned char data[] = {0x1E, 0x00, 0x21, 0x67, 0xFF};
-  string16 result;
+  std::string result;
 
   EXPECT_FALSE(rlz_lib::BytesToString(NULL, 5, &result));
   EXPECT_FALSE(rlz_lib::BytesToString(data, 5, NULL));
   EXPECT_FALSE(rlz_lib::BytesToString(NULL, 5, NULL));
 
   EXPECT_TRUE(rlz_lib::BytesToString(data, 5, &result));
-  EXPECT_EQ(ASCIIToUTF16("1E002167FF"), result);
+  EXPECT_EQ(std::string("1E002167FF"), result);
   EXPECT_TRUE(rlz_lib::BytesToString(data, 4, &result));
-  EXPECT_EQ(ASCIIToUTF16("1E002167"), result);
+  EXPECT_EQ(std::string("1E002167"), result);
 }

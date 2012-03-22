@@ -7,7 +7,7 @@
 #ifndef RLZ_LIB_STRING_UTILS_H_
 #define RLZ_LIB_STRING_UTILS_H_
 
-#include "base/string16.h"
+#include <string>
 
 namespace base {
 namespace win {
@@ -21,7 +21,7 @@ bool IsAscii(char letter);
 
 bool BytesToString(const unsigned char* data,
                    int data_len,
-                   string16* string);
+                   std::string* string);
 
 bool GetHexValue(char letter, int* value);
 
