@@ -32,21 +32,8 @@
 
 namespace rlz_lib {
 
-// The length of the Machine unique ID in WCHARs, excluding the NULL terminator.
-const int kMachineIdLength = 50;
-
-
 // TODO(thakis): Port these functions.
 #if defined(OS_WIN)
-
-// Gets the unique ID for the machine used for RLZ tracking purposes. This ID
-// is derived from the Windows machine SID, and is the string representation of
-// a 20 byte hash + a 1 byte checksum.
-// Included in financial pings with events, unless explicitly forbidden by the
-// calling application.
-// Access: HKLM read.
-bool GetMachineId(char* buffer, int buffer_size);
-
 
 // Initialize temporary HKLM/HKCU registry hives used for testing.
 // Testing RLZ requires reading and writing to the Windows registry.  To keep

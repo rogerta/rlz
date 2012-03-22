@@ -73,7 +73,7 @@ int HexStringToInteger(const char* text) {
 
 bool BytesToString(const unsigned char* data,
                    int data_len,
-                   string16* string) {
+                   std::string* string) {
   if (!string)
     return false;
 

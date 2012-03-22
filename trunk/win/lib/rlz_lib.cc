@@ -236,20 +236,6 @@ bool SetMachineDealCodeFromPingResponse(const char* response) {
   return MachineDealCode::SetFromPingResponse(response);
 }
 
-bool GetMachineId(wchar_t* buffer, size_t buffer_size) {
-  if (!buffer || buffer_size <= kMachineIdLength)
-    return false;
-  buffer[0] = 0;
-
-  std::wstring machine_id;
-  if (!MachineDealCode::GetMachineId(&machine_id))
-    return false;
-
-  wcsncpy(buffer, machine_id.c_str(), buffer_size);
-  buffer[buffer_size - 1] = 0;
-  return true;
-}
-
 void InitializeTempHivesForTesting(const base::win::RegKey& temp_hklm_key,
                                    const base::win::RegKey& temp_hkcu_key) {
   // For the moment, the HKCU hive requires no initialization.

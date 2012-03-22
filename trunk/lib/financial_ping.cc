@@ -13,13 +13,10 @@
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
 #include "rlz/lib/lib_values.h"
+#include "rlz/lib/machine_id.h"
 #include "rlz/lib/rlz_lib.h"
 #include "rlz/lib/rlz_value_store.h"
 #include "rlz/lib/string_utils.h"
-
-#if defined(OS_WIN)
-#include "rlz/win/lib/machine_deal.h"
-#endif
 
 #if defined(RLZ_NETWORK_IMPLEMENTATION_WIN_INET)
 
@@ -159,16 +156,13 @@ bool FinancialPing::FormRequest(Product product,
                     cgi, arraysize(cgi)))
     base::StringAppendF(request, "&%s", cgi);
 
-#if defined(OS_WIN)
-  // TODO(thakis): Make GetMachineId() work on mac, http://crbug.com/117739
   if (has_events && !exclude_machine_id) {
-    std::wstring machine_id;
-    if (MachineDealCode::GetMachineId(&machine_id)) {
-      base::StringAppendF(request, "&%s=%ls", kMachineIdCgiVariable,
+    std::string machine_id;
+    if (GetMachineId(&machine_id)) {
+      base::StringAppendF(request, "&%s=%s", kMachineIdCgiVariable,
                           machine_id.c_str());
     }
   }
-#endif
 
   return true;
 }

@@ -22,6 +22,7 @@
 #include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/lib_values.h"
+#include "rlz/lib/machine_id.h"
 #include "rlz/lib/rlz_value_store.h"
 #include "rlz/test/rlz_test_helpers.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -79,10 +80,8 @@ TEST_F(FinancialPingTest, FormRequest) {
     {rlz_lib::IETB_SEARCH_BOX, rlz_lib::NO_ACCESS_POINT,
      rlz_lib::NO_ACCESS_POINT};
 
-#if defined(OS_WIN)
-  std::wstring machine_id;
-  bool got_machine_id = rlz_lib::MachineDealCode::GetMachineId(&machine_id);
-#endif
+  std::string machine_id;
+  bool got_machine_id = rlz_lib::GetMachineId(&machine_id);
 
   std::string request;
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,
@@ -93,10 +92,8 @@ TEST_F(FinancialPingTest, FormRequest) {
       "events=I7S,W1I&rep=2&rlz=T4:TbRlzValue" DCC_PARAM
 , brand);
 
-#if defined(OS_WIN)
   if (got_machine_id)
-    base::StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
-#endif
+    base::StringAppendF(&expected_response, "&id=%s", machine_id.c_str());
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::SetAccessPointRlz(rlz_lib::IETB_SEARCH_BOX, ""));
@@ -107,10 +104,8 @@ TEST_F(FinancialPingTest, FormRequest) {
       "/tools/pso/ping?as=swg&brand=%s&pid=IdOk2&"
       "events=I7S,W1I&rep=2&rlz=T4:" DCC_PARAM, brand);
 
-#if defined(OS_WIN)
   if (got_machine_id)
-    base::StringAppendF(&expected_response, "&id=%ls", machine_id.c_str());
-#endif
+    base::StringAppendF(&expected_response, "&id=%s", machine_id.c_str());
   EXPECT_EQ(expected_response, request);
 
   EXPECT_TRUE(rlz_lib::FinancialPing::FormRequest(rlz_lib::TOOLBAR_NOTIFIER,

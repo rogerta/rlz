@@ -46,15 +46,6 @@ class MachineDealCode {
   // Get the machine code.
   static bool Get(char* dcc, int dcc_size);
 
-  // Gets the universal ID for the machine - this is a hash of the Windows
-  // machine SID plus a checksum byte.
-  static bool GetMachineId(std::wstring* id);
-
-  // Calculates the universal ID for a machine given an sid and volume id.
-  static bool GetMachineIdImpl(const std::wstring& sid_string,
-                               int volume_id,
-                               std::wstring* id);
-
  protected:
   // Clear the DCC value. Only for testing purposes.
   // Requires write access to HKLM, unless rlz_lib::CreateMachineState() has
