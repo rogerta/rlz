@@ -7,11 +7,15 @@
 
 #include "rlz/lib/rlz_value_store.h"
 #include "base/compiler_specific.h"
+#include "base/memory/scoped_nsobject.h"
+
+@class NSDictionary;
+@class NSMutableDictionary;
 
 namespace rlz_lib {
 
-// An implementation of RlzValueStore for mac. For now it's just a stub.
-// TODO(thakis): Implement & document, http://crbug.com/117738
+// An implementation of RlzValueStore for mac. It stores information in a
+// plist file in the user's Application Support folder.
 class RlzValueStoreMac : public RlzValueStore {
  public:
   virtual bool HasAccess(AccessType type) OVERRIDE;
@@ -43,9 +47,32 @@ class RlzValueStoreMac : public RlzValueStore {
   virtual void CollectGarbage() OVERRIDE;
 
  private:
-  RlzValueStoreMac() {}
-  DISALLOW_COPY_AND_ASSIGN(RlzValueStoreMac);
+  // |dict| is the dictionary that backs all data. plist_path is the name of the
+  // plist file, used solely for implementing HasAccess().
+  RlzValueStoreMac(NSMutableDictionary* dict, NSString* plist_path);
+  virtual ~RlzValueStoreMac();
   friend class ScopedRlzValueStoreLock;
+
+  // Returns the backing dictionary that should be written to disk.
+  NSDictionary* dictionary();
+
+  // Returns the dictionary to which all data should be written. Usually, this
+  // is just |dictionary()|, but if supplementary branding is used, it's a
+  // subdirectory at key "brand_<supplementary branding code>".
+  // Note that windows stores data at
+  //    rlz/name (e.g. "pingtime")/supplementalbranding/productcode
+  // Mac on the other hand does
+  //    supplementalbranding/productcode/pingtime.
+  NSMutableDictionary* WorkingDict();
+
+  // Returns the subdirectory of |WorkingDict()| used to store data for
+  // product p.
+  NSMutableDictionary* ProductDict(Product p);
+
+  scoped_nsobject<NSMutableDictionary> dict_;
+  scoped_nsobject<NSString> plist_path_;
+
+  DISALLOW_COPY_AND_ASSIGN(RlzValueStoreMac);
 };
 
 }  // namespace rlz_lib

@@ -187,4 +187,22 @@ bool GetEventFromName(const char* name, Event* event) {
   return false;
 }
 
+const char* GetProductName(Product product) {
+  switch (product) {
+  case IE_TOOLBAR:       return "T";
+  case TOOLBAR_NOTIFIER: return "P";
+  case PACK:             return "U";
+  case DESKTOP:          return "D";
+  case CHROME:           return "C";
+  case FF_TOOLBAR:       return "B";
+  case QSB_WIN:          return "K";
+  case WEBAPPS:          return "W";
+  case PINYIN_IME:       return "N";
+  case PARTNER:          return "V";
+  }
+
+  ASSERT_STRING("GetProductName: Unknown Product");
+  return "";
+}
+
 }  // namespace rlz_lib

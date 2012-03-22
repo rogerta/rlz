@@ -43,22 +43,8 @@ const wchar_t kEventsSubkeyName[]         = L"Events";
 const wchar_t kStatefulEventsSubkeyName[] = L"StatefulEvents";
 const wchar_t kPingTimesSubkeyName[]      = L"PTimes";
 
-const wchar_t* GetProductName(Product product) {
-  switch (product) {
-  case IE_TOOLBAR:       return L"T";
-  case TOOLBAR_NOTIFIER: return L"P";
-  case PACK:             return L"U";
-  case DESKTOP:          return L"D";
-  case CHROME:           return L"C";
-  case FF_TOOLBAR:       return L"B";
-  case QSB_WIN:          return L"K";
-  case WEBAPPS:          return L"W";
-  case PINYIN_IME:       return L"N";
-  case PARTNER:          return L"V";
-  }
-
-  ASSERT_STRING("GetProductSubkeyName: Unknown Product");
-  return NULL;
+wstring GetWideProductName(Product product) {
+  return ASCIIToWide(GetProductName(product));
 }
 
 void AppendBrandToString(std::wstring* str) {
@@ -97,11 +83,11 @@ bool GetEventsRegKey(const wchar_t* event_type,
   AppendBrandToString(&key_location);
 
   if (product != NULL) {
-    const wchar_t* product_name = GetProductName(*product);
-    if (!product_name)
+    wstring product_name = GetWideProductName(*product);
+    if (product_name.empty())
       return false;
 
-    base::StringAppendF(&key_location, L"\\%ls", product_name);
+    base::StringAppendF(&key_location, L"\\%ls", product_name.c_str());
   }
 
   LONG ret = ERROR_SUCCESS;
@@ -119,16 +105,17 @@ bool GetAccessPointRlzsRegKey(REGSAM access, base::win::RegKey* key) {
 }
 
 bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
-  const wchar_t* product_name = GetProductName(product);
+  std::wstring product_name = GetWideProductName(product);
   if (!product_name)
     return false;
 
   base::win::RegKey reg_key;
   GetEventsRegKey(key, NULL, KEY_WRITE, &reg_key);
-  reg_key.DeleteKey(product_name);
+  reg_key.DeleteKey(product_name.c_str());
 
   // Verify that the value no longer exists.
-  base::win::RegKey product_events(reg_key.Handle(), product_name, KEY_READ);
+  base::win::RegKey product_events(
+      reg_key.Handle(), product_name.c_str(), KEY_READ);
   if (product_events.Valid()) {
     ASSERT_STRING("ClearAllProductEvents: Key deletion failed");
     return false;
@@ -171,28 +158,31 @@ bool RlzValueStoreRegistry::HasAccess(AccessType type) {
 
 bool RlzValueStoreRegistry::WritePingTime(Product product, int64 time) {
   base::win::RegKey key;
+  std::wstring product_name = GetWideProductName(product);
   return GetPingTimesRegKey(KEY_WRITE, &key) &&
-      key.WriteValue(GetProductName(product), &time, sizeof(time),
+      key.WriteValue(product_name.c_str(), &time, sizeof(time),
                      REG_QWORD) == ERROR_SUCCESS;
 }
 
 bool RlzValueStoreRegistry::ReadPingTime(Product product, int64* time) {
   base::win::RegKey key;
+  std::wstring product_name = GetWideProductName(product);
   return GetPingTimesRegKey(KEY_READ, &key) &&
-      key.ReadInt64(GetProductName(product), time) == ERROR_SUCCESS;
+      key.ReadInt64(product_name.c_str(), time) == ERROR_SUCCESS;
 }
 
 bool RlzValueStoreRegistry::ClearPingTime(Product product) {
   base::win::RegKey key;
   GetPingTimesRegKey(KEY_WRITE, &key);
 
-  const wchar_t* value_name = GetProductName(product);
-  key.DeleteValue(value_name);
+  std::wstring product_name = GetWideProductName(product);
+  key.DeleteValue(product_name.c_str());
 
   // Verify deletion.
   uint64 value;
   DWORD size = sizeof(value);
-  if (key.ReadValue(value_name, &value, &size, NULL) == ERROR_SUCCESS) {
+  if (key.ReadValue(
+        product_name.c_str(), &value, &size, NULL) == ERROR_SUCCESS) {
     ASSERT_STRING("RlzValueStoreRegistry::ClearPingTime: Failed to delete.");
     return false;
   }

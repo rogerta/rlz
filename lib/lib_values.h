@@ -91,6 +91,9 @@ bool GetAccessPointFromName(const char* name, AccessPoint* point);
 const char* GetEventName(Event event);
 bool GetEventFromName(const char* name, Event* event);
 
+// The names for products are used only client-side.
+const char* GetProductName(Product product);
+
 }  // namespace rlz_lib
 
 #endif  // RLZ_LIB_LIB_VALUES_H_

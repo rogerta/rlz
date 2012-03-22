@@ -13,8 +13,15 @@
 #include "rlz/win/lib/lib_mutex.h"
 #endif
 
+#if defined(OS_MACOSX)
+#include "base/mac/scoped_nsautorelease_pool.h"
+#endif
+
+
 #include <string>
 #include <vector>
+
+class FilePath;
 
 namespace rlz_lib {
 
@@ -86,9 +93,18 @@ class ScopedRlzValueStoreLock {
 #if defined(OS_WIN)
   LibMutex lock_;
 #else
-  // TODO(thakis): Mac implementation
+  base::mac::ScopedNSAutoreleasePool autorelease_pool_;
+  // TODO(thakis): Mac lock implementation
 #endif
 };
+
+#if defined(OS_MACOSX)
+namespace testing {
+// Prefix |directory| to the path where the RLZ data file lives, for tests.
+void SetRlzStoreDirectory(const FilePath& directory);
+}  // namespace testing
+#endif  // defined(OS_MACOSX)
+
 
 }  // namespace rlz_lib
 

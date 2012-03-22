@@ -6,12 +6,19 @@
 
 #include "rlz_test_helpers.h"
 
-#include <shlwapi.h>
-
-#include "base/win/registry.h"
-#include "rlz/win/lib/rlz_lib.h"
+#include "rlz/lib/rlz_lib.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
+#if defined(OS_WIN)
+#include <shlwapi.h>
+#include "base/win/registry.h"
+#include "rlz/win/lib/rlz_lib.h"
+#elif defined(OS_MACOSX)
+#include "base/file_path.h"
+#include "rlz/lib/rlz_value_store.h"
+#endif
+
+#if defined(OS_WIN)
 namespace {
 
 const wchar_t* kHKCUReplacement = L"Software\\Google\\RlzUtilUnittest\\HKCU";
@@ -49,18 +56,31 @@ void UndoOverrideRegistryHives() {
   EXPECT_EQ(ERROR_SUCCESS, ::RegOverridePredefKey(HKEY_LOCAL_MACHINE, NULL));
 }
 
-}  // namespace anonymous
+}  // namespace
+#endif  // defined(OS_WIN)
 
 
 void RlzLibTestNoMachineState::SetUp() {
+#if defined(OS_WIN)
   OverrideRegistryHives();
+#elif defined(OS_MACOSX)
+  base::mac::ScopedNSAutoreleasePool pool;
+  ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
+  rlz_lib::testing::SetRlzStoreDirectory(temp_dir_.path());
+#endif  // defined(OS_WIN)
 }
 
 void RlzLibTestNoMachineState::TearDown() {
+#if defined(OS_WIN)
   UndoOverrideRegistryHives();
+#elif defined(OS_MACOSX)
+  rlz_lib::testing::SetRlzStoreDirectory(FilePath());
+#endif  // defined(OS_WIN)
 }
 
 void RlzLibTestBase::SetUp() {
   RlzLibTestNoMachineState::SetUp();
+#if defined(OS_WIN)
   rlz_lib::CreateMachineState();
+#endif  // defined(OS_WIN)
 }
