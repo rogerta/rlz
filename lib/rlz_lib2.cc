@@ -209,6 +209,12 @@ bool GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
 
 namespace rlz_lib {
 
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+bool SetURLRequestContext(net::URLRequestContextGetter* context) {
+  return FinancialPing::SetURLRequestContext(context);
+}
+#endif
+
 bool GetProductEventsAsCgi(Product product, char* cgi, size_t cgi_size) {
   if (!cgi || cgi_size <= 0) {
     ASSERT_STRING("GetProductEventsAsCgi: Invalid buffer");

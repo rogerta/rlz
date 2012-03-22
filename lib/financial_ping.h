@@ -10,6 +10,12 @@
 #include <string>
 #include "rlz/lib/rlz_enums.h"
 
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+namespace net {
+class URLRequestContextGetter;
+}  // namespace net
+#endif
+
 namespace rlz_lib {
 
 class FinancialPing {
@@ -42,6 +48,10 @@ class FinancialPing {
 
   // Ping the financial server with request. Writes to RlzValueStore.
   static bool PingServer(const char* request, std::string* response);
+
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+  static bool SetURLRequestContext(net::URLRequestContextGetter* context);
+#endif
 
  private:
   FinancialPing() {}
