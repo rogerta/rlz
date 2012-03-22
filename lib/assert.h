@@ -32,7 +32,7 @@
   #ifdef _DEBUG
     #define VERIFY(expr) LOG_IF(FATAL, !(expr)) << #expr
   #else
-    #define VERIFY(expr) (expr)
+    #define VERIFY(expr) (void)(expr)
   #endif
 #endif
 
