@@ -3,6 +3,17 @@
 # found in the COPYING file.
 
 {
+  'variables': {
+    # Set rlz_use_chrome_net to 1 to use chrome's network stack instead of
+    # win inet.
+    'conditions': [
+      ['OS=="win"', {
+        'rlz_use_chrome_net%': 0,
+      }, {
+        'rlz_use_chrome_net%': 1,
+      }],
+    ],
+  },
   'target_defaults': {
     'include_dirs': [
       '..',
@@ -60,6 +71,21 @@
             'mac/lib/rlz_value_store_mac.h',
           ],
         }],
+        ['rlz_use_chrome_net==1', {
+          'defines': [
+            'RLZ_NETWORK_IMPLEMENTATION_CHROME_NET',
+          ],
+          'dependencies': [
+            '../build/temp_gyp/googleurl.gyp:googleurl',
+            # TODO: This can change to just net once URLFetcher has moved
+            # to net, http://118220
+            '../content/content.gyp:content_common',
+          ],
+        }, {
+          'defines': [
+            'RLZ_NETWORK_IMPLEMENTATION_WIN_INET',
+          ],
+        }],
       ],
     },
     {
@@ -90,6 +116,11 @@
             'win/lib/machine_deal_test.cc',
           ],
         }],
+        ['rlz_use_chrome_net==1', {
+          'dependencies': [
+            '../net/net.gyp:net_test_support',
+          ],
+        }]
       ],
     },
   ],

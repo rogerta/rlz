@@ -26,6 +26,13 @@
 #include "rlz/win/lib/machine_deal.h"
 #endif
 
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+#include "base/mac/scoped_nsautorelease_pool.h"
+#include "base/threading/thread.h"
+#include "net/url_request/url_request_test_util.h"
+#endif
+
+
 class MachineDealCodeHelper
 #if defined(OS_WIN)
     : public rlz_lib::MachineDealCode
@@ -411,6 +418,34 @@ TEST_F(RlzLibTest, SendFinancialPing) {
   // We don't really check a value or result in this test. All this does is
   // attempt to ping the financial server, which you can verify in Fiddler.
   // TODO: Make this a measurable test.
+
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+  base::mac::ScopedNSAutoreleasePool pool;
+
+  base::Thread::Options options;
+  options.message_loop_type = MessageLoop::TYPE_IO;
+
+  base::Thread io_thread("rlz_unittest_io_thread");
+  ASSERT_TRUE(io_thread.StartWithOptions(options));
+
+  scoped_refptr<TestURLRequestContextGetter> context =
+      new TestURLRequestContextGetter(
+          io_thread.message_loop()->message_loop_proxy());
+  rlz_lib::SetURLRequestContext(context.get());
+
+  class URLRequestRAII {
+    public:
+     URLRequestRAII(net::URLRequestContextGetter* context) {
+       rlz_lib::SetURLRequestContext(context);
+     }
+     ~URLRequestRAII() {
+       rlz_lib::SetURLRequestContext(NULL);
+     }
+  };
+
+  URLRequestRAII set_context(context.get());
+#endif
+
   MachineDealCodeHelper::Clear();
 #if defined(OS_WIN)
   EXPECT_TRUE(rlz_lib::MachineDealCode::Set("dcc_value"));
@@ -431,7 +466,8 @@ TEST_F(RlzLibTest, SendFinancialPing) {
 
   std::string request;
   rlz_lib::SendFinancialPing(rlz_lib::TOOLBAR_NOTIFIER, points,
-      "swg", "GGLA", "SwgProductId1234", "en-UK", false);
+      "swg", "GGLA", "SwgProductId1234", "en-UK", false,
+      /*skip_time_check=*/true);
 }
 
 TEST_F(RlzLibTest, ClearProductState) {

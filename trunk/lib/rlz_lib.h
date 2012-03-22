@@ -25,6 +25,31 @@
 #define RLZ_LIB_API
 #endif
 
+// Define one of
+// + RLZ_NETWORK_IMPLEMENTATION_WIN_INET: Uses win inet to send financial pings.
+// + RLZ_NETWORK_IMPLEMENTATION_CHROME_NET: Uses chrome's network stack to send
+//   financial pings. rlz_lib::SetURLRequestContext() must be called before
+//   any calls to SendFinancialPing().
+#if defined(RLZ_NETWORK_IMPLEMENTATION_WIN_INET) && \
+    defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+#error Exactly one of RLZ_NETWORK_IMPLEMENTATION_WIN_INET and \
+    RLZ_NETWORK_IMPLEMENTATION_CHROME_NET should be defined.
+#endif
+#if !defined(RLZ_NETWORK_IMPLEMENTATION_WIN_INET) && \
+    !defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+#if defined(OS_WIN)
+#define RLZ_NETWORK_IMPLEMENTATION_WIN_INET
+#else
+#define RLZ_NETWORK_IMPLEMENTATION_CHROME_NET
+#endif
+#endif
+
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+namespace net {
+class URLRequestContextGetter;
+}  // namespace net
+#endif
+
 namespace rlz_lib {
 
 class ScopedRlzValueStoreLock;
@@ -39,6 +64,12 @@ const int kMaxCgiLength = 2048;
 // is bigger, please break it up into separate calls.
 const int kMaxPingResponseLength = 0x4000;  // 16K
 
+#if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+// Set the URLRequestContextGetter used by SendFinancialPing(). The IO message
+// loop returned by this context will be used for the IO done by
+// SendFinancialPing().
+bool RLZ_LIB_API SetURLRequestContext(net::URLRequestContextGetter* context);
+#endif
 
 // RLZ storage functions.
 
@@ -132,6 +163,9 @@ bool RLZ_LIB_API FormFinancialPingRequest(Product product,
 // Pings the financial server and returns the HTTP response. This will fail
 // if it is too early to ping the server since the last ping.
 //
+// If RLZ_NETWORK_IMPLEMENTATION_CHROME_NET is set, SetURLRequestContext() needs
+// to be called before calling this function.
+//
 // product              : The product to ping for.
 // request              : The HTTP request (for example, returned by
 //                        FormFinancialPingRequest).
@@ -169,6 +203,9 @@ bool RLZ_LIB_API ParseFinancialPingResponse(Product product,
 // Send the ping with RLZs and events to the PSO server.
 // This ping method should be called daily. (More frequent calls will fail).
 // Also, if there are no events, the call will succeed only once a week.
+//
+// If RLZ_NETWORK_IMPLEMENTATION_CHROME_NET is set, SetURLRequestContext() needs
+// to be called before calling this function.
 //
 // product            : The product to ping for.
 // access_points      : The access points this product affects. Array must be
