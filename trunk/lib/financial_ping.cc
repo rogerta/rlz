@@ -18,6 +18,10 @@
 #include "rlz/lib/rlz_value_store.h"
 #include "rlz/lib/string_utils.h"
 
+#if !defined(OS_WIN)
+#include "base/time.h"
+#endif
+
 #if defined(RLZ_NETWORK_IMPLEMENTATION_WIN_INET)
 
 #include <windows.h>
@@ -54,9 +58,13 @@ class InternetHandle {
 
 namespace {
 
+// Returns the time relative to a fixed point in the past in multiples of
+// 100 ns stepts. The point in the past is arbitrary but can't change, as the
+// result of this value is stored on disk.
 int64 GetSystemTimeAsInt64() {
 #if defined(OS_WIN)
   FILETIME now_as_file_time;
+  // Relative to Jan 1, 1601 (UTC).
   GetSystemTimeAsFileTime(&now_as_file_time);
 
   LARGE_INTEGER integer;
@@ -64,9 +72,9 @@ int64 GetSystemTimeAsInt64() {
   integer.LowPart = now_as_file_time.dwLowDateTime;
   return integer.QuadPart;
 #else
-  // TODO(thakis): Use the real function on mac, http://crbug.com/118232
-  NOTIMPLEMENTED();
-  return 0;
+  // Seconds since epoch (Jan 1, 1970).
+  double now_seconds = base::Time::Now().ToDoubleT();
+  return static_cast<int64>(now_seconds * 1000 * 1000 * 10);
 #endif
 }
 

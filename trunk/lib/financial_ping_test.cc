@@ -30,10 +30,13 @@
 
 #if defined(OS_WIN)
 #include "rlz/win/lib/machine_deal.h"
+#else
+#include "base/time.h"
 #endif
 
 namespace {
 
+// Must match the implementation in file_time.cc.
 int64 GetSystemTimeAsInt64() {
 #if defined(OS_WIN)
   FILETIME now_as_file_time;
@@ -43,8 +46,8 @@ int64 GetSystemTimeAsInt64() {
   integer.LowPart = now_as_file_time.dwLowDateTime;
   return integer.QuadPart;
 #else
-  // TODO(thakis): Implement, http://crbug.com/118232
-  return 0;
+  double now_seconds = base::Time::Now().ToDoubleT();
+  return static_cast<int64>(now_seconds * 1000 * 1000 * 10);
 #endif
 }
 
