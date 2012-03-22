@@ -10,10 +10,19 @@
 #include "base/compiler_specific.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
+#if defined(OS_MACOSX)
+#include "base/scoped_temp_dir.h"
+#endif
+
 class RlzLibTestNoMachineState : public ::testing::Test {
  protected:
   virtual void SetUp() OVERRIDE;
   virtual void TearDown() OVERRIDE;
+
+
+#if defined(OS_MACOSX)
+ ScopedTempDir temp_dir_;
+#endif
 };
 
 class RlzLibTestBase : public RlzLibTestNoMachineState {

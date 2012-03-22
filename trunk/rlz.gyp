@@ -102,17 +102,17 @@
       'sources': [
         'lib/crc32_unittest.cc',
         'lib/crc8_unittest.cc',
+        'lib/financial_ping_test.cc',
         'lib/lib_values_unittest.cc',
+        'lib/rlz_lib_test.cc',
         'lib/string_utils_unittest.cc',
+        'test/rlz_test_helpers.cc',
+        'test/rlz_test_helpers.h',
         'test/rlz_unittest_main.cc',
       ],
       'conditions': [
         ['OS=="win"', {
           'sources': [
-            'lib/financial_ping_test.cc',
-            'lib/rlz_lib_test.cc',
-            'test/rlz_test_helpers.cc',
-            'test/rlz_test_helpers.h',
             'win/lib/machine_deal_test.cc',
           ],
         }],
