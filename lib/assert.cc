@@ -8,6 +8,8 @@
 
 namespace rlz_lib {
 
+#ifdef MUTE_EXPECTED_ASSERTS
 std::string expected_assertion_;
+#endif
 
 }  // namespace rlz_lib

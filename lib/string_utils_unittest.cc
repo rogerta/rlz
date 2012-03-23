@@ -14,7 +14,7 @@
 #include "testing/gtest/include/gtest/gtest.h"
 
 TEST(StringUtilsUnittest, IsAscii) {
-  rlz_lib::expected_assertion_ = "";
+  rlz_lib::SetExpectedAssertion("");
 
   char bad_letters[] = {'\x80', '\xA0', '\xFF'};
   for (int i = 0; i < arraysize(bad_letters); ++i)
@@ -26,10 +26,10 @@ TEST(StringUtilsUnittest, IsAscii) {
 }
 
 TEST(StringUtilsUnittest, HexStringToInteger) {
-  rlz_lib::expected_assertion_ = "HexStringToInteger: text is NULL.";
+  rlz_lib::SetExpectedAssertion("HexStringToInteger: text is NULL.");
   EXPECT_EQ(0, rlz_lib::HexStringToInteger(NULL));
 
-  rlz_lib::expected_assertion_ = "";
+  rlz_lib::SetExpectedAssertion("");
   EXPECT_EQ(0, rlz_lib::HexStringToInteger(""));
   EXPECT_EQ(0, rlz_lib::HexStringToInteger("   "));
   EXPECT_EQ(0, rlz_lib::HexStringToInteger("  0x  "));
@@ -43,15 +43,15 @@ TEST(StringUtilsUnittest, HexStringToInteger) {
   EXPECT_EQ(0xa34Ed0, rlz_lib::HexStringToInteger("   0x000a34Ed0   "));
   EXPECT_EQ(0xa34Ed0, rlz_lib::HexStringToInteger("   000a34Ed0   "));
 
-  rlz_lib::expected_assertion_ =
-      "HexStringToInteger: text contains non-hex characters.";
+  rlz_lib::SetExpectedAssertion(
+      "HexStringToInteger: text contains non-hex characters.");
   EXPECT_EQ(0x12ff, rlz_lib::HexStringToInteger("12ffg"));
   EXPECT_EQ(0x12f, rlz_lib::HexStringToInteger("12f 121"));
   EXPECT_EQ(0x12f, rlz_lib::HexStringToInteger("12f 121"));
   EXPECT_EQ(0, rlz_lib::HexStringToInteger("g12f"));
   EXPECT_EQ(0, rlz_lib::HexStringToInteger("  0x0  \n"));
 
-  rlz_lib::expected_assertion_ = "";
+  rlz_lib::SetExpectedAssertion("");
 }
 
 TEST(StringUtilsUnittest, TestBytesToString) {

@@ -10,9 +10,9 @@
 #include "testing/gtest/include/gtest/gtest.h"
 
 TEST(LibValuesUnittest, GetAccessPointFromName) {
-  rlz_lib::expected_assertion_ = "GetAccessPointFromName: point is NULL";
+  rlz_lib::SetExpectedAssertion("GetAccessPointFromName: point is NULL");
   EXPECT_FALSE(rlz_lib::GetAccessPointFromName("", NULL));
-  rlz_lib::expected_assertion_ = "";
+  rlz_lib::SetExpectedAssertion("");
 
   rlz_lib::AccessPoint point;
   EXPECT_FALSE(rlz_lib::GetAccessPointFromName(NULL, &point));
@@ -36,9 +36,9 @@ TEST(LibValuesUnittest, GetAccessPointFromName) {
 
 
 TEST(LibValuesUnittest, GetEventFromName) {
-  rlz_lib::expected_assertion_ = "GetEventFromName: event is NULL";
+  rlz_lib::SetExpectedAssertion("GetEventFromName: event is NULL");
   EXPECT_FALSE(rlz_lib::GetEventFromName("", NULL));
-  rlz_lib::expected_assertion_ = "";
+  rlz_lib::SetExpectedAssertion("");
 
   rlz_lib::Event event;
   EXPECT_FALSE(rlz_lib::GetEventFromName(NULL, &event));
