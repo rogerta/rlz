@@ -77,7 +77,13 @@ class RlzValueStore {
 // system, the only way to access the RlzValueStore is through a
 // ScopedRlzValueStoreLock, which is a cross-process lock. It is active while
 // it is in scope. If the class fails to acquire a lock, its GetStore() method
-// returns NULL.
+// returns NULL. If the lock fails to be acquired, it must not be taken
+// recursively. That is, all user code should look like this:
+//   ScopedRlzValueStoreLock lock;
+//   RlzValueStore* store = lock.GetStore();
+//   if (!store)
+//     return some_error_code;
+//   ...
 class ScopedRlzValueStoreLock {
  public:
   ScopedRlzValueStoreLock();
@@ -94,7 +100,6 @@ class ScopedRlzValueStoreLock {
   LibMutex lock_;
 #else
   base::mac::ScopedNSAutoreleasePool autorelease_pool_;
-  // TODO(thakis): Mac lock implementation
 #endif
 };
 

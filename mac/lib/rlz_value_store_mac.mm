@@ -13,6 +13,7 @@
 #include "rlz/lib/rlz_lib.h"
 
 #import <Foundation/Foundation.h>
+#include <pthread.h>
 
 using base::mac::ObjCCast;
 
@@ -215,6 +216,90 @@ NSMutableDictionary* RlzValueStoreMac::ProductDict(Product p) {
 
 namespace {
 
+// Creating a recursive cross-process mutex on windows is one line. On mac,
+// there's no primitve for that, so this lock is emulated by an in-process
+// mutex to get the recursive part, followed by a cross-process lock for the
+// cross-process part.
+
+// This is a struct so that it doesn't need a static initializer.
+struct RecursiveCrossProcessLock {
+  // Tries to acquire a recursive cross-process lock. Note that this _always_
+  // acquires the in-process lock (if it wasn't already acquired). The parent
+  // directory of |lock_file| must exist.
+  bool TryGetCrossProcessLock(NSString* lock_filename);
+
+  // Releases the lock. Should always be called, even if
+  // TryGetCrossProcessLock() returns false.
+  void ReleaseLock();
+
+  pthread_mutex_t recursive_lock_;
+  pthread_t locking_thread_;
+
+  NSDistributedLock* file_lock_;
+} g_recursive_lock = {
+  // PTHREAD_RECURSIVE_MUTEX_INITIALIZER doesn't exist before 10.7 and is buggy
+  // on 10.7 (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=51906#c34), so emulate
+  // recursive locking with a normal non-recursive mutex.
+  PTHREAD_MUTEX_INITIALIZER
+};
+
+bool RecursiveCrossProcessLock::TryGetCrossProcessLock(
+    NSString* lock_filename) {
+  bool just_got_lock = false;
+
+  // Emulate a recursive mutex with a non-recursive one.
+  if (pthread_mutex_trylock(&recursive_lock_) == EBUSY) {
+    if (pthread_equal(pthread_self(), locking_thread_) == 0) {
+      // Some other thread has the lock, wait for it.
+      pthread_mutex_lock(&recursive_lock_);
+      CHECK(locking_thread_ == 0);
+      just_got_lock = true;
+    }
+  } else {
+    just_got_lock = true;
+  }
+
+  locking_thread_ = pthread_self();
+
+  // Try to acquire file lock.
+  if (just_got_lock) {
+    const int kMaxTimeoutMS = 5000;  // Matches windows.
+    const int kSleepPerTryMS = 200;
+
+    CHECK(!file_lock_);
+    file_lock_ = [[NSDistributedLock alloc] initWithPath:lock_filename];
+
+    BOOL got_file_lock = NO;
+    int elapsedMS = 0;
+    while (!(got_file_lock = [file_lock_ tryLock]) &&
+           elapsedMS < kMaxTimeoutMS) {
+      usleep(kSleepPerTryMS * 1000);
+      elapsedMS += kSleepPerTryMS;
+    }
+
+    if (!got_file_lock) {
+      [file_lock_ release];
+      file_lock_ = nil;
+      return false;
+    }
+    return true;
+  } else {
+    return file_lock_ != nil;
+  }
+}
+
+void RecursiveCrossProcessLock::ReleaseLock() {
+  if (file_lock_) {
+    [file_lock_ unlock];
+    [file_lock_ release];
+    file_lock_ = nil;
+  }
+
+  locking_thread_ = 0;
+  pthread_mutex_unlock(&recursive_lock_);
+}
+
+
 // This is set during test execution, to write RLZ files into a temporary
 // directory instead of the user's Application Support folder.
 NSString* g_test_folder;
@@ -259,17 +344,36 @@ NSString* RlzPlistFilename() {
   return [CreateRlzDirectory() stringByAppendingPathComponent:kRlzFile];
 }
 
+// Returns the path of the rlz lock file, also creates the parent directory
+// path if it doesn't exist.
+NSString* RlzLockFilename() {
+  NSString* const kRlzFile = @"lockfile";
+  return [CreateRlzDirectory() stringByAppendingPathComponent:kRlzFile];
+}
+
 }  // namespace
 
 ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
-  // TODO(thakis): Try to take a recursive cross-process lock for 5 minutes,
-  // set store_ to NULL if that fails and return.
+  bool got_distributed_lock =
+      g_recursive_lock.TryGetCrossProcessLock(RlzLockFilename());
+  // At this point, we hold the in-process lock, no matter the value of
+  // |got_distributed_lock|.
 
   ++g_lock_depth;
   if (g_lock_depth > 1) {
     // Reuse the already existing store object.
+    // All user code early-exits when a lock fails, so a recursive lock will
+    // never end up with |g_store_object| that is NULL.
+    CHECK(got_distributed_lock);
     CHECK(g_store_object);
     store_.reset(g_store_object);
+    return;
+  }
+
+  if (!got_distributed_lock) {
+    // Give up. |store_| isn't set, which signals to callers that acquiring
+    // the lock failed. |g_recursive_lock| will be released by the
+    // destructor.
     return;
   }
 
@@ -294,8 +398,9 @@ ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
 
 ScopedRlzValueStoreLock::~ScopedRlzValueStoreLock() {
   --g_lock_depth;
+  CHECK(g_lock_depth >= 0);
 
-  if (g_lock_depth) {
+  if (g_lock_depth > 0) {
     // Other locks are still using store_, don't free it yet.
     ignore_result(store_.release());
     return;
@@ -309,6 +414,15 @@ ScopedRlzValueStoreLock::~ScopedRlzValueStoreLock() {
         static_cast<RlzValueStoreMac*>(store_.get())->dictionary();
     VERIFY([dict writeToFile:RlzPlistFilename() atomically:YES]);
   }
+
+  // Check that "store_ set" => "file_lock acquired". The converse isn't true,
+  // for example if the rlz data file can't be read.
+  if (store_.get())
+    CHECK(g_recursive_lock.file_lock_);
+  if (!g_recursive_lock.file_lock_)
+    CHECK(!store_.get());
+
+  g_recursive_lock.ReleaseLock();
 }
 
 RlzValueStore* ScopedRlzValueStoreLock::GetStore() {
