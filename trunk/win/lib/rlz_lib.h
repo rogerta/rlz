@@ -24,15 +24,16 @@
 #ifndef RLZ_WIN_LIB_RLZ_LIB_H_
 #define RLZ_WIN_LIB_RLZ_LIB_H_
 
+// Clients can get away by just including rlz/lib/rlz_lib.h. This file only
+// contains function definitions for files used by tests. It's mostly kept
+// around for backwards-compatibility.
+
 #include "rlz/lib/rlz_lib.h"
 
-#if defined(OS_WIN)
 #include "base/win/registry.h"
-#endif
 
 namespace rlz_lib {
 
-// TODO(thakis): Port these functions.
 #if defined(OS_WIN)
 
 // Initialize temporary HKLM/HKCU registry hives used for testing.

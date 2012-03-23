@@ -8,7 +8,7 @@
 #define RLZ_LIB_LIB_VALUES_H_
 
 #include "base/basictypes.h"
-#include "rlz/win/lib/rlz_lib.h"
+#include "rlz/lib/rlz_enums.h"
 
 namespace rlz_lib {
 
