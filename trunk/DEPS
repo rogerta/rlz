@@ -42,11 +42,16 @@ deps = {
 
   "src/tools/gyp":
     "http://gyp.googlecode.com/svn/trunk@1233",
+
+  # If using rlz with chrome's networking library, add it and its dependencies
+  # here.
 }
 
 include_rules = [
   "+base",
   "+build",
+  "+content",  # TODO: Remove this once http://crbug.com/118220 is fixed.
+  "+net",  # This is only used when force_rlz_use_chrome_net=1 is passed to gyp.
 ]
 
 hooks = [
