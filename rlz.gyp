@@ -4,13 +4,16 @@
 
 {
   'variables': {
-    # Set rlz_use_chrome_net to 1 to use chrome's network stack instead of
-    # win inet.
+    'variables': {
+      # Set force_rlz_use_chrome_net to 1 to use chrome's network stack instead
+      # of win inet.
+      'force_rlz_use_chrome_net%': 0,
+    },
     'conditions': [
-      ['OS=="win"', {
-        'rlz_use_chrome_net%': 0,
-      }, {
+      ['force_rlz_use_chrome_net or OS=="mac"', {
         'rlz_use_chrome_net%': 1,
+      }, {
+        'rlz_use_chrome_net%': 0,
       }],
     ],
   },
