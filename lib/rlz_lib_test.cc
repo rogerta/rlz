@@ -420,7 +420,9 @@ TEST_F(RlzLibTest, SendFinancialPing) {
   // TODO: Make this a measurable test.
 
 #if defined(RLZ_NETWORK_IMPLEMENTATION_CHROME_NET)
+#if defined(OS_MACOSX)
   base::mac::ScopedNSAutoreleasePool pool;
+#endif
 
   base::Thread::Options options;
   options.message_loop_type = MessageLoop::TYPE_IO;
