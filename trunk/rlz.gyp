@@ -80,6 +80,11 @@
           'defines': [
             'RLZ_NETWORK_IMPLEMENTATION_CHROME_NET',
           ],
+          'direct_dependent_settings': {
+            'defines': [
+              'RLZ_NETWORK_IMPLEMENTATION_CHROME_NET',
+            ],
+          },
           'dependencies': [
             '../build/temp_gyp/googleurl.gyp:googleurl',
             '../net/net.gyp:net',
@@ -90,6 +95,11 @@
           'defines': [
             'RLZ_NETWORK_IMPLEMENTATION_WIN_INET',
           ],
+          'direct_dependent_settings': {
+            'defines': [
+              'RLZ_NETWORK_IMPLEMENTATION_WIN_INET',
+            ],
+          },
         }],
       ],
     },
