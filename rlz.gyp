@@ -45,6 +45,7 @@
         'lib/rlz_enums.h',
         'lib/rlz_lib.cc',
         'lib/rlz_lib.h',
+        'lib/rlz_lib_clear.cc',
         'lib/lib_values.h',
         'lib/rlz_value_store.h',
         'lib/string_utils.cc',
