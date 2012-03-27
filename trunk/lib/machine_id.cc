@@ -59,7 +59,7 @@ bool GetMachineIdImpl(const string16& sid_string,
   }
 
   // Convert from int to binary (makes big-endian).
-  for (int i = 0; i < sizeof(int); i++) {
+  for (size_t i = 0; i < sizeof(int); i++) {
     int shift_bits = 8 * (sizeof(int) - i - 1);
     id_binary[base::kSHA1Length + i] = static_cast<unsigned char>(
         (volume_id >> shift_bits) & 0xFF);

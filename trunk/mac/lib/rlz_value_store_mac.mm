@@ -409,7 +409,6 @@ ScopedRlzValueStoreLock::~ScopedRlzValueStoreLock() {
   if (store_.get()) {
     g_store_object = NULL;
 
-    NSString* folder = CreateRlzDirectory();
     NSDictionary* dict =
         static_cast<RlzValueStoreMac*>(store_.get())->dictionary();
     VERIFY([dict writeToFile:RlzPlistFilename() atomically:YES]);
