@@ -7,6 +7,7 @@
 
 #include "rlz/lib/rlz_lib.h"
 
+#include "base/lazy_instance.h"
 #include "base/string_util.h"
 #include "base/stringprintf.h"
 #include "rlz/lib/assert.h"
@@ -682,12 +683,14 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   return true;
 }
 
+static base::LazyInstance<std::string>::Leaky g_supplemental_branding;
+
 SupplementaryBranding::SupplementaryBranding(const char* brand)
     : lock_(new ScopedRlzValueStoreLock) {
   if (!lock_->GetStore())
     return;
 
-  if (!brand_.empty()) {
+  if (!g_supplemental_branding.Get().empty()) {
     ASSERT_STRING("ProductBranding: existing brand is not empty");
     return;
   }
@@ -697,15 +700,18 @@ SupplementaryBranding::SupplementaryBranding(const char* brand)
     return;
   }
 
-  brand_ = brand;
+  g_supplemental_branding.Get() = brand;
 }
 
 SupplementaryBranding::~SupplementaryBranding() {
   if (lock_->GetStore())
-    brand_.clear();
+    g_supplemental_branding.Get().clear();
   delete lock_;
 }
 
-std::string SupplementaryBranding::brand_;
+// static
+const std::string& SupplementaryBranding::GetBrand() {
+  return g_supplemental_branding.Get();
+}
 
 }  // namespace rlz_lib
