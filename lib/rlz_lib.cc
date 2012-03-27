@@ -182,7 +182,6 @@ bool GetProductEventsAsCgiHelper(rlz_lib::Product product, char* cgi,
     return false;
 
   // Append the events to the buffer.
-  size_t buffer_size = cgi_size - cgi_arg.size();
   size_t num_values = 0;
 
   for (num_values = 0; num_values < events.size(); ++num_values) {

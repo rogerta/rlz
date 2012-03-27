@@ -134,7 +134,6 @@ TEST_F(FinancialPingTest, FormRequest) {
 
   // Clear all RLZs.
   char rlz[rlz_lib::kMaxRlzLength + 1];
-  int idx = 0;
   for (int ap = rlz_lib::NO_ACCESS_POINT + 1;
        ap < rlz_lib::LAST_ACCESS_POINT; ap++) {
     rlz[0] = 0;

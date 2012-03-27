@@ -31,7 +31,7 @@ TEST(Crc8Unittest, TestCrc8) {
   unsigned char crc;
   bool matches;
   int length;
-  for (int i = 0; i < sizeof(data) / sizeof(data[0]); ++i) {
+  for (size_t i = 0; i < sizeof(data) / sizeof(data[0]); ++i) {
     bytes = reinterpret_cast<unsigned char*>(data[i].string);
     crc = 0;
     matches = false;

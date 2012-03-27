@@ -4,6 +4,7 @@
 
 {
   'variables': {
+    'chromium_code': 1,
     'variables': {
       # Set force_rlz_use_chrome_net to 1 to use chrome's network stack instead
       # of win inet.
@@ -51,33 +52,25 @@
         'lib/rlz_value_store.h',
         'lib/string_utils.cc',
         'lib/string_utils.h',
+        'mac/lib/machine_id_mac.cc',
+        'mac/lib/rlz_value_store_mac.mm',
+        'mac/lib/rlz_value_store_mac.h',
+        'win/lib/lib_mutex.cc',
+        'win/lib/lib_mutex.h',
+        'win/lib/machine_deal.cc',
+        'win/lib/machine_deal.h',
+        'win/lib/machine_id_win.cc',
+        'win/lib/process_info.cc',
+        'win/lib/process_info.h',
+        'win/lib/rlz_lib.h',
+        'win/lib/rlz_lib_win.cc',
+        'win/lib/rlz_value_store_registry.cc',
+        'win/lib/rlz_value_store_registry.h',
+        'win/lib/user_key.cc',
+        'win/lib/user_key.h',
+        'win/lib/vista_winnt.h',
       ],
       'conditions': [
-        ['OS=="win"', {
-          'sources': [
-            'win/lib/lib_mutex.cc',
-            'win/lib/lib_mutex.h',
-            'win/lib/machine_deal.cc',
-            'win/lib/machine_deal.h',
-            'win/lib/machine_id_win.cc',
-            'win/lib/process_info.cc',
-            'win/lib/process_info.h',
-            'win/lib/rlz_lib.h',
-            'win/lib/rlz_lib_win.cc',
-            'win/lib/rlz_value_store_registry.cc',
-            'win/lib/rlz_value_store_registry.h',
-            'win/lib/user_key.cc',
-            'win/lib/user_key.h',
-            'win/lib/vista_winnt.h',
-          ],
-        }],
-        ['OS=="mac"', {
-          'sources': [
-            'mac/lib/machine_id_mac.cc',
-            'mac/lib/rlz_value_store_mac.mm',
-            'mac/lib/rlz_value_store_mac.h',
-          ],
-        }],
         ['rlz_use_chrome_net==1', {
           'defines': [
             'RLZ_NETWORK_IMPLEMENTATION_CHROME_NET',
@@ -127,13 +120,9 @@
         'test/rlz_test_helpers.cc',
         'test/rlz_test_helpers.h',
         'test/rlz_unittest_main.cc',
+        'win/lib/machine_deal_test.cc',
       ],
       'conditions': [
-        ['OS=="win"', {
-          'sources': [
-            'win/lib/machine_deal_test.cc',
-          ],
-        }],
         ['rlz_use_chrome_net==1', {
           'dependencies': [
             '../net/net.gyp:net_test_support',

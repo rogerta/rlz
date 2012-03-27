@@ -17,11 +17,11 @@ TEST(StringUtilsUnittest, IsAscii) {
   rlz_lib::SetExpectedAssertion("");
 
   char bad_letters[] = {'\x80', '\xA0', '\xFF'};
-  for (int i = 0; i < arraysize(bad_letters); ++i)
+  for (size_t i = 0; i < arraysize(bad_letters); ++i)
     EXPECT_FALSE(rlz_lib::IsAscii(bad_letters[i]));
 
   char good_letters[] = {'A', '~', '\n', 0x7F, 0x00};
-  for (int i = 0; i < arraysize(good_letters); ++i)
+  for (size_t i = 0; i < arraysize(good_letters); ++i)
     EXPECT_TRUE(rlz_lib::IsAscii(good_letters[i]));
 }
 
