@@ -324,12 +324,10 @@ class SupplementaryBranding {
   SupplementaryBranding(const char* brand);
   ~SupplementaryBranding();
 
-  static const std::string& GetBrand() { return brand_; }
+  static const std::string& GetBrand();
 
  private:
   ScopedRlzValueStoreLock* lock_;
-
-  static std::string brand_;
 };
 
 }  // namespace rlz_lib
