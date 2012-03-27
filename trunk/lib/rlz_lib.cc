@@ -7,7 +7,6 @@
 
 #include "rlz/lib/rlz_lib.h"
 
-#include "base/lazy_instance.h"
 #include "base/string_util.h"
 #include "base/stringprintf.h"
 #include "rlz/lib/assert.h"
@@ -290,39 +289,6 @@ bool ClearProductEvent(Product product, AccessPoint point, Event event) {
   base::StringAppendF(&event_value, "%s%s", point_name, event_name);
   return store->ClearProductEvent(product, event_value.c_str());
 }
-
-bool ClearAllProductEvents(Product product) {
-  rlz_lib::ScopedRlzValueStoreLock lock;
-  rlz_lib::RlzValueStore* store = lock.GetStore();
-  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
-    return false;
-
-  bool result;
-  result = store->ClearAllProductEvents(product);
-  result &= store->ClearAllStatefulEvents(product);
-  return result;
-}
-
-void ClearProductState(Product product, const AccessPoint* access_points) {
-  rlz_lib::ScopedRlzValueStoreLock lock;
-  rlz_lib::RlzValueStore* store = lock.GetStore();
-  if (!store || !store->HasAccess(rlz_lib::RlzValueStore::kWriteAccess))
-    return;
-
-  // Delete all product specific state.
-  VERIFY(ClearAllProductEvents(product));
-  VERIFY(FinancialPing::ClearLastPingTime(product));
-
-  // Delete all RLZ's for access points being uninstalled.
-  if (access_points) {
-    for (int i = 0; access_points[i] != NO_ACCESS_POINT; i++) {
-      VERIFY(SetAccessPointRlz(access_points[i], ""));
-    }
-  }
-
-  store->CollectGarbage();
-}
-
 
 // RLZ storage functions.
 
@@ -681,37 +647,6 @@ bool GetPingParams(Product product, const AccessPoint* access_points,
   cgi[cgi_size - 1] = 0;
 
   return true;
-}
-
-static base::LazyInstance<std::string>::Leaky g_supplemental_branding;
-
-SupplementaryBranding::SupplementaryBranding(const char* brand)
-    : lock_(new ScopedRlzValueStoreLock) {
-  if (!lock_->GetStore())
-    return;
-
-  if (!g_supplemental_branding.Get().empty()) {
-    ASSERT_STRING("ProductBranding: existing brand is not empty");
-    return;
-  }
-
-  if (brand == NULL || brand[0] == 0) {
-    ASSERT_STRING("ProductBranding: new brand is empty");
-    return;
-  }
-
-  g_supplemental_branding.Get() = brand;
-}
-
-SupplementaryBranding::~SupplementaryBranding() {
-  if (lock_->GetStore())
-    g_supplemental_branding.Get().clear();
-  delete lock_;
-}
-
-// static
-const std::string& SupplementaryBranding::GetBrand() {
-  return g_supplemental_branding.Get();
 }
 
 }  // namespace rlz_lib
