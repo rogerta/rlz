@@ -64,7 +64,7 @@ bool GetComputerSid(const wchar_t* account_name, SID* sid, DWORD sid_size) {
                                    &sid_name_use);
   }
 
-  return success;
+  return success != FALSE;
 }
 
 std::wstring ConvertSidToString(SID* sid) {
