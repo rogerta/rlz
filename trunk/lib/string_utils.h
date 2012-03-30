@@ -9,12 +9,6 @@
 
 #include <string>
 
-namespace base {
-namespace win {
-class RegKey;
-}  // namespace win
-}  // namespace base
-
 namespace rlz_lib {
 
 bool IsAscii(char letter);
@@ -26,18 +20,6 @@ bool BytesToString(const unsigned char* data,
 bool GetHexValue(char letter, int* value);
 
 int HexStringToInteger(const char* text);
-
-// TODO(thakis): Move these somewhere else.
-#if defined(OS_WIN)
-bool RegKeyReadValue(base::win::RegKey& key,
-                     const wchar_t* name,
-                     char* value,
-                     size_t* value_size);
-
-bool RegKeyWriteValue(base::win::RegKey& key,
-                      const wchar_t* name,
-                      const char* value);
-#endif
 
 };  // namespace
 

@@ -4,6 +4,7 @@
 
 #include "rlz/win/lib/rlz_value_store_registry.h"
 
+#include "base/win/registry.h"
 #include "base/stringprintf.h"
 #include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
@@ -153,8 +154,7 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
 }  // namespace
 
 bool RlzValueStoreRegistry::HasAccess(AccessType type) {
-  UserKey user_key;
-  return user_key.HasAccess(type == kWriteAccess);
+  return HasUserKeyAccess(type == kWriteAccess);
 }
 
 bool RlzValueStoreRegistry::WritePingTime(Product product, int64 time) {

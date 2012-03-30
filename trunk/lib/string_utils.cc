@@ -6,12 +6,7 @@
 
 #include "rlz/lib/string_utils.h"
 
-#include "base/utf_string_conversions.h"
 #include "rlz/lib/assert.h"
-
-#if defined(OS_WIN)
-#include "base/win/registry.h"
-#endif
 
 namespace rlz_lib {
 
@@ -81,7 +76,7 @@ bool BytesToString(const unsigned char* data,
   if (data_len < 1 || !data)
     return false;
 
-  static const wchar_t* kHex = L"0123456789ABCDEF";
+  static const char kHex[] = "0123456789ABCDEF";
 
   // Fix the buffer size to begin with to avoid repeated re-allocation.
   string->resize(data_len * 2);
@@ -93,33 +88,5 @@ bool BytesToString(const unsigned char* data,
 
   return true;
 }
-
-#if defined(OS_WIN)
-bool RegKeyReadValue(base::win::RegKey& key, const wchar_t* name,
-                     char* value, size_t* value_size) {
-  value[0] = 0;
-
-  std::wstring value_string;
-  if (key.ReadValue(name, &value_string) != ERROR_SUCCESS) {
-    return false;
-  }
-
-  if (value_string.length() > *value_size) {
-    *value_size = value_string.length();
-    return false;
-  }
-
-  // Note that RLZ string are always ASCII by design.
-  strncpy(value, WideToUTF8(value_string).c_str(), *value_size);
-  value[*value_size - 1] = 0;
-  return true;
-}
-
-bool RegKeyWriteValue(base::win::RegKey& key, const wchar_t* name,
-                      const char* value) {
-  std::wstring value_string(ASCIIToWide(value));
-  return key.WriteValue(name, value_string.c_str()) == ERROR_SUCCESS;
-}
-#endif
 
 }  // namespace rlz_lib

@@ -7,7 +7,6 @@
 #include "rlz/win/lib/machine_deal.h"
 
 #include <windows.h>
-#include <Sddl.h>  // For ConvertSidToStringSidW.
 #include <vector>
 
 #include "base/basictypes.h"
@@ -18,7 +17,6 @@
 #include "base/win/registry.h"
 #include "rlz/lib/assert.h"
 #include "rlz/lib/lib_values.h"
-#include "rlz/lib/string_utils.h"
 #include "rlz/win/lib/lib_mutex.h"
 #include "rlz/win/lib/rlz_value_store_registry.h"
 #include "rlz/win/lib/user_key.h"
