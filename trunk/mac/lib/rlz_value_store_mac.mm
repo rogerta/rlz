@@ -360,20 +360,19 @@ ScopedRlzValueStoreLock::ScopedRlzValueStoreLock() {
   // |got_distributed_lock|.
 
   ++g_lock_depth;
-  if (g_lock_depth > 1) {
-    // Reuse the already existing store object.
-    // All user code early-exits when a lock fails, so a recursive lock will
-    // never end up with |g_store_object| that is NULL.
-    CHECK(got_distributed_lock);
-    CHECK(g_store_object);
-    store_.reset(g_store_object);
-    return;
-  }
 
   if (!got_distributed_lock) {
     // Give up. |store_| isn't set, which signals to callers that acquiring
     // the lock failed. |g_recursive_lock| will be released by the
     // destructor.
+    CHECK(!g_store_object);
+    return;
+  }
+
+  if (g_lock_depth > 1) {
+    // Reuse the already existing store object.
+    CHECK(g_store_object);
+    store_.reset(g_store_object);
     return;
   }
 

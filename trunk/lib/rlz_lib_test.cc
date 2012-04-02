@@ -785,3 +785,40 @@ TEST_F(RlzLibTest, BrandingWithStatefulEvents) {
                                              value, 50));
   EXPECT_STREQ("events=I7S", value);
 }
+
+#if defined(OS_MACOSX)
+class ReadonlyRlzDirectoryTest : public RlzLibTestNoMachineState {
+ protected:
+  virtual void SetUp() OVERRIDE;
+};
+
+void ReadonlyRlzDirectoryTest::SetUp() {
+  RlzLibTestNoMachineState::SetUp();
+  // Make the rlz directory non-writeable.
+  chmod(temp_dir_.path().value().c_str(), 0500);
+}
+
+TEST_F(ReadonlyRlzDirectoryTest, WriteFails) {
+  // The rlz test runner runs every test twice: Once normally, and once with
+  // a SupplementaryBranding on the stack. In the latter case, the rlz lock
+  // has already been acquired before the rlz directory got changed to
+  // read-only, which makes this test pointless. So run it only in the first
+  // pass.
+  if (!rlz_lib::SupplementaryBranding::GetBrand().empty())
+    return;
+
+  EXPECT_FALSE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::SET_TO_GOOGLE));
+}
+
+// Regression test for http://crbug.com/121255
+TEST_F(ReadonlyRlzDirectoryTest, SupplementaryBrandingDoesNotCrash) {
+  // See the comment at the top of WriteFails.
+  if (!rlz_lib::SupplementaryBranding::GetBrand().empty())
+    return;
+
+  rlz_lib::SupplementaryBranding branding("TEST");
+  EXPECT_FALSE(rlz_lib::RecordProductEvent(rlz_lib::TOOLBAR_NOTIFIER,
+      rlz_lib::IE_DEFAULT_SEARCH, rlz_lib::INSTALL));
+}
+#endif
