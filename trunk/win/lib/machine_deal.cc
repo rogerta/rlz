@@ -18,8 +18,8 @@
 #include "rlz/lib/assert.h"
 #include "rlz/lib/lib_values.h"
 #include "rlz/win/lib/lib_mutex.h"
+#include "rlz/win/lib/registry_util.h"
 #include "rlz/win/lib/rlz_value_store_registry.h"
-#include "rlz/win/lib/user_key.h"
 
 const wchar_t kDccValueName[]             = L"DCC";
 
