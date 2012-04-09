@@ -5,7 +5,7 @@
 // A helper library to keep track of a user's key by SID.
 // Used by RLZ libary. Also to be used by SearchWithGoogle library.
 
-#include "rlz/win/lib/user_key.h"
+#include "rlz/win/lib/registry_util.h"
 
 #include "base/process_util.h"
 #include "base/utf_string_conversions.h"
