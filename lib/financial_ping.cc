@@ -51,6 +51,8 @@ class InternetHandle {
 #include "content/public/common/url_fetcher_delegate.h"
 #include "googleurl/src/gurl.h"
 #include "net/base/load_flags.h"
+#include "net/url_request/url_fetcher.h"
+#include "net/url_request/url_fetcher_delegate.h"
 #include "net/url_request/url_request_context.h"
 #include "net/url_request/url_request_context_getter.h"
 
@@ -195,13 +197,13 @@ namespace {
 class FinancialPingUrlFetcherDelegate : public content::URLFetcherDelegate {
  public:
   FinancialPingUrlFetcherDelegate(MessageLoop* loop) : loop_(loop) { }
-  virtual void OnURLFetchComplete(const content::URLFetcher* source);
+  virtual void OnURLFetchComplete(const net::URLFetcher* source);
  private:
   MessageLoop* loop_;
 };
 
 void FinancialPingUrlFetcherDelegate::OnURLFetchComplete(
-    const content::URLFetcher* source) {
+    const net::URLFetcher* source) {
   loop_->Quit();
 }
 
@@ -274,8 +276,8 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
                                        kFinancialServer, kFinancialPort,
                                        request);
 
-  scoped_ptr<content::URLFetcher> fetcher(content::URLFetcher::Create(
-      GURL(url), content::URLFetcher::GET, &delegate));
+  scoped_ptr<net::URLFetcher> fetcher(content::URLFetcher::Create(
+      GURL(url), net::URLFetcher::GET, &delegate));
 
   fetcher->SetLoadFlags(net::LOAD_DISABLE_CACHE |
                         net::LOAD_DO_NOT_SEND_AUTH_DATA |
@@ -291,7 +293,7 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
   const base::TimeDelta kTimeout = base::TimeDelta::FromMinutes(5);
   loop.PostTask(
       FROM_HERE,
-      base::Bind(&content::URLFetcher::Start, base::Unretained(fetcher.get())));
+      base::Bind(&net::URLFetcher::Start, base::Unretained(fetcher.get())));
   loop.PostNonNestableDelayedTask(
       FROM_HERE, MessageLoop::QuitClosure(), kTimeout);
 
