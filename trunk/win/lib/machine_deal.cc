@@ -135,7 +135,8 @@ bool MachineDealCode::Set(const char* dcc) {
     return false;
   }
 
-  base::win::RegKey hklm_key(HKEY_LOCAL_MACHINE, kLibKeyName,
+  base::win::RegKey hklm_key(HKEY_LOCAL_MACHINE,
+                             RlzValueStoreRegistry::GetWideLibKeyName().c_str(),
                              KEY_READ | KEY_WRITE | KEY_WOW64_32KEY);
   if (!hklm_key.Valid()) {
     ASSERT_STRING("MachineDealCode::Set: Unable to create / open machine key."
@@ -260,7 +261,8 @@ bool MachineDealCode::Get(char* dcc, int dcc_size) {
 
   dcc[0] = 0;
 
-  base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName,
+  base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE,
+                            RlzValueStoreRegistry::GetWideLibKeyName().c_str(),
                             KEY_READ | KEY_WOW64_32KEY);
   if (!dcc_key.Valid())
     return false;  // no DCC key.
@@ -276,7 +278,8 @@ bool MachineDealCode::Get(char* dcc, int dcc_size) {
 }
 
 bool MachineDealCode::Clear() {
-  base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE, kLibKeyName,
+  base::win::RegKey dcc_key(HKEY_LOCAL_MACHINE,
+                            RlzValueStoreRegistry::GetWideLibKeyName().c_str(),
                             KEY_READ | KEY_WRITE | KEY_WOW64_32KEY);
   if (!dcc_key.Valid())
     return false;  // no DCC key.
