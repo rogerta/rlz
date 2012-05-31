@@ -15,8 +15,6 @@
 
 namespace rlz_lib {
 
-const wchar_t kLibKeyName[]               = L"Software\\Google\\Common\\Rlz";
-
 namespace {
 
 //
@@ -38,34 +36,37 @@ namespace {
 //
 // The server does not care about any of these constants.
 //
-const wchar_t kGoogleKeyName[]            = L"Software\\Google";
-const wchar_t kGoogleCommonKeyName[]      = L"Software\\Google\\Common";
-const wchar_t kRlzsSubkeyName[]           = L"RLZs";
-const wchar_t kEventsSubkeyName[]         = L"Events";
-const wchar_t kStatefulEventsSubkeyName[] = L"StatefulEvents";
-const wchar_t kPingTimesSubkeyName[]      = L"PTimes";
+const char kLibKeyName[]               = "Software\\Google\\Common\\Rlz";
+const wchar_t kGoogleKeyName[]         = L"Software\\Google";
+const wchar_t kGoogleCommonKeyName[]   = L"Software\\Google\\Common";
+const char kRlzsSubkeyName[]           = "RLZs";
+const char kEventsSubkeyName[]         = "Events";
+const char kStatefulEventsSubkeyName[] = "StatefulEvents";
+const char kPingTimesSubkeyName[]      = "PTimes";
 
 std::wstring GetWideProductName(Product product) {
   return ASCIIToWide(GetProductName(product));
 }
 
-void AppendBrandToString(std::wstring* str) {
-  std::wstring wide_brand(ASCIIToWide(SupplementaryBranding::GetBrand()));
-  if (!wide_brand.empty())
-    base::StringAppendF(str, L"\\_%ls", wide_brand.c_str());
+void AppendBrandToString(std::string* str) {
+  std::string brand(SupplementaryBranding::GetBrand());
+  if (!brand.empty())
+    base::StringAppendF(str, "\\_%s", brand.c_str());
 }
 
 // Function to get the specific registry keys.
-bool GetRegKey(const wchar_t* name, REGSAM access, base::win::RegKey* key) {
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName, name);
+bool GetRegKey(const char* name, REGSAM access, base::win::RegKey* key) {
+  std::string key_location;
+  base::StringAppendF(&key_location, "%s\\%s", kLibKeyName, name);
   AppendBrandToString(&key_location);
 
   LONG ret = ERROR_SUCCESS;
   if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
-    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
+    ret = key->Create(HKEY_CURRENT_USER, ASCIIToWide(key_location).c_str(),
+                      access);
   } else {
-    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
+    ret = key->Open(HKEY_CURRENT_USER, ASCIIToWide(key_location).c_str(),
+                    access);
   }
 
   return ret == ERROR_SUCCESS;
@@ -76,27 +77,29 @@ bool GetPingTimesRegKey(REGSAM access, base::win::RegKey* key) {
 }
 
 
-bool GetEventsRegKey(const wchar_t* event_type,
+bool GetEventsRegKey(const char* event_type,
                      const rlz_lib::Product* product,
                      REGSAM access, base::win::RegKey* key) {
-  std::wstring key_location;
-  base::StringAppendF(&key_location, L"%ls\\%ls", rlz_lib::kLibKeyName,
+  std::string key_location;
+  base::StringAppendF(&key_location, "%s\\%s", kLibKeyName,
                       event_type);
   AppendBrandToString(&key_location);
 
   if (product != NULL) {
-    std::wstring product_name = GetWideProductName(*product);
+    std::string product_name = GetProductName(*product);
     if (product_name.empty())
       return false;
 
-    base::StringAppendF(&key_location, L"\\%ls", product_name.c_str());
+    base::StringAppendF(&key_location, "\\%s", product_name.c_str());
   }
 
   LONG ret = ERROR_SUCCESS;
   if (access & (KEY_SET_VALUE | KEY_CREATE_SUB_KEY | KEY_CREATE_LINK)) {
-    ret = key->Create(HKEY_CURRENT_USER, key_location.c_str(), access);
+    ret = key->Create(HKEY_CURRENT_USER, ASCIIToWide(key_location).c_str(),
+                      access);
   } else {
-    ret = key->Open(HKEY_CURRENT_USER, key_location.c_str(), access);
+    ret = key->Open(HKEY_CURRENT_USER, ASCIIToWide(key_location).c_str(),
+                    access);
   }
 
   return ret == ERROR_SUCCESS;
@@ -106,7 +109,7 @@ bool GetAccessPointRlzsRegKey(REGSAM access, base::win::RegKey* key) {
   return GetRegKey(kRlzsSubkeyName, access, key);
 }
 
-bool ClearAllProductEventValues(rlz_lib::Product product, const wchar_t* key) {
+bool ClearAllProductEventValues(rlz_lib::Product product, const char* key) {
   std::wstring product_name = GetWideProductName(product);
   if (product_name.empty())
     return false;
@@ -152,6 +155,11 @@ bool DeleteKeyIfEmpty(HKEY root_key, const wchar_t* key_name) {
 }
 
 }  // namespace
+
+// static
+std::wstring RlzValueStoreRegistry::GetWideLibKeyName() {
+  return ASCIIToWide(kLibKeyName);
+}
 
 bool RlzValueStoreRegistry::HasAccess(AccessType type) {
   return HasUserKeyAccess(type == kWriteAccess);
@@ -339,7 +347,7 @@ bool RlzValueStoreRegistry::ClearAllStatefulEvents(Product product) {
 
 void RlzValueStoreRegistry::CollectGarbage() {
   // Delete each of the known subkeys if empty.
-  const wchar_t* subkeys[] = {
+  const char* subkeys[] = {
     kRlzsSubkeyName,
     kEventsSubkeyName,
     kStatefulEventsSubkeyName,
@@ -347,15 +355,16 @@ void RlzValueStoreRegistry::CollectGarbage() {
   };
 
   for (int i = 0; i < arraysize(subkeys); i++) {
-    std::wstring subkey_name;
-    base::StringAppendF(&subkey_name, L"%ls\\%ls", kLibKeyName, subkeys[i]);
+    std::string subkey_name;
+    base::StringAppendF(&subkey_name, "%s\\%s", kLibKeyName, subkeys[i]);
     AppendBrandToString(&subkey_name);
 
-    VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, subkey_name.c_str()));
+    VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER,
+                            ASCIIToWide(subkey_name).c_str()));
   }
 
   // Delete the library key and its parents too now if empty.
-  VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, kLibKeyName));
+  VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, GetWideLibKeyName().c_str()));
   VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, kGoogleCommonKeyName));
   VERIFY(DeleteKeyIfEmpty(HKEY_CURRENT_USER, kGoogleKeyName));
 }

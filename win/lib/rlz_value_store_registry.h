@@ -10,11 +10,11 @@
 
 namespace rlz_lib {
 
-extern const wchar_t kLibKeyName[];
-
 // Implements RlzValueStore by storing values in the windows registry.
 class RlzValueStoreRegistry : public RlzValueStore {
  public:
+  static std::wstring GetWideLibKeyName();
+
   virtual bool HasAccess(AccessType type) OVERRIDE;
 
   virtual bool WritePingTime(Product product, int64 time) OVERRIDE;
