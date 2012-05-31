@@ -117,7 +117,8 @@ bool CreateMachineState() {
     return false;
 
   base::win::RegKey hklm_key;
-  if (hklm_key.Create(HKEY_LOCAL_MACHINE, rlz_lib::kLibKeyName,
+  if (hklm_key.Create(HKEY_LOCAL_MACHINE,
+                      RlzValueStoreRegistry::GetWideLibKeyName().c_str(),
                       KEY_ALL_ACCESS | KEY_WOW64_32KEY) != ERROR_SUCCESS) {
     ASSERT_STRING("rlz_lib::CreateMachineState: "
                   "Unable to create / open machine key.");
