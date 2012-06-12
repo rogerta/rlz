@@ -3,7 +3,7 @@
 # found in the COPYING file.
 
 vars = {
-  "chrev": "@102785"
+  "chrev": "@119173"
 }
 
 deps = {
@@ -42,6 +42,9 @@ deps = {
 
   "src/tools/gyp":
     "http://gyp.googlecode.com/svn/trunk@1233",
+
+  "src/tools/win":
+    "http://src.chromium.org/svn/trunk/src/tools/win" + Var("chrev"),
 
   # If using rlz with chrome's networking library, add it and its dependencies
   # here.
