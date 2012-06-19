@@ -47,8 +47,6 @@ class InternetHandle {
 #include "base/bind.h"
 #include "base/message_loop.h"
 #include "base/time.h"
-#include "content/public/common/url_fetcher.h"
-#include "content/public/common/url_fetcher_delegate.h"
 #include "googleurl/src/gurl.h"
 #include "net/base/load_flags.h"
 #include "net/url_request/url_fetcher.h"
@@ -194,7 +192,7 @@ bool FinancialPing::SetURLRequestContext(
 
 namespace {
 
-class FinancialPingUrlFetcherDelegate : public content::URLFetcherDelegate {
+class FinancialPingUrlFetcherDelegate : public net::URLFetcherDelegate {
  public:
   FinancialPingUrlFetcherDelegate(MessageLoop* loop) : loop_(loop) { }
   virtual void OnURLFetchComplete(const net::URLFetcher* source);
@@ -276,7 +274,7 @@ bool FinancialPing::PingServer(const char* request, std::string* response) {
                                        kFinancialServer, kFinancialPort,
                                        request);
 
-  scoped_ptr<net::URLFetcher> fetcher(content::URLFetcher::Create(
+  scoped_ptr<net::URLFetcher> fetcher(net::URLFetcher::Create(
       GURL(url), net::URLFetcher::GET, &delegate));
 
   fetcher->SetLoadFlags(net::LOAD_DISABLE_CACHE |

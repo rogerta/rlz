@@ -83,8 +83,6 @@
           'dependencies': [
             '../build/temp_gyp/googleurl.gyp:googleurl',
             '../net/net.gyp:net',
-            # TODO: Remove this once URLFetcher has moved to net, http://118220
-            '../content/content.gyp:content_common',
           ],
         }, {
           'defines': [
