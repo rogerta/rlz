@@ -52,7 +52,6 @@ deps = {
 
 include_rules = [
   "+build",
-  "+content",  # TODO: Remove this once http://crbug.com/118220 is fixed.
   "+net",  # This is only used when force_rlz_use_chrome_net=1 is passed to gyp.
   "+third_party/zlib",
 ]
