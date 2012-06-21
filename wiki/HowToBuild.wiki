@@ -14,7 +14,7 @@ Open a Command Prompt window and execute the following commands:
 C:
 mkdir \src\RLZ
 cd \src\RLZ
-gclient config http://rlz.googlecode.com/svn/trunk/ --name src/rlz
+gclient config https://src.chromium.org/chrome/trunk/src/rlz --name src/rlz
 gclient sync
 }}}
 
