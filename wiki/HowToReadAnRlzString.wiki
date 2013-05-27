@@ -5,7 +5,7 @@ An RLZ URL parameter is a string consisting of many parts:
 http://rlz.googlecode.com/files/rlz_exploded.png
 
   * *rlz encoding* is at version 1 as of Sept 2007, but this will be incremented each time the encoding scheme changes.
-  * *application* T=Toolbar, B=Firefox Toolbar, D=Desktop (authoritative list in the [http://code.google.com/p/rlz/source/browse/trunk/win/lib/lib_values.cc source code]) With one digit for major version.
+  * *application* T=Toolbar, B=Firefox Toolbar, D=Desktop (authoritative list in the [https://code.google.com/p/rlz/source/browse/trunk/lib/lib_values.cc source code]) With one digit for major version.
   * *brand code* identifies distribution channel, may be a partner or internal marketing. This correlates to how the user got the software (ie. they downloaded it by itself vs. it came pre-installed on their new computer vs. it came with a partner's software).
   * *cannibal* tells if the library has evidence that the user was a user prior to installing the software. It's from the term "cannibalization" which refers to the fact that users who get client products through distribution were already loyal customers, thus impacting the actual incremental value of the channel.
   * *language* is the two- (en) or five-character (zh-CN) language code of the application. Valid values depend on the specific app.
